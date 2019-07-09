@@ -15,7 +15,7 @@ public class FnScanner
         DateTime now = DateTime.Now;
        
 
-        string path = @"D:\WorkDoc\a_work\UT\Func_generation\UT_functions_" + now.ToString("yyyy-MM-dd")+".txt";
+        string path = @"D:\WorkDoc\a_work\UT\Func_generation\UT_functions_" + now.ToString("yyyy-MM-dd")+"1111.txt";
         if (File.Exists(path))
         {
             File.Delete(path);
@@ -31,6 +31,32 @@ public class FnScanner
                 if (!type.Name.StartsWith("<") && type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).Length!=0)
                 {
                     Console.WriteLine("--------"+ type.FullName + ".cs--------------------");
+                    if (!type.FullName.Equals("FnScanner"))
+                    {
+                        ConstructorInfo[] constructors = type.GetConstructors();
+               
+                        foreach (ConstructorInfo info in constructors)
+                        {
+                            tw.Write(type.FullName);
+                            tw.Write("\t");
+                            Console.Write("Constructor_" + info.Name + "(");
+                            tw.Write("Constructor_" + info.Name + "(");
+                            ParameterInfo[] parameterInfos = info.GetParameters();
+                            for (int j = 0; j < parameterInfos.Length; j++)
+                            {
+                                Console.Write(parameterInfos[j].ParameterType.Name);
+                                tw.Write(parameterInfos[j].ParameterType.Name);
+                                if (j + 1 < parameterInfos.Length)
+                                {
+                                    Console.Write(",");
+                                    tw.Write(",");
+                                }
+                            }
+                            Console.WriteLine(")");
+                            tw.WriteLine(")");
+                        }
+                    }
+
                     foreach (MethodInfo info in type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
                     {
 
