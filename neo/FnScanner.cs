@@ -15,7 +15,7 @@ public class FnScanner
         DateTime now = DateTime.Now;
        
 
-        string path = @"D:\WorkDoc\a_work\UT\Func_generation\UT_functions_" + now.ToString("yyyy-MM-dd")+"1111.txt";
+        string path = @"D:\WorkDoc\a_work\UT\Func_generation\UT_functions_" + now.ToString("yyyy-MM-dd")+".txt";
         if (File.Exists(path))
         {
             File.Delete(path);
