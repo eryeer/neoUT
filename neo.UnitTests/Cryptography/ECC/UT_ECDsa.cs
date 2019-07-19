@@ -1,18 +1,14 @@
-﻿using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neo.Cryptography;
-using Neo.Wallets;
-using System;
-using System.Linq;
-using System.Security.Cryptography;
-using ECDsa = Neo.Cryptography.ECC.ECDsa;
-using ECCurve = Neo.Cryptography.ECC.ECCurve;
-using ECPoint = Neo.Cryptography.ECC.ECPoint;
+﻿using System;
 using System.Numerics;
 using System.Reflection;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Cryptography.ECC;
+using Neo.Wallets;
+using ECDsa = Neo.Cryptography.ECC.ECDsa;
+using ECPoint = Neo.Cryptography.ECC.ECPoint;
 
-namespace Neo.UnitTests.Cryptography
+namespace Neo.UnitTests.Cryptography.ECC
 {
     [TestClass]
     public class UT_ECDsa
