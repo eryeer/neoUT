@@ -10,7 +10,6 @@ namespace Neo.UnitTests.IO.Caching
     [TestClass]
     public class UT_CloneCache
     {
-
         CloneCache<MyKey, MyValue> cloneCache;
         MyDataCache<MyKey, MyValue> myDataCache;
 
