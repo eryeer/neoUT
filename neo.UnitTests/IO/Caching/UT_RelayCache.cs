@@ -15,7 +15,7 @@ namespace Neo.UnitTests.IO.Caching
         {
             relayCache = new RelayCache(10);
         }
-       
+
         [TestMethod]
         public void TestGetKeyForItem()
         {
