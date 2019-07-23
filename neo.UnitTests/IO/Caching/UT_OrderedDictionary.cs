@@ -96,10 +96,11 @@ namespace Neo.UnitTests.IO.Caching
         }
 
         [TestMethod]
-        public void TestCollectionCopyTo() {
+        public void TestCollectionCopyTo()
+        {
             var arr = new KeyValuePair<string, uint>[3];
             ICollection<KeyValuePair<string, uint>> collection = od;
-            collection.CopyTo(arr,0);
+            collection.CopyTo(arr, 0);
             arr[0].Key.Should().Be("a");
             arr[0].Value.Should().Be(1);
             arr[1].Key.Should().Be("b");
@@ -109,7 +110,8 @@ namespace Neo.UnitTests.IO.Caching
         }
 
         [TestMethod]
-        public void TestCollectionRemove() {
+        public void TestCollectionRemove()
+        {
             ICollection<KeyValuePair<string, uint>> collection = od;
             var pair = new KeyValuePair<string, uint>("a", 1);
             collection.Remove(pair);
@@ -120,7 +122,7 @@ namespace Neo.UnitTests.IO.Caching
         [TestMethod]
         public void TestGetEnumerator()
         {
-            IEnumerable collection = (IEnumerable)od;
+            IEnumerable collection = od;
             collection.GetEnumerator().MoveNext().Should().BeTrue();
         }
     }
