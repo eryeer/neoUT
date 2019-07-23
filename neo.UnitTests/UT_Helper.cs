@@ -4,7 +4,6 @@ using Neo.Network.P2P;
 using Neo.SmartContract;
 using Neo.Wallets;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Numerics;
@@ -99,20 +98,6 @@ namespace Neo.UnitTests
 
             Action action3 = () => ran.NextBigInteger(9);
             action3.ShouldNotThrow();
-        }
-
-        [TestMethod]
-        public void TestToDateTimeForInt()
-        {
-            uint i = 10000;
-            i.ToDateTime().ToTimestamp().Should().Be(i);
-        }
-
-        [TestMethod]
-        public void TestToDateTimeForLong()
-        {
-            ulong i = 10000;
-            ((ulong)i.ToDateTime().ToTimestamp()).Should().Be(i);
         }
 
         [TestMethod]
