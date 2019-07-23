@@ -39,5 +39,10 @@ namespace Neo.UnitTests.Plugins
         {
             LoadPlugins(system);
         }
+
+        public static List<IPolicyPlugin> GetPolicies()
+        {
+            return Policies;
+        }
     }
 }

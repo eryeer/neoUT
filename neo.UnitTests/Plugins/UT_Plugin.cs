@@ -14,23 +14,28 @@ namespace Neo.UnitTests.Plugins
         [TestMethod]
         public void TestCheckPolicy()
         {
-            Transaction tx = new Transaction
+            lock (locker)
             {
-                Script = TestUtils.GetByteArray(32, 0x42),
-                Sender = UInt160.Zero,
-                SystemFee = 4200000000,
-                Attributes = new TransactionAttribute[0],
-                Witnesses = new[]
+                Transaction tx = new Transaction
                 {
+                    Script = TestUtils.GetByteArray(32, 0x42),
+                    Sender = UInt160.Zero,
+                    SystemFee = 4200000000,
+                    Attributes = new TransactionAttribute[0],
+                    Witnesses = new[]
+                    {
                     new Witness
                     {
                         InvocationScript = new byte[0],
                         VerificationScript = new byte[0]
                     }
                 }
-            };
-            var pp = new TestPolicyPlugin();
-            Plugin.CheckPolicy(tx).Should().BeFalse();
+                };
+                TestPolicyPlugin.GetPolicies().Clear();
+                Plugin.CheckPolicy(tx).Should().BeTrue();
+                var pp = new TestPolicyPlugin();
+                Plugin.CheckPolicy(tx).Should().BeFalse();
+            }
         }
 
         [TestMethod]
@@ -71,8 +76,11 @@ namespace Neo.UnitTests.Plugins
                 Plugin.Plugins.Clear();
                 Plugin.SendMessage("hey1").Should().BeFalse();
 
-                var pp = new TestLogPlugin();
-                Plugin.SendMessage("hey2").Should().BeTrue();
+                var pp = new TestPolicyPlugin();
+                Plugin.SendMessage("hey2").Should().BeFalse();
+
+                var lp = new TestLogPlugin();
+                Plugin.SendMessage("hey3").Should().BeTrue();
             }
         }
 
