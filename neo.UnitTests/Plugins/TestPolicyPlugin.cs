@@ -1,4 +1,5 @@
-﻿using Neo.Network.P2P.Payloads;
+﻿using Microsoft.Extensions.Configuration;
+using Neo.Network.P2P.Payloads;
 using Neo.Plugins;
 using System.Collections.Generic;
 
@@ -23,6 +24,11 @@ namespace Neo.UnitTests.Plugins
         public bool TestOnMessage(object message)
         {
             return OnMessage(message);
+        }
+
+        public IConfigurationSection TestGetConfiguration()
+        {
+            return GetConfiguration();
         }
 
         public static bool TestResumeNodeStartup()

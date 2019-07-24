@@ -102,5 +102,12 @@ namespace Neo.UnitTests.Plugins
             TestPolicyPlugin.TestResumeNodeStartup().Should().BeFalse();
             TestPolicyPlugin.TestResumeNodeStartup().Should().BeTrue();
         }
+
+        [TestMethod]
+        public void TestGetConfiguration()
+        {
+            var pp = new TestPolicyPlugin();
+            pp.TestGetConfiguration().Key.Should().Be("PluginConfiguration");
+        }
     }
 }
