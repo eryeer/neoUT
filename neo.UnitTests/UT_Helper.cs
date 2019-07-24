@@ -49,8 +49,18 @@ namespace Neo.UnitTests
             var big1 = new BigInteger(0);
             big1.GetLowestSetBit().Should().Be(-1);
 
-            var big2 = new BigInteger(100);
-            big2.GetLowestSetBit().Should().Be(2);
+            var big2 = new BigInteger(512);
+            big2.GetLowestSetBit().Should().Be(9);
+        }
+
+        [TestMethod]
+        public void TestGetBitLength()
+        {
+            var b1 = new BigInteger(100);
+            b1.GetBitLength().Should().Be(7);
+
+            var b2 = new BigInteger(-100);
+            b2.GetBitLength().Should().Be(7);
         }
 
         [TestMethod]
@@ -206,7 +216,8 @@ namespace Neo.UnitTests
                 Weight = w
             });
             var sum = BigInteger.Zero;
-            foreach (Result res in ret) {
+            foreach (Result res in ret)
+            {
                 sum = BigInteger.Add(res.Weight, sum);
             }
             sum.Should().Be(BigInteger.Zero);
@@ -215,7 +226,7 @@ namespace Neo.UnitTests
             {
                 Value = 3
             };
-           
+
             var list2 = new List<Woo>
             {
                 w1, w2, w3
@@ -231,6 +242,63 @@ namespace Neo.UnitTests
                 sum = BigInteger.Add(res.Weight, sum);
             }
             sum.Should().Be(BigInteger.Zero);
+
+            Action action1 = () => list2.WeightedFilter(-1, 0.4, p => p.Value, (p, w) => new Result
+            {
+                Info = p,
+                Weight = w
+            }).WeightedAverage(p => p.Weight, p => p.Weight);
+            action1.ShouldThrow<ArgumentOutOfRangeException>();
+
+            Action action2 = () => list2.WeightedFilter(0.2, 1.4, p => p.Value, (p, w) => new Result
+            {
+                Info = p,
+                Weight = w
+            }).WeightedAverage(p => p.Weight, p => p.Weight);
+            action2.ShouldThrow<ArgumentOutOfRangeException>();
+
+            Action action3 = () => list2.WeightedFilter(0.8, 0.3, p => p.Value, (p, w) => new Result
+            {
+                Info = p,
+                Weight = w
+            }).WeightedAverage(p => p.Weight, p => p.Weight);
+            action3.ShouldThrow<ArgumentOutOfRangeException>();
+
+            Action action4 = () => list2.WeightedFilter(0.3, 0.8, p => p.Value, (p, w) => new Result
+            {
+                Info = p,
+                Weight = w
+            }).WeightedAverage(p => p.Weight, p => p.Weight);
+            action4.ShouldThrow<ArgumentOutOfRangeException>();
+
+            Action action5 = () => list2.WeightedFilter(0.3, 0.6, null, (p, w) => new Result
+            {
+                Info = p,
+                Weight = w
+            }).WeightedAverage(p => p.Weight, p => p.Weight);
+            action5.ShouldThrow<ArgumentNullException>();
+
+            list2.WeightedFilter(0.3, 0.3, p => p.Value, (p, w) => new Result
+            {
+                Info = p,
+                Weight = w
+            }).WeightedAverage(p => p.Weight, p => p.Weight).Should().Be(0);
+
+
+            var list3 = new List<Woo>();
+            list3.WeightedFilter(0.3, 0.6, p => p.Value, (p, w) => new Result
+            {
+                Info = p,
+                Weight = w
+            }).WeightedAverage(p => p.Weight, p => p.Weight).Should().Be(0);
+
+            list2 = null;
+            Action action6 = () => list2.WeightedFilter(0.3, 0.4, p => p.Value, (p, w) => new Result
+            {
+                Info = p,
+                Weight = w
+            }).WeightedAverage(p => p.Weight, p => p.Weight);
+            action6.ShouldThrow<ArgumentNullException>();
         }
     }
 
