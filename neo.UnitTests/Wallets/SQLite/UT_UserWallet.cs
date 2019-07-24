@@ -48,21 +48,22 @@ namespace Neo.UnitTests.Wallets.SQLite
         }
 
         [TestMethod]
-        public void TestCreateAndOpenSecureString() {
+        public void TestCreateAndOpenSecureString()
+        {
             string myPath = GetRandomPath();
             var ss = new SecureString();
             ss.AppendChar('a');
             ss.AppendChar('b');
             ss.AppendChar('c');
 
-            var w1 =  UserWallet.Create(myPath,ss);
+            var w1 = UserWallet.Create(myPath, ss);
             w1.Should().NotBeNull();
 
             var w2 = UserWallet.Open(myPath, ss);
             w2.Should().NotBeNull();
 
             ss.AppendChar('d');
-            Action action = () =>UserWallet.Open(myPath, ss);
+            Action action = () => UserWallet.Open(myPath, ss);
             action.ShouldThrow<CryptographicException>();
 
             TestUtils.DeleteFile(myPath);
@@ -79,13 +80,28 @@ namespace Neo.UnitTests.Wallets.SQLite
         }
 
         [TestMethod]
-        public void TestCreateAccountByPrivateKey() {
+        public void TestCreateAccountAndGetByPrivateKey()
+        {
             byte[] privateKey = new byte[32];
             using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(privateKey);
             }
             var account = wallet.CreateAccount(privateKey);
+            var dbAccount = wallet.GetAccount(account.ScriptHash);
+            account.Should().Be(dbAccount);
+
+            var account1 = wallet.CreateAccount(privateKey);
+            var dbAccount1 = wallet.GetAccount(account1.ScriptHash);
+            account1.Should().Be(dbAccount1);
+        }
+
+        //[TestMethod]
+        public void TestCreateAccountByScriptHash()
+        {
+            var account = wallet.CreateAccount(UInt160.Parse("0xa6ee944042f3c7ea900481a95d65e4a887320cf0"));
+            var dbAccount = wallet.GetAccount(account.ScriptHash);
+            account.Should().Be(dbAccount);
         }
     }
 }
