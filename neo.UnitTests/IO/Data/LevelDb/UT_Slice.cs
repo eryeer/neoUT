@@ -188,5 +188,86 @@ namespace Neo.UnitTests.IO.Data.LevelDb
             sliceTest = 12345678UL;
             Assert.AreEqual(slice, sliceTest);
         }
+        [TestMethod]
+        public void TestLessThan()
+        {
+            sliceTest = new byte[]{0x01};
+            Slice slice = new byte[]{0x02};
+            bool result = sliceTest < slice;
+            Assert.AreEqual(true, result);
+            slice = new byte[]{0x01};
+            result = sliceTest < slice;
+            Assert.AreEqual(false, result);
+            slice = new byte[]{0x00};
+            result = sliceTest < slice;
+            Assert.AreEqual(false, result);
+        }
+        [TestMethod]
+        public void TestLessThanAndEqual()
+        {
+            sliceTest = new byte[]{0x01};
+            Slice slice = new byte[]{0x02};
+            bool result = sliceTest <= slice;
+            Assert.AreEqual(true, result);
+            slice = new byte[]{0x01};
+            result = sliceTest <= slice;
+            Assert.AreEqual(true, result);
+            slice = new byte[]{0x00};
+            result = sliceTest <= slice;
+            Assert.AreEqual(false, result);
+        }
+        [TestMethod]
+        public void TestGreatThan()
+        {
+            sliceTest = new byte[]{0x01};
+            Slice slice = new byte[]{0x00};
+            bool result = sliceTest > slice;
+            Assert.AreEqual(true, result);
+            slice = new byte[]{0x01};
+            result = sliceTest > slice;
+            Assert.AreEqual(false, result);
+            slice = new byte[]{0x02};
+            result = sliceTest > slice;
+            Assert.AreEqual(false, result);
+        }
+        [TestMethod]
+        public void TestGreatThanAndEqual()
+        {
+            sliceTest = new byte[]{0x01};
+            Slice slice = new byte[]{0x00};
+            bool result = sliceTest >= slice;
+            Assert.AreEqual(true, result);
+            slice = new byte[]{0x01};
+            result = sliceTest >= slice;
+            Assert.AreEqual(true, result);
+            slice = new byte[]{0x02};
+            result = sliceTest >= slice;
+            Assert.AreEqual(false, result);
+        }
+        [TestMethod]
+        public void TestEqual()
+        {
+            sliceTest = new byte[]{0x01};
+            Slice slice = new byte[]{0x00};
+            bool result = sliceTest == slice;
+            Assert.AreEqual(false, result);
+            slice = new byte[]{0x01};
+            result = sliceTest == slice;
+            Assert.AreEqual(true, result);
+            slice = new byte[]{0x02};
+            result = sliceTest == slice;
+            Assert.AreEqual(false, result);
+        }
+        [TestMethod]
+        public void TestUnequal()
+        {
+            sliceTest = new byte[]{0x01};
+            Slice slice = new byte[]{0x00};
+            bool result = sliceTest != slice;
+            Assert.AreEqual(true, result);
+            slice = new byte[]{0x01};
+            result = sliceTest != slice;
+            Assert.AreEqual(false, result);
+        }
     }
 }
