@@ -67,5 +67,25 @@ namespace Neo.UnitTests.Wallets.SQLite
 
             TestUtils.DeleteFile(myPath);
         }
+
+        [TestMethod]
+        public void TestOpen()
+        {
+            var w1 = UserWallet.Open(path, "123456");
+            w1.Should().NotBeNull();
+
+            Action action = () => UserWallet.Open(path, "123");
+            action.ShouldThrow<CryptographicException>();
+        }
+
+        [TestMethod]
+        public void TestCreateAccountByPrivateKey() {
+            byte[] privateKey = new byte[32];
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(privateKey);
+            }
+            var account = wallet.CreateAccount(privateKey);
+        }
     }
 }
