@@ -109,6 +109,109 @@ namespace Neo.UnitTests.IO.Data.LevelDb
             Marshal.FreeHGlobal(parr);
         }
         [TestMethod]
+        public void TestToArray()
+        {
+            sliceTest = new Slice();
+            byte[] arr = sliceTest.ToArray();
+            Assert.AreEqual(0, arr.Length);
+            arr = new byte[]{0x01, 0x02};
+            sliceTest = arr;
+            byte[] parr = sliceTest.ToArray();
+            Assert.AreSame(parr, arr);
+        }
+        [TestMethod]
+        public void TestToBoolean()
+        {
+            sliceTest = new byte[]{0x01, 0x02};
+            Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToBoolean());
+            sliceTest = (byte)0x01;
+            bool result = sliceTest.ToBoolean();
+            Assert.AreEqual(true, result);
+        }
+        [TestMethod]
+        public void TestToByte()
+        {
+            sliceTest = new byte[]{0x01, 0x02};
+            Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToByte());
+            sliceTest = (byte)0x01;
+            byte result = sliceTest.ToByte();
+            Assert.AreEqual((byte)0x01, result);
+        }
+        [TestMethod]
+        public void TestToDouble()
+        {
+            sliceTest = new byte[]{0x01};
+            Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToDouble());
+            byte[] arr = new byte[sizeof(double)];
+            sliceTest = arr;
+            double result = sliceTest.ToDouble();
+            Assert.AreEqual(0D, result);
+            sliceTest = 0.5D;
+            Assert.AreEqual(0.5D, sliceTest.ToDouble());
+        }
+        [TestMethod]
+        public void TestToInt16()
+        {
+            sliceTest = new byte[]{0x01};
+            Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToInt16());
+            sliceTest = (Int16)(-15);
+            Assert.AreEqual((Int16)(-15), sliceTest.ToInt16());
+        }
+        [TestMethod]
+        public void TestToInt32()
+        {
+            sliceTest = new byte[]{0x01};
+            Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToInt32());
+            sliceTest = (Int32)(-15);
+            Assert.AreEqual((Int32)(-15), sliceTest.ToInt32());
+        }
+        [TestMethod]
+        public void TestToInt64()
+        {
+            sliceTest = new byte[]{0x01};
+            Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToInt64());
+            sliceTest = Int64.MaxValue;
+            Assert.AreEqual(Int64.MaxValue, sliceTest.ToInt64());
+        }
+        [TestMethod]
+        public void TestToSingle()
+        {
+            sliceTest = new byte[]{0x01};
+            Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToSingle());
+            sliceTest = (float)(-15.5);
+            Assert.AreEqual((float)(-15.5), sliceTest.ToSingle());
+        }
+        [TestMethod]
+        public void TestToString()
+        {
+            sliceTest = "abc你好";
+            Assert.AreEqual("abc你好", sliceTest.ToString());
+        }
+        [TestMethod]
+        public void TestToUint16()
+        {
+            sliceTest = new byte[]{0x01};
+            Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToUInt16());
+            sliceTest = (UInt16)(25);
+            Assert.AreEqual((UInt16)25, sliceTest.ToUInt16());
+        }
+        [TestMethod]
+        public void TestToUint32()
+        {
+            sliceTest = new byte[]{0x01};
+            Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToUInt32());
+            sliceTest = (UInt32)(2525252525);
+            Assert.AreEqual((UInt32)2525252525, sliceTest.ToUInt32());
+        }
+        [TestMethod]
+        public void TestToUint64()
+        {
+            sliceTest = new byte[]{0x01};
+            Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToUInt64());
+            sliceTest = (UInt64)(0x2525252525252525);
+            Assert.AreEqual((UInt64)(0x2525252525252525), sliceTest.ToUInt64());
+        }
+        [TestMethod]
         public void TestFromBool()
         {
             byte[] arr = { 0x01 };
