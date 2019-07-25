@@ -104,7 +104,7 @@ namespace Neo.UnitTests.Wallets.SQLite
             account1.Should().Be(dbAccount1);
         }
 
-        //[TestMethod]
+        [TestMethod]
         public void TestCreateAccountByScriptHash()
         {
             var account = wallet.CreateAccount(UInt160.Parse("0xa6ee944042f3c7ea900481a95d65e4a887320cf0"));
