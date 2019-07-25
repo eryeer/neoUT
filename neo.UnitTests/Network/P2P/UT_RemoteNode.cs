@@ -1,4 +1,4 @@
-﻿using Akka.IO;
+using Akka.IO;
 using Akka.TestKit.Xunit2;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,6 +9,7 @@ using Neo.Network.P2P.Payloads;
 namespace Neo.UnitTests.Network.P2P
 {
     [TestClass]
+    [NotReRunnable]
     public class UT_RemoteNode : TestKit
     {
         private static NeoSystem testBlockchain;
@@ -52,7 +53,7 @@ namespace Neo.UnitTests.Network.P2P
             connectionTestProbe.ExpectMsg<Tcp.Abort>();
         }
 
-        //[TestMethod]
+        [TestMethod]
         public void RemoteNode_Test_Accept_IfSameMagic()
         {
             var connectionTestProbe = CreateTestProbe();

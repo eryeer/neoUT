@@ -1,14 +1,14 @@
-﻿using System;
-using System.Numerics;
-using System.Reflection;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Cryptography.ECC;
 using Neo.Wallets;
+using System;
+using System.Numerics;
+using System.Reflection;
 using ECDsa = Neo.Cryptography.ECC.ECDsa;
 using ECPoint = Neo.Cryptography.ECC.ECPoint;
 
-namespace Neo.UnitTests.Cryptography.ECC
+namespace Neo.UnitTests.Cryptography
 {
     [TestClass]
     public class UT_ECDsa
@@ -28,10 +28,10 @@ namespace Neo.UnitTests.Cryptography.ECC
             BigInteger n = key.PublicKey.Curve.N;
             byte[] message = System.Text.Encoding.Default.GetBytes("HelloWorld");
             MethodInfo dynMethod = typeof(ECDsa).GetMethod("CalculateE", BindingFlags.NonPublic | BindingFlags.Instance);
-            ((BigInteger)dynMethod.Invoke(sa, new object[] { n, message})).Should().Be(BigInteger.Parse("341881320659934023674980"));
+            ((BigInteger)dynMethod.Invoke(sa, new object[] { n, message })).Should().Be(BigInteger.Parse("341881320659934023674980"));
 
             n = new BigInteger(10000000);
-            ((BigInteger)dynMethod.Invoke(sa, new object[] { n, message})).Should().Be(BigInteger.Parse("4744556"));
+            ((BigInteger)dynMethod.Invoke(sa, new object[] { n, message })).Should().Be(BigInteger.Parse("4744556"));
         }
 
         [TestMethod]
@@ -48,11 +48,14 @@ namespace Neo.UnitTests.Cryptography.ECC
         {
             ECDsa sa = new ECDsa(key.PrivateKey, key.PublicKey.Curve);
             byte[] message = System.Text.Encoding.Default.GetBytes("HelloWorld");
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 30; i++)
             {
                 BigInteger[] result = sa.GenerateSignature(message);
                 result.Length.Should().Be(2);
             }
+            sa = new ECDsa(key.PublicKey);
+            Action action = () => sa.GenerateSignature(message);
+            action.ShouldThrow<InvalidOperationException>();
         }
 
         [TestMethod]
