@@ -1,12 +1,14 @@
 ﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo.SmartContract;
+using Neo.Wallets;
 using Neo.Wallets.SQLite;
 using System;
 using System.IO;
-using System.Reflection;
 using System.Security;
 using System.Security.Cryptography;
 using System.Threading;
+using Contract = Neo.SmartContract.Contract;
 
 namespace Neo.UnitTests.Wallets.SQLite
 {
@@ -96,12 +98,47 @@ namespace Neo.UnitTests.Wallets.SQLite
             account1.Should().Be(dbAccount1);
         }
 
-        //[TestMethod]
+        [TestMethod]
         public void TestCreateAccountByScriptHash()
         {
             var account = wallet.CreateAccount(UInt160.Parse("0xa6ee944042f3c7ea900481a95d65e4a887320cf0"));
             var dbAccount = wallet.GetAccount(account.ScriptHash);
             account.Should().Be(dbAccount);
+        }
+
+        [TestMethod]
+        public void TestCreateAccountBySmartContract()
+        {
+            byte[] privateKey = new byte[32];
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(privateKey);
+            }
+            KeyPair key = new KeyPair(privateKey);
+            VerificationContract contract = new VerificationContract
+            {
+                Script = Contract.CreateSignatureRedeemScript(key.PublicKey),
+                ParameterList = new[] { ContractParameterType.Signature }
+            };
+            var account = wallet.CreateAccount(contract, key);
+            var dbAccount = wallet.GetAccount(account.ScriptHash);
+            account.Should().Be(dbAccount);
+        }
+
+        [TestMethod]
+        public void TestDeleteAccount()
+        {
+            bool ret = wallet.DeleteAccount(UInt160.Parse("0xa6ee944042f3c7ea900481a95d65e4a887320cf0"));
+            ret.Should().BeFalse();
+
+            byte[] privateKey = new byte[32];
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(privateKey);
+            }
+            var account = wallet.CreateAccount(privateKey);
+            bool ret2 = wallet.DeleteAccount(account.ScriptHash);
+            ret2.Should().BeTrue();
         }
     }
 }
