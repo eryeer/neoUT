@@ -36,6 +36,10 @@ namespace Neo.UnitTests.Cryptography
         public void TestGetIsLeaf()
         {
             node.IsLeaf.Should().BeTrue();
+
+            MerkleTreeNode child = new MerkleTreeNode();
+            node.LeftChild = child;
+            node.IsLeaf.Should().BeFalse();
         }
 
         [TestMethod]
