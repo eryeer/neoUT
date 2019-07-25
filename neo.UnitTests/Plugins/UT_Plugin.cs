@@ -57,7 +57,8 @@ namespace Neo.UnitTests.Plugins
         public void TestGetVersion()
         {
             var pp = new TestPolicyPlugin();
-            pp.Version.ToString().Should().Be("1.0.0.0");
+            Action action = () => pp.Version.ToString();
+            action.ShouldNotThrow();
         }
 
         [TestMethod]
