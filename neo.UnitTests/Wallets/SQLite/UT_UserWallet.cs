@@ -74,6 +74,12 @@ namespace Neo.UnitTests.Wallets.SQLite
         [TestMethod]
         public void TestOpen()
         {
+            byte[] privateKey = new byte[32];
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(privateKey);
+            }
+            var account = wallet.CreateAccount(privateKey);
             var w1 = UserWallet.Open(path, "123456");
             w1.Should().NotBeNull();
 
@@ -123,6 +129,22 @@ namespace Neo.UnitTests.Wallets.SQLite
             var account = wallet.CreateAccount(contract, key);
             var dbAccount = wallet.GetAccount(account.ScriptHash);
             account.Should().Be(dbAccount);
+
+            byte[] privateKey2 = new byte[32];
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(privateKey2);
+            }
+            KeyPair key2 = new KeyPair(privateKey2);
+            Contract contract2 = new Contract
+            {
+                Script = Contract.CreateSignatureRedeemScript(key2.PublicKey),
+                ParameterList = new[] { ContractParameterType.Signature }
+            };
+            var account2 = wallet.CreateAccount(contract2, key2);
+            var dbAccount2 = wallet.GetAccount(account2.ScriptHash);
+            account2.Should().Be(dbAccount2);
+
         }
 
         [TestMethod]
@@ -139,6 +161,47 @@ namespace Neo.UnitTests.Wallets.SQLite
             var account = wallet.CreateAccount(privateKey);
             bool ret2 = wallet.DeleteAccount(account.ScriptHash);
             ret2.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void TestChangePassword()
+        {
+            wallet.ChangePassword("123455", "654321").Should().BeFalse();
+            wallet.ChangePassword("123456", "654321").Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void TestContains() {
+            byte[] privateKey = new byte[32];
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(privateKey);
+            }
+            var account = wallet.CreateAccount(privateKey);
+            wallet.Contains(account.ScriptHash).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void TestGetAccounts() {
+            var ret = wallet.GetAccounts();
+            ret.Should().BeNullOrEmpty();
+
+            byte[] privateKey = new byte[32];
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(privateKey);
+            }
+            var account = wallet.CreateAccount(privateKey);
+            ret = wallet.GetAccounts();
+            foreach (var dbAccount in ret) {
+                dbAccount.Should().Be(account);
+            }
+        }
+
+        [TestMethod]
+        public void TestVerifyPassword() {
+            wallet.VerifyPassword("123456").Should().BeTrue();
+            wallet.VerifyPassword("123").Should().BeFalse();
         }
     }
 }
