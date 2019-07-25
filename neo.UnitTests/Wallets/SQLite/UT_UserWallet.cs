@@ -144,7 +144,6 @@ namespace Neo.UnitTests.Wallets.SQLite
             var account2 = wallet.CreateAccount(contract2, key2);
             var dbAccount2 = wallet.GetAccount(account2.ScriptHash);
             account2.Should().Be(dbAccount2);
-
         }
 
         [TestMethod]
@@ -171,7 +170,8 @@ namespace Neo.UnitTests.Wallets.SQLite
         }
 
         [TestMethod]
-        public void TestContains() {
+        public void TestContains()
+        {
             byte[] privateKey = new byte[32];
             using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
             {
@@ -182,7 +182,8 @@ namespace Neo.UnitTests.Wallets.SQLite
         }
 
         [TestMethod]
-        public void TestGetAccounts() {
+        public void TestGetAccounts()
+        {
             var ret = wallet.GetAccounts();
             ret.Should().BeNullOrEmpty();
 
@@ -193,13 +194,15 @@ namespace Neo.UnitTests.Wallets.SQLite
             }
             var account = wallet.CreateAccount(privateKey);
             ret = wallet.GetAccounts();
-            foreach (var dbAccount in ret) {
+            foreach (var dbAccount in ret)
+            {
                 dbAccount.Should().Be(account);
             }
         }
 
         [TestMethod]
-        public void TestVerifyPassword() {
+        public void TestVerifyPassword()
+        {
             wallet.VerifyPassword("123456").Should().BeTrue();
             wallet.VerifyPassword("123").Should().BeFalse();
         }
