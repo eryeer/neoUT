@@ -76,7 +76,6 @@ namespace Neo.UnitTests.IO.Json
             };
             jArray[0] = bob;
             Assert.AreEqual(jArray[0], bob);
-
             Action action = () => jArray[1] = alice;
             action.ShouldThrow<ArgumentOutOfRangeException>();
         }
@@ -95,7 +94,6 @@ namespace Neo.UnitTests.IO.Json
             jAlice["gender"].ToString().Should().Be(alice["gender"].ToString());
             jAlice["isMarried"].ToString().Should().Be(alice["isMarried"].ToString());
             jAlice["pet"].ToString().Should().Be(alice["pet"].ToString());
-
             jArray.Clear();
             Action action = () => jArray[0].ToString();
             action.ShouldThrow<ArgumentOutOfRangeException>();
@@ -106,7 +104,6 @@ namespace Neo.UnitTests.IO.Json
         {
             var jArray = new JArray();
             jArray.Add(alice);
-
             jArray.Contains(alice).Should().BeTrue();
             jArray.Contains(bob).Should().BeFalse();
         }
@@ -119,14 +116,12 @@ namespace Neo.UnitTests.IO.Json
                 alice,
                 bob
             };
-
             JObject[] jObjects1 = new JObject[2];
             jArray.CopyTo(jObjects1, 0);
             var jAlice1 = jObjects1[0];
             var jBob1 = jObjects1[1];
             Assert.AreEqual(alice, jAlice1);
             Assert.AreEqual(bob, jBob1);
-
             JObject[] jObjects2 = new JObject[4];
             jArray.CopyTo(jObjects2, 2);
             var jAlice2 = jObjects2[2];
@@ -147,13 +142,11 @@ namespace Neo.UnitTests.IO.Json
                 alice,
                 alice
             };
-
             jArray.Insert(1, bob);
             jArray.Count().Should().Be(5);
             jArray[0].Should().Be(alice);
             jArray[1].Should().Be(bob);
             jArray[2].Should().Be(alice);
-
             jArray.Insert(5, bob);
             jArray.Count().Should().Be(6);
             jArray[5].Should().Be(bob);
@@ -164,13 +157,11 @@ namespace Neo.UnitTests.IO.Json
         {
             var jArray = new JArray();
             jArray.IndexOf(alice).Should().Be(-1);
-
             jArray.Add(alice);
             jArray.Add(alice);
             jArray.Add(alice);
             jArray.Add(alice);
             jArray.IndexOf(alice).Should().Be(0);
-
             jArray.Insert(1, bob);
             jArray.IndexOf(bob).Should().Be(1);
         }
@@ -192,7 +183,6 @@ namespace Neo.UnitTests.IO.Json
             jArray.Count().Should().Be(1);
             jArray.Remove(alice);
             jArray.Count().Should().Be(0);
-
             jArray.Add(alice);
             jArray.Add(alice);
             jArray.Count().Should().Be(2);
