@@ -9,7 +9,6 @@ namespace Neo.UnitTests.Wallets.NEP6
     [TestClass]
     public class UT_NEP6Contract
     {
-
         [TestMethod]
         public void TestFromNullJson()
         {
