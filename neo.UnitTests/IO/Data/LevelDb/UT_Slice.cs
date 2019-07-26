@@ -1,9 +1,10 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+using Neo.Cryptography;
 using Neo.IO.Data.LevelDB;
+using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using Neo.Cryptography;
+
 
 namespace Neo.UnitTests.IO.Data.LevelDb
 {
@@ -64,7 +65,6 @@ namespace Neo.UnitTests.IO.Data.LevelDb
             arr2 = new byte[] { 0x01, 0x03 };
             sliceTest = arr2;
             Assert.IsFalse(sliceTest.Equals(slice));
-
         }
 
         [TestMethod]
