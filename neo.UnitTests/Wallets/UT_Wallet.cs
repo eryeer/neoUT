@@ -27,7 +27,7 @@ namespace Neo.UnitTests.Wallets
             return accounts.ContainsKey(scriptHash);
         }
 
-        public void addAccount(WalletAccount account)
+        public void AddAccount(WalletAccount account)
         {
             accounts.Add(account.ScriptHash, account);
         }
@@ -43,23 +43,25 @@ namespace Neo.UnitTests.Wallets
             MyWalletAccount account = new MyWalletAccount(contract.ScriptHash);
             account.SetKey(key);
             account.Contract = contract;
-            addAccount(account);
+            AddAccount(account);
             return account;
         }
 
         public override WalletAccount CreateAccount(Contract contract, KeyPair key = null)
         {
-            MyWalletAccount account = new MyWalletAccount(contract.ScriptHash);
-            account.Contract = contract;
+            MyWalletAccount account = new MyWalletAccount(contract.ScriptHash)
+            {
+                Contract = contract
+            };
             account.SetKey(key);
-            addAccount(account);
+            AddAccount(account);
             return account;
         }
 
         public override WalletAccount CreateAccount(UInt160 scriptHash)
         {
             MyWalletAccount account = new MyWalletAccount(scriptHash);
-            addAccount(account);
+            AddAccount(account);
             return account;
         }
 
