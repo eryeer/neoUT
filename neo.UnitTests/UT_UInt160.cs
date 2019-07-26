@@ -1,11 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neo.IO;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace Neo.UnitTests.IO
 {
@@ -51,25 +46,14 @@ namespace Neo.UnitTests.IO
         [TestMethod]
         public void TestParse()
         {
-            Action action=()=>UInt160.Parse(null);
+            Action action = () => UInt160.Parse(null);
             action.ShouldThrow<ArgumentNullException>();
-            UInt160 result=UInt160.Parse("0x0000000000000000000000000000000000000000");
+            UInt160 result = UInt160.Parse("0x0000000000000000000000000000000000000000");
             Assert.AreEqual(UInt160.Zero, result);
             Action action1 = () => UInt160.Parse("000000000000000000000000000000000000000");
             action1.ShouldThrow<FormatException>();
             UInt160 result1 = UInt160.Parse("0000000000000000000000000000000000000000");
             Assert.AreEqual(UInt160.Zero, result1);
-        }
-
-        [TestMethod]
-        public void TryParse()
-        {
-            UInt160 temp = new UInt160();
-            Assert.AreEqual(false, UInt160.TryParse(null, out temp));
-            Assert.AreEqual(true, UInt160.TryParse("0x0000000000000000000000000000000000000000", out temp));
-            Assert.AreEqual(UInt160.Zero, temp);
-            Assert.AreEqual(false, UInt160.TryParse("000000000000000000000000000000000000000", out temp));
-            Assert.AreEqual(false, UInt160.TryParse("0xKK00000000000000000000000000000000000000", out temp));
         }
 
         [TestMethod]
@@ -86,7 +70,7 @@ namespace Neo.UnitTests.IO
         [TestMethod]
         public void TestOperatorLarger()
         {
-            Assert.AreEqual(false, UInt160.Zero> UInt160.Zero);
+            Assert.AreEqual(false, UInt160.Zero > UInt160.Zero);
         }
 
         [TestMethod]

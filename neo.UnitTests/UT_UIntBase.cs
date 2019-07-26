@@ -2,10 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.IO;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace Neo.UnitTests.IO
 {
@@ -15,14 +12,16 @@ namespace Neo.UnitTests.IO
         [TestMethod]
         public void TestDeserialize()
         {
-            MemoryStream stream = new MemoryStream();
-            BinaryWriter writer = new BinaryWriter(stream);
-            BinaryReader reader = new BinaryReader(stream);
-            writer.Write(new byte[20]);
-            stream.Seek(0, SeekOrigin.Begin);
-            MyUIntBase uIntBase = new MyUIntBase();
-            Action action=()=>((ISerializable)uIntBase).Deserialize(reader);
-            action.ShouldThrow<FormatException>();
+            using (MemoryStream stream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(stream))
+            using (BinaryReader reader = new BinaryReader(stream))
+            {
+                writer.Write(new byte[20]);
+                stream.Seek(0, SeekOrigin.Begin);
+                MyUIntBase uIntBase = new MyUIntBase();
+                Action action = () => ((ISerializable)uIntBase).Deserialize(reader);
+                action.ShouldThrow<FormatException>();
+            }
         }
 
         [TestMethod]
@@ -41,8 +40,8 @@ namespace Neo.UnitTests.IO
         public void TestEquals2()
         {
             MyUIntBase temp1 = new MyUIntBase();
-            Object temp2 = null;
-            Object temp3 = new Object();
+            object temp2 = null;
+            object temp3 = new object();
             Assert.AreEqual(false, temp1.Equals(temp2));
             Assert.AreEqual(false, temp1.Equals(temp3));
         }
@@ -66,24 +65,24 @@ namespace Neo.UnitTests.IO
         public void TestTryParse()
         {
             UInt160 uInt160 = new UInt160();
-            Assert.AreEqual(true,UIntBase.TryParse<UInt160>("0x0000000000000000000000000000000000000000", out uInt160));
-            Assert.AreEqual(UInt160.Zero,uInt160);
-            Assert.AreEqual(false, UIntBase.TryParse<UInt160>("0x00000000000000000000000000000000000000", out uInt160));
+            Assert.AreEqual(true, UIntBase.TryParse("0x0000000000000000000000000000000000000000", out uInt160));
+            Assert.AreEqual(UInt160.Zero, uInt160);
+            Assert.AreEqual(false, UIntBase.TryParse("0x00000000000000000000000000000000000000", out uInt160));
             UInt256 uInt256 = new UInt256();
-            Assert.AreEqual(true, UIntBase.TryParse<UInt256>("0x0000000000000000000000000000000000000000000000000000000000000000", out uInt256));
+            Assert.AreEqual(true, UIntBase.TryParse("0x0000000000000000000000000000000000000000000000000000000000000000", out uInt256));
             Assert.AreEqual(UInt256.Zero, uInt256);
-            Assert.AreEqual(false, UIntBase.TryParse<UInt256>("0x00000000000000000000000000000000000000000000000000000000000000", out uInt256));
+            Assert.AreEqual(false, UIntBase.TryParse("0x00000000000000000000000000000000000000000000000000000000000000", out uInt256));
             UIntBase uIntBase = new UInt160();
-            Assert.AreEqual(true, UIntBase.TryParse<UIntBase>("0x0000000000000000000000000000000000000000", out uIntBase));
+            Assert.AreEqual(true, UIntBase.TryParse("0x0000000000000000000000000000000000000000", out uIntBase));
             Assert.AreEqual(UInt160.Zero, uIntBase);
-            Assert.AreEqual(true, UIntBase.TryParse<UIntBase>("0000000000000000000000000000000000000000", out uIntBase));
+            Assert.AreEqual(true, UIntBase.TryParse("0000000000000000000000000000000000000000", out uIntBase));
             Assert.AreEqual(UInt160.Zero, uIntBase);
             uIntBase = new UInt256();
-            Assert.AreEqual(true, UIntBase.TryParse<UIntBase>("0x0000000000000000000000000000000000000000000000000000000000000000", out uIntBase));
+            Assert.AreEqual(true, UIntBase.TryParse("0x0000000000000000000000000000000000000000000000000000000000000000", out uIntBase));
             Assert.AreEqual(UInt256.Zero, uIntBase);
-            Assert.AreEqual(true, UIntBase.TryParse<UIntBase>("0000000000000000000000000000000000000000000000000000000000000000", out uIntBase));
+            Assert.AreEqual(true, UIntBase.TryParse("0000000000000000000000000000000000000000000000000000000000000000", out uIntBase));
             Assert.AreEqual(UInt256.Zero, uIntBase);
-            Assert.AreEqual(false, UIntBase.TryParse<UIntBase>("00000000000000000000000000000000000000000000000000000000000000", out uIntBase));
+            Assert.AreEqual(false, UIntBase.TryParse("00000000000000000000000000000000000000000000000000000000000000", out uIntBase));
 
         }
 
@@ -98,13 +97,7 @@ namespace Neo.UnitTests.IO
     internal class MyUIntBase : UIntBase
     {
         public const int Length = 32;
-        public MyUIntBase() : this(null)
-        {
-        }
-
-        public MyUIntBase(byte[] value) : base(Length, value)
-        {
-
-        }
+        public MyUIntBase() : this(null) { }
+        public MyUIntBase(byte[] value) : base(Length, value) { }
     }
 }
