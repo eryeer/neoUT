@@ -182,14 +182,61 @@ namespace Neo.UnitTests.Wallets
         public void TestGetAvailable()
         {
             MyWallet wallet = new MyWallet();
-            wallet.GetAvailable(NativeContract.NEO.Hash);
+            Contract contract = Contract.Create(new ContractParameterType[] { ContractParameterType.Boolean }, new byte[] { 1 });
+            WalletAccount account = wallet.CreateAccount(contract, UT_Crypto.generateCertainKey(32).PrivateKey);
+            account.Lock = false;
+
+            // Fake balance
+            var snapshot = store.GetSnapshot();
+            var key = NativeContract.GAS.CreateStorageKey(20, account.ScriptHash);
+            var entry = snapshot.Storages.GetAndChange(key, () => new StorageItem
+            {
+                Value = new Nep5AccountState().ToByteArray()
+            });
+            entry.Value = new Nep5AccountState()
+            {
+                Balance = 10000 * NativeContract.GAS.Factor
+            }
+            .ToByteArray();
+
+            wallet.GetAvailable(NativeContract.GAS.Hash).Should().Be(new BigDecimal(1000000000000, 8));
+
+            entry.Value = new Nep5AccountState()
+            {
+                Balance = 0
+            }
+            .ToByteArray();
         }
 
         [TestMethod]
         public void TestGetBalance()
         {
             MyWallet wallet = new MyWallet();
-            wallet.GetBalance(NativeContract.NEO.Hash);
+            Contract contract = Contract.Create(new ContractParameterType[] { ContractParameterType.Boolean }, new byte[] { 1 });
+            WalletAccount account = wallet.CreateAccount(contract, UT_Crypto.generateCertainKey(32).PrivateKey);
+            account.Lock = false;
+
+            // Fake balance
+            var snapshot = store.GetSnapshot();
+            var key = NativeContract.GAS.CreateStorageKey(20, account.ScriptHash);
+            var entry = snapshot.Storages.GetAndChange(key, () => new StorageItem
+            {
+                Value = new Nep5AccountState().ToByteArray()
+            });
+            entry.Value = new Nep5AccountState()
+            {
+                Balance = 10000 * NativeContract.GAS.Factor
+            }
+            .ToByteArray();
+
+            wallet.GetBalance(UInt160.Zero, new UInt160[] { account.ScriptHash }).Should().Be(new BigDecimal(0, 0));
+            wallet.GetBalance(NativeContract.GAS.Hash, new UInt160[] { account.ScriptHash }).Should().Be(new BigDecimal(1000000000000, 8));
+
+            entry.Value = new Nep5AccountState()
+            {
+                Balance = 0
+            }
+            .ToByteArray();
         }
 
         [TestMethod]
