@@ -37,6 +37,5 @@ namespace Neo.UnitTests.IO.Caching
             relayCache.TryGet(tx.Hash, out IInventory tmp).Should().BeTrue();
             (tmp is Transaction).Should().BeTrue();
         }
-
     }
 }

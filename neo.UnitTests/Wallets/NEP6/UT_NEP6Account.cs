@@ -90,6 +90,7 @@ namespace Neo.UnitTests.Wallets.NEP6
             KeyPair keyPair = new KeyPair(privateKey);
             account.GetKey().Should().Be(keyPair);            
         }
+
         [TestMethod]
         public void TestGetKeyWithString()
         {

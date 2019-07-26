@@ -83,7 +83,6 @@ namespace Neo.UnitTests.IO
             Assert.AreEqual(true, UIntBase.TryParse("0000000000000000000000000000000000000000000000000000000000000000", out uIntBase));
             Assert.AreEqual(UInt256.Zero, uIntBase);
             Assert.AreEqual(false, UIntBase.TryParse("00000000000000000000000000000000000000000000000000000000000000", out uIntBase));
-
         }
 
         [TestMethod]
