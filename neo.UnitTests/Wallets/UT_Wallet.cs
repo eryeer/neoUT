@@ -242,25 +242,6 @@ namespace Neo.UnitTests.Wallets
         }
 
         [TestMethod]
-        public void TestGetPrivateKeyFromNEP2()
-        {
-            KeyPair key = UT_Crypto.generateCertainKey(32);
-            Action action = () => Wallet.GetPrivateKeyFromNEP2(null, null);
-            action.ShouldThrow<ArgumentNullException>();
-
-            action = () => Wallet.GetPrivateKeyFromNEP2("TestGetPrivateKeyFromNEP2", null);
-            action.ShouldThrow<ArgumentNullException>();
-
-            action = () => Wallet.GetPrivateKeyFromNEP2("3vQB7B6MrGQZaxCuFg4oh", "TestGetPrivateKeyFromNEP2");
-            action.ShouldThrow<FormatException>();
-
-            action = () => Wallet.GetPrivateKeyFromNEP2(key.Export("TestGetPrivateKeyFromNEP2"), "Test");
-            action.ShouldThrow<FormatException>();
-
-            Wallet.GetPrivateKeyFromNEP2(key.Export("TestGetPrivateKeyFromNEP2"), "TestGetPrivateKeyFromNEP2").Should().BeEquivalentTo(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 });
-        }
-
-        [TestMethod]
         public void TestGetPrivateKeyFromWIF()
         {
             Action action = () => Wallet.GetPrivateKeyFromWIF(null);
@@ -277,14 +258,6 @@ namespace Neo.UnitTests.Wallets
         {
             MyWallet wallet = new MyWallet();
             wallet.Import("L3tgppXLgdaeqSGSFw1Go3skBiy8vQAM7YMXvTHsKQtE16PBncSU").Should().NotBeNull();
-        }
-
-        [TestMethod]
-        public void TestImport2()
-        {
-            MyWallet wallet = new MyWallet();
-            KeyPair key = UT_Crypto.generateCertainKey(32);
-            wallet.Import(key.Export("TestGetPrivateKeyFromNEP2"), "TestGetPrivateKeyFromNEP2").Should().NotBeNull();
         }
 
         [TestMethod]
