@@ -134,8 +134,10 @@ namespace Neo.UnitTests.IO
                 else if (i == 4)//Integer BigInteger
                 {
                     ScriptBuilder sb = new ScriptBuilder();
-                    ContractParameter parameter = new ContractParameter(ContractParameterType.Integer);
-                    parameter.Value = BigInteger.Zero;
+                    ContractParameter parameter = new ContractParameter(ContractParameterType.Integer)
+                    {
+                        Value = BigInteger.Zero
+                    };
                     sb.EmitPush(parameter);
                     byte[] tempArray = new byte[1];
                     tempArray[0] = 0x00;
@@ -198,7 +200,7 @@ namespace Neo.UnitTests.IO
             }
         }
 
-        enum testEnum : byte
+        enum TestEnum : byte
         {
             case1 = 0
         }
@@ -324,7 +326,7 @@ namespace Neo.UnitTests.IO
                 else if (i == 13)//Enum
                 {
                     ScriptBuilder sb = new ScriptBuilder();
-                    sb.EmitPush(testEnum.case1);
+                    sb.EmitPush(TestEnum.case1);
                     byte[] tempArray = new byte[1];
                     tempArray[0] = 0x00;
                     Assert.AreEqual(Encoding.Default.GetString(tempArray), Encoding.Default.GetString(sb.ToArray()));
@@ -332,7 +334,7 @@ namespace Neo.UnitTests.IO
                 else //default
                 {
                     ScriptBuilder sb = new ScriptBuilder();
-                    Action action = () => sb.EmitPush(new Object());
+                    Action action = () => sb.EmitPush(new object());
                     action.ShouldThrow<ArgumentException>();
                 }
             }
@@ -342,7 +344,7 @@ namespace Neo.UnitTests.IO
         public void TestEmitSysCall()
         {
             ScriptBuilder sb = new ScriptBuilder();
-            sb.EmitSysCall((uint)0,true);
+            sb.EmitSysCall(0, true);
             byte[] tempArray = new byte[6];
             tempArray[0] = 0x51;
             tempArray[1] = 0x68;
@@ -377,11 +379,11 @@ namespace Neo.UnitTests.IO
                     StackItem item = new VM.Types.Boolean(true);
                     ContractParameter parameter = VM.Helper.ToParameter(item);
                     Assert.AreEqual(ContractParameterType.Boolean, parameter.Type);
-                    Assert.AreEqual(true,parameter.Value);
+                    Assert.AreEqual(true, parameter.Value);
                 }
                 else if (i == 3)//ByteArray
                 {
-                    StackItem item = new VM.Types.ByteArray(new byte[] { 0x00});
+                    StackItem item = new VM.Types.ByteArray(new byte[] { 0x00 });
                     ContractParameter parameter = VM.Helper.ToParameter(item);
                     Assert.AreEqual(ContractParameterType.ByteArray, parameter.Type);
                     Assert.AreEqual(Encoding.Default.GetString(new byte[] { 0x00 }), Encoding.Default.GetString((byte[])parameter.Value));
@@ -391,7 +393,7 @@ namespace Neo.UnitTests.IO
                     StackItem item = new VM.Types.Integer(0);
                     ContractParameter parameter = VM.Helper.ToParameter(item);
                     Assert.AreEqual(ContractParameterType.Integer, parameter.Type);
-                    Assert.AreEqual(BigInteger.Zero,parameter.Value);
+                    Assert.AreEqual(BigInteger.Zero, parameter.Value);
                 }
                 else if (i == 5)//InteropInterface
                 {
@@ -401,7 +403,7 @@ namespace Neo.UnitTests.IO
                 }
                 else //default
                 {
-                    Action action =()=> VM.Helper.ToParameter(null);
+                    Action action = () => VM.Helper.ToParameter(null);
                     action.ShouldThrow<ArgumentException>();
                 }
             }
