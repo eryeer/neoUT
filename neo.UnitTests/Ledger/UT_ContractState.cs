@@ -24,12 +24,6 @@ namespace Neo.UnitTests.Ledger
                 Manifest = manifest
             };
         }
-        [TestMethod]
-        public void TestConstructor()
-        {  
-            contract.Script.Should().BeEquivalentTo(script);
-            contract.Manifest.Should().Be(manifest);
-        }
 
         [TestMethod]
         public void TestGetHasStorage()

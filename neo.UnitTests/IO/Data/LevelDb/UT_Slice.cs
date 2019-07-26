@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Neo.UnitTests.IO.Data.LevelDb
 {
-    public class test {}
+    public class Test { }
 
     [TestClass]
     public class UT_Slice
@@ -19,7 +19,7 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         {
             IntPtr parr = Marshal.AllocHGlobal(1);
             Marshal.WriteByte(parr, 0x01);
-            UIntPtr plength = new UIntPtr((uint)1);
+            UIntPtr plength = new UIntPtr(1);
             sliceTest = new Slice(parr, plength);
             Assert.IsNotNull(sliceTest);
             Assert.IsInstanceOfType(sliceTest, typeof(Slice));
@@ -31,22 +31,20 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestCompareTo()
         {
-            byte[] arr = { 0x01, 0x02 };
-            Slice slice = arr;
-            sliceTest = arr;
+            Slice slice = new byte[] { 0x01, 0x02 };
+            sliceTest = new byte[] { 0x01, 0x02 };
             int result = sliceTest.CompareTo(slice);
             Assert.AreEqual(0, result);
-            arr = new byte[] { 0x01 };
-            sliceTest = arr;
+            sliceTest = new byte[] { 0x01 };
             result = sliceTest.CompareTo(slice);
             Assert.AreEqual(-1, result);
-            arr = new byte[] { 0x01, 0x02, 0x03 };
+            sliceTest = new byte[] { 0x01, 0x02, 0x03 };
             result = sliceTest.CompareTo(slice);
-            Assert.AreEqual(-1, result);
-            arr = new byte[] { 0x01, 0x03 };
+            Assert.AreEqual(1, result);
+            sliceTest = new byte[] { 0x01, 0x03 };
             result = sliceTest.CompareTo(slice);
-            Assert.AreEqual(-1, result);
-            arr = new byte[] { 0x01, 0x01 };
+            Assert.AreEqual(1, result);
+            sliceTest = new byte[] { 0x01, 0x01 };
             result = sliceTest.CompareTo(slice);
             Assert.AreEqual(-1, result);
         }
@@ -61,28 +59,27 @@ namespace Neo.UnitTests.IO.Data.LevelDb
             Assert.IsTrue(sliceTest.Equals(slice));
             sliceTest = arr2;
             Assert.IsTrue(sliceTest.Equals(slice));
-            arr2 = new byte[] { 0x01, 0x03 };
-            sliceTest = arr2;
+            sliceTest = new byte[] { 0x01, 0x03 };
             Assert.IsFalse(sliceTest.Equals(slice));
         }
 
         [TestMethod]
         public void TestEqualsObj()
         {
-            sliceTest = new byte[]{0x01};
+            sliceTest = new byte[] { 0x01 };
             object slice = null;
             bool result = sliceTest.Equals(slice);
             Assert.AreEqual(false, result);
-            slice = new test();
+            slice = new Test();
             result = sliceTest.Equals(slice);
             Assert.AreEqual(false, result);
             slice = sliceTest;
             result = sliceTest.Equals(slice);
             Assert.AreEqual(true, result);
-            Slice s = new byte[]{0x01};
+            Slice s = new byte[] { 0x01 };
             result = sliceTest.Equals(s);
             Assert.AreEqual(true, result);
-            s = new byte[]{0x01, 0x02};
+            s = new byte[] { 0x01, 0x02 };
             result = sliceTest.Equals(s);
             Assert.AreEqual(false, result);
         }
@@ -90,7 +87,7 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestGetHashCode()
         {
-            byte[] arr = new byte[]{0x01, 0x02};
+            byte[] arr = new byte[] { 0x01, 0x02 };
             sliceTest = arr;
             int hash1 = (int)arr.Murmur32(0);
             int hash2 = sliceTest.GetHashCode();
@@ -121,7 +118,7 @@ namespace Neo.UnitTests.IO.Data.LevelDb
             sliceTest = new Slice();
             byte[] arr = sliceTest.ToArray();
             Assert.AreEqual(0, arr.Length);
-            arr = new byte[]{0x01, 0x02};
+            arr = new byte[] { 0x01, 0x02 };
             sliceTest = arr;
             byte[] parr = sliceTest.ToArray();
             Assert.AreSame(parr, arr);
@@ -130,7 +127,7 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestToBoolean()
         {
-            sliceTest = new byte[]{0x01, 0x02};
+            sliceTest = new byte[] { 0x01, 0x02 };
             Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToBoolean());
             sliceTest = (byte)0x01;
             bool result = sliceTest.ToBoolean();
@@ -140,7 +137,7 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestToByte()
         {
-            sliceTest = new byte[]{0x01, 0x02};
+            sliceTest = new byte[] { 0x01, 0x02 };
             Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToByte());
             sliceTest = (byte)0x01;
             byte result = sliceTest.ToByte();
@@ -150,7 +147,7 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestToDouble()
         {
-            sliceTest = new byte[]{0x01};
+            sliceTest = new byte[] { 0x01 };
             Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToDouble());
             byte[] arr = new byte[sizeof(double)];
             sliceTest = arr;
@@ -163,7 +160,7 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestToInt16()
         {
-            sliceTest = new byte[]{0x01};
+            sliceTest = new byte[] { 0x01 };
             Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToInt16());
             sliceTest = (Int16)(-15);
             Assert.AreEqual((Int16)(-15), sliceTest.ToInt16());
@@ -172,7 +169,7 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestToInt32()
         {
-            sliceTest = new byte[]{0x01};
+            sliceTest = new byte[] { 0x01 };
             Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToInt32());
             sliceTest = (Int32)(-15);
             Assert.AreEqual((Int32)(-15), sliceTest.ToInt32());
@@ -181,7 +178,7 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestToInt64()
         {
-            sliceTest = new byte[]{0x01};
+            sliceTest = new byte[] { 0x01 };
             Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToInt64());
             sliceTest = Int64.MaxValue;
             Assert.AreEqual(Int64.MaxValue, sliceTest.ToInt64());
@@ -190,7 +187,7 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestToSingle()
         {
-            sliceTest = new byte[]{0x01};
+            sliceTest = new byte[] { 0x01 };
             Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToSingle());
             sliceTest = (float)(-15.5);
             Assert.AreEqual((float)(-15.5), sliceTest.ToSingle());
@@ -202,11 +199,11 @@ namespace Neo.UnitTests.IO.Data.LevelDb
             sliceTest = "abc你好";
             Assert.AreEqual("abc你好", sliceTest.ToString());
         }
-        
+
         [TestMethod]
         public void TestToUint16()
         {
-            sliceTest = new byte[]{0x01};
+            sliceTest = new byte[] { 0x01 };
             Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToUInt16());
             sliceTest = (UInt16)(25);
             Assert.AreEqual((UInt16)25, sliceTest.ToUInt16());
@@ -215,7 +212,7 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestToUint32()
         {
-            sliceTest = new byte[]{0x01};
+            sliceTest = new byte[] { 0x01 };
             Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToUInt32());
             sliceTest = (UInt32)(2525252525);
             Assert.AreEqual((UInt32)2525252525, sliceTest.ToUInt32());
@@ -224,7 +221,7 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestToUint64()
         {
-            sliceTest = new byte[]{0x01};
+            sliceTest = new byte[] { 0x01 };
             Assert.ThrowsException<InvalidCastException>(() => sliceTest.ToUInt64());
             sliceTest = (UInt64)(0x2525252525252525);
             Assert.AreEqual((UInt64)(0x2525252525252525), sliceTest.ToUInt64());
@@ -324,14 +321,14 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestLessThan()
         {
-            sliceTest = new byte[]{0x01};
-            Slice slice = new byte[]{0x02};
+            sliceTest = new byte[] { 0x01 };
+            Slice slice = new byte[] { 0x02 };
             bool result = sliceTest < slice;
             Assert.AreEqual(true, result);
-            slice = new byte[]{0x01};
+            slice = new byte[] { 0x01 };
             result = sliceTest < slice;
             Assert.AreEqual(false, result);
-            slice = new byte[]{0x00};
+            slice = new byte[] { 0x00 };
             result = sliceTest < slice;
             Assert.AreEqual(false, result);
         }
@@ -339,14 +336,14 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestLessThanAndEqual()
         {
-            sliceTest = new byte[]{0x01};
-            Slice slice = new byte[]{0x02};
+            sliceTest = new byte[] { 0x01 };
+            Slice slice = new byte[] { 0x02 };
             bool result = sliceTest <= slice;
             Assert.AreEqual(true, result);
-            slice = new byte[]{0x01};
+            slice = new byte[] { 0x01 };
             result = sliceTest <= slice;
             Assert.AreEqual(true, result);
-            slice = new byte[]{0x00};
+            slice = new byte[] { 0x00 };
             result = sliceTest <= slice;
             Assert.AreEqual(false, result);
         }
@@ -354,14 +351,14 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestGreatThan()
         {
-            sliceTest = new byte[]{0x01};
-            Slice slice = new byte[]{0x00};
+            sliceTest = new byte[] { 0x01 };
+            Slice slice = new byte[] { 0x00 };
             bool result = sliceTest > slice;
             Assert.AreEqual(true, result);
-            slice = new byte[]{0x01};
+            slice = new byte[] { 0x01 };
             result = sliceTest > slice;
             Assert.AreEqual(false, result);
-            slice = new byte[]{0x02};
+            slice = new byte[] { 0x02 };
             result = sliceTest > slice;
             Assert.AreEqual(false, result);
         }
@@ -369,14 +366,14 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestGreatThanAndEqual()
         {
-            sliceTest = new byte[]{0x01};
-            Slice slice = new byte[]{0x00};
+            sliceTest = new byte[] { 0x01 };
+            Slice slice = new byte[] { 0x00 };
             bool result = sliceTest >= slice;
             Assert.AreEqual(true, result);
-            slice = new byte[]{0x01};
+            slice = new byte[] { 0x01 };
             result = sliceTest >= slice;
             Assert.AreEqual(true, result);
-            slice = new byte[]{0x02};
+            slice = new byte[] { 0x02 };
             result = sliceTest >= slice;
             Assert.AreEqual(false, result);
         }
@@ -384,14 +381,14 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestEqual()
         {
-            sliceTest = new byte[]{0x01};
-            Slice slice = new byte[]{0x00};
+            sliceTest = new byte[] { 0x01 };
+            Slice slice = new byte[] { 0x00 };
             bool result = sliceTest == slice;
             Assert.AreEqual(false, result);
-            slice = new byte[]{0x01};
+            slice = new byte[] { 0x01 };
             result = sliceTest == slice;
             Assert.AreEqual(true, result);
-            slice = new byte[]{0x02};
+            slice = new byte[] { 0x02 };
             result = sliceTest == slice;
             Assert.AreEqual(false, result);
         }
@@ -399,11 +396,11 @@ namespace Neo.UnitTests.IO.Data.LevelDb
         [TestMethod]
         public void TestUnequal()
         {
-            sliceTest = new byte[]{0x01};
-            Slice slice = new byte[]{0x00};
+            sliceTest = new byte[] { 0x01 };
+            Slice slice = new byte[] { 0x00 };
             bool result = sliceTest != slice;
             Assert.AreEqual(true, result);
-            slice = new byte[]{0x01};
+            slice = new byte[] { 0x01 };
             result = sliceTest != slice;
             Assert.AreEqual(false, result);
         }
