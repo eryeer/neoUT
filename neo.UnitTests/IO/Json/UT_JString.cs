@@ -6,7 +6,6 @@ using System.IO;
 
 namespace Neo.UnitTests.IO
 {
-
     [TestClass]
     public class UT_JString
     {

@@ -9,7 +9,6 @@ using System.Linq;
 
 namespace Neo.UnitTests.IO.Caching
 {
-
     class MyKey : ISerializable, IEquatable<MyKey>
     {
         public string Key;
@@ -40,9 +39,8 @@ namespace Neo.UnitTests.IO.Caching
 
         public override bool Equals(object obj)
         {
-            if (obj is null) return false;
-            if (!(obj is MyKey)) return false;
-            return Equals((MyKey)obj);
+            if (!(obj is MyKey key)) return false;
+            return Equals(key);
         }
 
         public override int GetHashCode()
@@ -57,9 +55,7 @@ namespace Neo.UnitTests.IO.Caching
 
         public int Size => Value.Length;
 
-
         public MyValue() { }
-
 
         public MyValue(string val)
         {
@@ -93,9 +89,8 @@ namespace Neo.UnitTests.IO.Caching
 
         public override bool Equals(object obj)
         {
-            if (obj is null) return false;
-            if (!(obj is MyValue)) return false;
-            return Equals((MyValue)obj);
+            if (!(obj is MyValue key)) return false;
+            return Equals(key);
         }
 
         public override int GetHashCode()
@@ -108,7 +103,6 @@ namespace Neo.UnitTests.IO.Caching
            where TKey : IEquatable<TKey>, ISerializable, new()
            where TValue : class, ICloneable<TValue>, ISerializable, new()
     {
-
         public Dictionary<TKey, TValue> InnerDict = new Dictionary<TKey, TValue>();
 
         public override void DeleteInternal(TKey key)
@@ -150,7 +144,6 @@ namespace Neo.UnitTests.IO.Caching
         }
     }
 
-
     [TestClass]
     public class UT_DataCache
     {
@@ -161,7 +154,6 @@ namespace Neo.UnitTests.IO.Caching
         {
             myDataCache = new MyDataCache<MyKey, MyValue>();
         }
-
 
         [TestMethod]
         public void TestAccessByKey()
@@ -252,7 +244,6 @@ namespace Neo.UnitTests.IO.Caching
             myDataCache.Delete(new MyKey("key2"));
             myDataCache.Commit();
             myDataCache.InnerDict.ContainsKey(new MyKey("key2")).Should().BeFalse();
-
         }
 
         [TestMethod]
