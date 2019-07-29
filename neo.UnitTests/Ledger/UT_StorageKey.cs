@@ -127,5 +127,12 @@ namespace Neo.UnitTests.Ledger
             uut.Key = TestUtils.GetByteArray(10, 0x42);
             uut.GetHashCode().Should().Be(806209853);
         }
+
+        [TestMethod]
+        public void Equals_Obj()
+        {
+            uut.Equals(1u).Should().BeFalse();
+            uut.Equals((object)uut).Should().BeTrue();
+        }
     }
 }
