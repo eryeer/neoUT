@@ -42,7 +42,6 @@ namespace Neo.UnitTests.Wallets.NEP6
                 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
             KeyPair keyPair = new KeyPair(privateKey);
             string password = "hello world";
-
             NEP6Account account = new NEP6Account(wallet, hash, keyPair, password);
             account.ScriptHash.Should().Be(hash);
             account.Decrypted.Should().BeTrue();
@@ -74,7 +73,7 @@ namespace Neo.UnitTests.Wallets.NEP6
             json["label"] = "label";
             account = NEP6Account.FromJson(json, wallet);
             account.Label.Should().Be("label");
-            account.GetKey("Satoshi").Should().NotBeNull();
+            account.HasKey.Should().BeTrue();
         }
 
         [TestMethod]
@@ -139,13 +138,8 @@ namespace Neo.UnitTests.Wallets.NEP6
         {
             string nep2 = "6PYRjVE1gAbCRyv81FTiFz62cxuPGw91vMjN4yPa68bnoqJtioreTznezn";
             account = new NEP6Account(wallet, hash, nep2);
-
-            byte[] privateKey = { 0x01,0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-                0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
-            KeyPair keyPair = new KeyPair(privateKey);
-
             account.VerifyPassword("Satoshi").Should().BeTrue();
-            account.VerifyPassword("hello").Should().BeFalse();
+            account.VerifyPassword("b").Should().BeFalse();
         }
     }
 }
