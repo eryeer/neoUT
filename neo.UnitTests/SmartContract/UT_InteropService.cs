@@ -1,7 +1,9 @@
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.SmartContract;
 using Neo.SmartContract.Manifest;
 using Neo.VM;
+using Neo.VM.Types;
 
 namespace Neo.UnitTests.SmartContract
 {
@@ -187,6 +189,60 @@ namespace Neo.UnitTests.SmartContract
             Assert.AreEqual(2, array.Count);
             CollectionAssert.AreEqual(scriptHash.ToArray(), array[0].GetByteArray());
             Assert.AreEqual(notification, array[1].GetBigInteger());
+        }
+
+        [TestMethod]
+        public void TestExecutionEngine_GetScriptContainer()
+        {
+            var tx = TestUtils.GetTransaction();
+            var engine = new ApplicationEngine(TriggerType.Application, tx, null, 0);
+            var script = new byte[] { 0x01, 0x02, 0x03, 0x04 };
+            engine.LoadScript(script);
+            InteropService.Invoke(engine, "System.ExecutionEngine.GetScriptContainer".ToInteropMethodHash());
+            engine.CurrentContext.EvaluationStack.Pop().Should().Be(StackItem.FromInterface(engine.ScriptContainer));
+        }
+
+        [TestMethod]
+        public void TestExecutionEngine_GetExecutingScriptHash()
+        {
+            var tx = TestUtils.GetTransaction();
+            var engine = new ApplicationEngine(TriggerType.Application, tx, null, 0);
+            var script = new byte[] { 0x01, 0x02, 0x03, 0x04 };
+            engine.LoadScript(script);
+            InteropService.Invoke(engine, "System.ExecutionEngine.GetExecutingScriptHash".ToInteropMethodHash());
+            engine.CurrentContext.EvaluationStack.Pop().GetByteArray().ToHexString()
+                .Should().Be(engine.CurrentScriptHash.ToArray().ToHexString());
+        }
+
+        [TestMethod]
+        public void TestExecutionEngine_GetCallingScriptHash()
+        {
+            var tx = TestUtils.GetTransaction();
+            var engine = new ApplicationEngine(TriggerType.Application, tx, null, 0);
+            var script = new byte[] { 0x01, 0x02, 0x03, 0x04 };
+            engine.LoadScript(script);
+            InteropService.Invoke(engine, "System.ExecutionEngine.GetCallingScriptHash".ToInteropMethodHash());
+            ByteArray stack = (ByteArray)engine.CurrentContext.EvaluationStack.Pop();
+            stack.Should().Be(new ByteArray(new byte[0]));
+
+            engine = new ApplicationEngine(TriggerType.Application, tx, null, 0);
+            engine.LoadScript(script);
+            engine.LoadScript(new byte[] { 0x01 });
+            InteropService.Invoke(engine, "System.ExecutionEngine.GetCallingScriptHash".ToInteropMethodHash());
+            engine.CurrentContext.EvaluationStack.Pop().GetByteArray().ToHexString()
+                .Should().Be(engine.CallingScriptHash.ToArray().ToHexString());
+        }
+
+        [TestMethod]
+        public void TestExecutionEngine_GetEntryScriptHash()
+        {
+            var tx = TestUtils.GetTransaction();
+            var engine = new ApplicationEngine(TriggerType.Application, tx, null, 0);
+            var script = new byte[] { 0x01, 0x02, 0x03, 0x04 };
+            engine.LoadScript(script);
+            InteropService.Invoke(engine, "System.ExecutionEngine.GetEntryScriptHash".ToInteropMethodHash());
+            engine.CurrentContext.EvaluationStack.Pop().GetByteArray().ToHexString()
+                .Should().Be(engine.EntryScriptHash.ToArray().ToHexString());
         }
     }
 }
