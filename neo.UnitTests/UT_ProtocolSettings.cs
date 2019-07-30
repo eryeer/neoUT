@@ -100,7 +100,7 @@ namespace Neo.UnitTests
         [TestMethod]
         public void TestGetMillisecondsPerBlock()
         {
-            ProtocolSettings.Default.MillisecondsPerBlock.Should().Be(15000);
+            ProtocolSettings.Default.MillisecondsPerBlock.Should().Be(2000);
         }
 
         [TestMethod]
