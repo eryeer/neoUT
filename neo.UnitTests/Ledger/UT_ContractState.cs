@@ -1,9 +1,11 @@
 ﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo.IO;
 using Neo.IO.Json;
 using Neo.Ledger;
 using Neo.SmartContract;
 using Neo.SmartContract.Manifest;
+using System.IO;
 
 namespace Neo.UnitTests.Ledger
 {
@@ -44,6 +46,45 @@ namespace Neo.UnitTests.Ledger
             contract.ScriptHash.Should().Be(script.ToScriptHash());
             // _scriptHash != null
             contract.ScriptHash.Should().Be(script.ToScriptHash());
+        }
+
+        [TestMethod]
+        public void TestClone()
+        {
+            ICloneable<ContractState> cloneable = contract;
+            ContractState clone = cloneable.Clone();
+            clone.ToJson().ToString().Should().Be(contract.ToJson().ToString());
+        }
+
+        [TestMethod]
+        public void TestFromReplica()
+        {
+            ICloneable<ContractState> cloneable = new ContractState();
+            cloneable.FromReplica(contract);
+            ((ContractState)cloneable).ToJson().ToString().Should().Be(contract.ToJson().ToString());
+        }
+
+        [TestMethod]
+        public void TestDeserialize()
+        {
+            ISerializable newContract = new ContractState();
+            using (MemoryStream ms = new MemoryStream(1024))
+            using (BinaryWriter writer = new BinaryWriter(ms))
+            using (BinaryReader reader = new BinaryReader(ms))
+            {
+                ((ISerializable)contract).Serialize(writer);
+                ms.Seek(0, SeekOrigin.Begin);
+                newContract.Deserialize(reader);
+            }
+            ((ContractState)newContract).Manifest.ToJson().ToString().Should().Be(contract.Manifest.ToJson().ToString());
+            ((ContractState)newContract).Script.Should().BeEquivalentTo(contract.Script);     
+        }
+
+        [TestMethod]
+        public void TestGetSize()
+        {
+            ISerializable newContract = contract;
+            newContract.Size.Should().Be(355);
         }
 
         [TestMethod]
