@@ -1,9 +1,12 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Neo.Cryptography;
 using Neo.Cryptography.ECC;
+using Neo.Ledger;
 using Neo.Network.P2P;
 using Neo.Network.P2P.Payloads;
+using Neo.Persistence;
 using Neo.SmartContract;
 using Neo.SmartContract.Manifest;
 using Neo.VM;
@@ -399,6 +402,479 @@ namespace Neo.UnitTests.SmartContract
             byte[] data2 = new byte[] { 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01 };
             engine.CurrentContext.EvaluationStack.Push(data2);
             InteropService.Invoke(engine, "System.Blockchain.GetHeader".ToInteropMethodHash()).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestBlockchain_GetBlock()
+        {
+            TestBlockchain.InitializeMockNeoSystem();
+            var engine = GetEngine(true, true);
+
+            engine.CurrentContext.EvaluationStack.Push(new byte[] { 0x01 });
+            InteropService.Invoke(engine, "System.Blockchain.GetBlock".ToInteropMethodHash()).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetByteArray().ToHexString().Should().Be(new byte[0].ToHexString());
+
+            byte[] data1 = new byte[] { 0x01, 0x01, 0x01 ,0x01, 0x01, 0x01, 0x01, 0x01,
+                                        0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+                                        0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+                                        0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
+            engine.CurrentContext.EvaluationStack.Push(data1);
+            InteropService.Invoke(engine, "System.Blockchain.GetBlock".ToInteropMethodHash()).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetBoolean().Should().BeFalse();
+
+            byte[] data2 = new byte[] { 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01 };
+            engine.CurrentContext.EvaluationStack.Push(data2);
+            InteropService.Invoke(engine, "System.Blockchain.GetBlock".ToInteropMethodHash()).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestBlockchain_GetTransaction()
+        {
+            var engine = GetEngine(true, true);
+            byte[] data1 = new byte[] { 0x01, 0x01, 0x01 ,0x01, 0x01, 0x01, 0x01, 0x01,
+                                        0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+                                        0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+                                        0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
+            engine.CurrentContext.EvaluationStack.Push(data1);
+            InteropService.Invoke(engine, "System.Blockchain.GetTransaction".ToInteropMethodHash()).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetBoolean().Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestBlockchain_GetTransactionHeight()
+        {
+            var engine = GetEngine(true, true);
+            byte[] data1 = new byte[] { 0x01, 0x01, 0x01 ,0x01, 0x01, 0x01, 0x01, 0x01,
+                                        0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+                                        0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+                                        0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
+            engine.CurrentContext.EvaluationStack.Push(data1);
+            InteropService.Invoke(engine, "System.Blockchain.GetTransactionHeight".ToInteropMethodHash()).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetBigInteger().Should().Be(-1);
+        }
+
+        [TestMethod]
+        public void TestBlockchain_GetContract()
+        {
+            var engine = GetEngine(true, true);
+            byte[] data1 = new byte[] { 0x01, 0x01, 0x01 ,0x01, 0x01,
+                                        0x01, 0x01, 0x01, 0x01, 0x01,
+                                        0x01, 0x01, 0x01, 0x01, 0x01,
+                                        0x01, 0x01, 0x01, 0x01, 0x01 };
+            engine.CurrentContext.EvaluationStack.Push(data1);
+            InteropService.Invoke(engine, "System.Blockchain.GetContract".ToInteropMethodHash()).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetByteArray().ToHexString().Should().Be(new byte[0].ToHexString());
+
+            var mockSnapshot = new Mock<Snapshot>();
+            var state = TestUtils.GetContract();
+            mockSnapshot.SetupGet(p => p.Contracts).Returns(new TestDataCache<UInt160, ContractState>(state));
+            engine = new ApplicationEngine(TriggerType.Application, null, mockSnapshot.Object, 0);
+            engine.LoadScript(new byte[] { 0x01, 0x02, 0x03, 0x04 });
+            engine.CurrentContext.EvaluationStack.Push(data1);
+            InteropService.Invoke(engine, "System.Blockchain.GetContract".ToInteropMethodHash()).Should().BeTrue();
+            var contractState = ((InteropInterface<ContractState>)engine.CurrentContext.EvaluationStack.Pop()).GetInterface<ContractState>();
+            contractState.ScriptHash.ToArray().ToHexString().Should().Be(state.ScriptHash.ToArray().ToHexString());
+        }
+
+        [TestMethod]
+        public void TestHeader_GetIndex()
+        {
+            var engine = GetEngine();
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, "System.Header.GetIndex".ToInteropMethodHash()).Should().BeFalse();
+
+            Block block = new Block();
+            TestUtils.SetupBlockWithValues(block, UInt256.Zero, out var merkRootVal, out var val160, out var timestampVal, out var indexVal, out var scriptVal, out var transactionsVal, 0);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(block));
+            InteropService.Invoke(engine, "System.Header.GetIndex".ToInteropMethodHash()).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetBigInteger().Should().Be(block.Index);
+
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(null));
+            InteropService.Invoke(engine, "System.Header.GetIndex".ToInteropMethodHash()).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestHeader_GetHash()
+        {
+            var engine = GetEngine();
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, "System.Header.GetHash".ToInteropMethodHash()).Should().BeFalse();
+
+            Block block = new Block();
+            TestUtils.SetupBlockWithValues(block, UInt256.Zero, out var merkRootVal, out var val160, out var timestampVal, out var indexVal, out var scriptVal, out var transactionsVal, 0);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(block));
+            InteropService.Invoke(engine, "System.Header.GetHash".ToInteropMethodHash()).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetByteArray().ToHexString().Should().Be(block.Hash.ToArray().ToHexString());
+
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(null));
+            InteropService.Invoke(engine, "System.Header.GetHash".ToInteropMethodHash()).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestHeader_GetPrevHash()
+        {
+            var engine = GetEngine();
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, "System.Header.GetPrevHash".ToInteropMethodHash()).Should().BeFalse();
+
+            Block block = new Block();
+            TestUtils.SetupBlockWithValues(block, UInt256.Zero, out var merkRootVal, out var val160, out var timestampVal, out var indexVal, out var scriptVal, out var transactionsVal, 0);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(block));
+            InteropService.Invoke(engine, "System.Header.GetPrevHash".ToInteropMethodHash()).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetByteArray().ToHexString().Should().Be(block.PrevHash.ToArray().ToHexString());
+
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(null));
+            InteropService.Invoke(engine, "System.Header.GetPrevHash".ToInteropMethodHash()).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestHeader_GetTimestamp()
+        {
+            var engine = GetEngine();
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, "System.Header.GetTimestamp".ToInteropMethodHash()).Should().BeFalse();
+
+            Block block = new Block();
+            TestUtils.SetupBlockWithValues(block, UInt256.Zero, out var merkRootVal, out var val160, out var timestampVal, out var indexVal, out var scriptVal, out var transactionsVal, 0);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(block));
+            InteropService.Invoke(engine, "System.Header.GetTimestamp".ToInteropMethodHash()).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetBigInteger().Should().Be(block.Timestamp);
+
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(null));
+            InteropService.Invoke(engine, "System.Header.GetTimestamp".ToInteropMethodHash()).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestBlock_GetTransactionCount()
+        {
+            var engine = GetEngine();
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, "System.Block.GetTransactionCount".ToInteropMethodHash()).Should().BeFalse();
+
+            Block block = new Block();
+            TestUtils.SetupBlockWithValues(block, UInt256.Zero, out var merkRootVal, out var val160, out var timestampVal, out var indexVal, out var scriptVal, out var transactionsVal, 1);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(block));
+            InteropService.Invoke(engine, "System.Block.GetTransactionCount".ToInteropMethodHash()).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetBigInteger().Should().Be(block.Transactions.Length);
+
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(null));
+            InteropService.Invoke(engine, "System.Block.GetTransactionCount".ToInteropMethodHash()).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestBlock_GetTransactions()
+        {
+            var engine = GetEngine();
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, "System.Block.GetTransactions".ToInteropMethodHash()).Should().BeFalse();
+
+            Block block = new Block();
+            TestUtils.SetupBlockWithValues(block, UInt256.Zero, out var merkRootVal, out var val160, out var timestampVal, out var indexVal, out var scriptVal, out var transactionsVal, 1);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(block));
+            InteropService.Invoke(engine, "System.Block.GetTransactions".ToInteropMethodHash()).Should().BeTrue();
+            var ret = (Neo.VM.Types.Array)engine.CurrentContext.EvaluationStack.Pop();
+            ret.Count.Should().Be(1);
+            ((InteropInterface<Transaction>)ret[0]).GetInterface<Transaction>().Hash.ToArray().ToHexString().Should().Be(TestUtils.GetTransaction().Hash.ToArray().ToHexString());
+
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(null));
+            InteropService.Invoke(engine, "System.Block.GetTransactions".ToInteropMethodHash()).Should().BeFalse();
+
+            Block block1 = new Block();
+            TestUtils.SetupBlockWithValues(block1, UInt256.Zero, out var merkRootVal1, out var val1601, out var timestampVal1, out var indexVal1, out var scriptVal1, out var transactionsVal1, 1025);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(block1));
+            InteropService.Invoke(engine, "System.Block.GetTransactions".ToInteropMethodHash()).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestBlock_GetTransaction()
+        {
+            var engine = GetEngine();
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, "System.Block.GetTransaction".ToInteropMethodHash()).Should().BeFalse();
+
+            Block block = new Block();
+            TestUtils.SetupBlockWithValues(block, UInt256.Zero, out var merkRootVal, out var val160, out var timestampVal, out var indexVal, out var scriptVal, out var transactionsVal, 1);
+            engine.CurrentContext.EvaluationStack.Push(0);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(block));
+            InteropService.Invoke(engine, "System.Block.GetTransaction".ToInteropMethodHash()).Should().BeTrue();
+            var ret = (InteropInterface<Transaction>)engine.CurrentContext.EvaluationStack.Pop();
+            ret.GetInterface<Transaction>().Hash.ToArray().ToHexString().Should().Be(TestUtils.GetTransaction().Hash.ToArray().ToHexString());
+
+            engine.CurrentContext.EvaluationStack.Push(0);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(null));
+            InteropService.Invoke(engine, "System.Block.GetTransaction".ToInteropMethodHash()).Should().BeFalse();
+
+            engine.CurrentContext.EvaluationStack.Push(-1);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(block));
+            InteropService.Invoke(engine, "System.Block.GetTransaction".ToInteropMethodHash()).Should().BeFalse();
+
+            engine.CurrentContext.EvaluationStack.Push(10);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(block));
+            InteropService.Invoke(engine, "System.Block.GetTransaction".ToInteropMethodHash()).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestTransaction_GetHash()
+        {
+            var engine = GetEngine();
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, "System.Transaction.GetHash".ToInteropMethodHash()).Should().BeFalse();
+
+            var tx = TestUtils.GetTransaction();
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<Transaction>(tx));
+            InteropService.Invoke(engine, "System.Transaction.GetHash".ToInteropMethodHash()).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetByteArray().ToHexString().Should().Be(tx.Hash.ToArray().ToHexString());
+
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<Transaction>(null));
+            InteropService.Invoke(engine, "System.Transaction.GetHash".ToInteropMethodHash()).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestStorage_GetContext()
+        {
+            var engine = GetEngine();
+            InteropService.Invoke(engine, "System.Storage.GetContext".ToInteropMethodHash()).Should().BeTrue();
+            var ret = (InteropInterface<StorageContext>)engine.CurrentContext.EvaluationStack.Pop();
+            ret.GetInterface<StorageContext>().ScriptHash.Should().Be(engine.CurrentScriptHash);
+            ret.GetInterface<StorageContext>().IsReadOnly.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestStorage_GetReadOnlyContext()
+        {
+            var engine = GetEngine();
+            InteropService.Invoke(engine, "System.Storage.GetReadOnlyContext".ToInteropMethodHash()).Should().BeTrue();
+            var ret = (InteropInterface<StorageContext>)engine.CurrentContext.EvaluationStack.Pop();
+            ret.GetInterface<StorageContext>().ScriptHash.Should().Be(engine.CurrentScriptHash);
+            ret.GetInterface<StorageContext>().IsReadOnly.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void TestStorage_Get()
+        {
+            var mockSnapshot = new Mock<Snapshot>();
+            var state = TestUtils.GetContract();
+            state.Manifest.Features = ContractFeatures.HasStorage;
+
+            var storageItem = new StorageItem
+            {
+                Value = new byte[] { 0x01, 0x02, 0x03, 0x04 },
+                IsConstant = true
+            };
+            mockSnapshot.SetupGet(p => p.Contracts).Returns(new TestDataCache<UInt160, ContractState>(state));
+            mockSnapshot.SetupGet(p => p.Storages).Returns(new TestDataCache<StorageKey, StorageItem>(storageItem));
+            var engine = new ApplicationEngine(TriggerType.Application, null, mockSnapshot.Object, 0);
+            engine.LoadScript(new byte[] { 0x01, 0x02, 0x03, 0x04 });
+
+            engine.CurrentContext.EvaluationStack.Push(new byte[] { 0x01 });
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(new StorageContext
+            {
+                ScriptHash = state.ScriptHash,
+                IsReadOnly = false
+            }));
+            InteropService.Invoke(engine, "System.Storage.Get".ToInteropMethodHash()).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetByteArray().ToHexString().Should().Be(storageItem.Value.ToHexString());
+
+            mockSnapshot.SetupGet(p => p.Contracts).Returns(new TestDataCache<UInt160, ContractState>());
+            engine = new ApplicationEngine(TriggerType.Application, null, mockSnapshot.Object, 0);
+            engine.LoadScript(new byte[] { 0x01, 0x02, 0x03, 0x04 });
+            engine.CurrentContext.EvaluationStack.Push(new byte[] { 0x01 });
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(new StorageContext
+            {
+                ScriptHash = state.ScriptHash,
+                IsReadOnly = false
+            }));
+            InteropService.Invoke(engine, "System.Storage.Get".ToInteropMethodHash()).Should().BeFalse();
+
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, "System.Storage.Get".ToInteropMethodHash()).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestStorage_Put()
+        {
+            var engine = GetEngine(false, true);
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, "System.Storage.Put".ToInteropMethodHash()).Should().BeFalse();
+
+            //CheckStorageContext fail
+            var key = new byte[] { 0x01 };
+            var value = new byte[] { 0x02 };
+            engine.CurrentContext.EvaluationStack.Push(value);
+            engine.CurrentContext.EvaluationStack.Push(key);
+            var state = TestUtils.GetContract();
+            var storageContext = new StorageContext
+            {
+                ScriptHash = state.ScriptHash,
+                IsReadOnly = false
+            };
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(storageContext));
+            InteropService.Invoke(engine, "System.Storage.Put".ToInteropMethodHash()).Should().BeFalse();
+
+            //key.Length > MaxStorageKeySize
+            key = new byte[InteropService.MaxStorageKeySize + 1];
+            value = new byte[] { 0x02 };
+            engine.CurrentContext.EvaluationStack.Push(value);
+            engine.CurrentContext.EvaluationStack.Push(key);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(storageContext));
+            InteropService.Invoke(engine, "System.Storage.Put".ToInteropMethodHash()).Should().BeFalse();
+
+            //value.Length > MaxStorageValueSize
+            key = new byte[] { 0x01 };
+            value = new byte[ushort.MaxValue + 1];
+            engine.CurrentContext.EvaluationStack.Push(value);
+            engine.CurrentContext.EvaluationStack.Push(key);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(storageContext));
+            InteropService.Invoke(engine, "System.Storage.Put".ToInteropMethodHash()).Should().BeFalse();
+
+            //context.IsReadOnly
+            key = new byte[] { 0x01 };
+            value = new byte[] { 0x02 };
+            storageContext.IsReadOnly = true;
+            engine.CurrentContext.EvaluationStack.Push(value);
+            engine.CurrentContext.EvaluationStack.Push(key);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(storageContext));
+            InteropService.Invoke(engine, "System.Storage.Put".ToInteropMethodHash()).Should().BeFalse();
+
+            //storage value is constant
+            var mockSnapshot = new Mock<Snapshot>();
+            state.Manifest.Features = ContractFeatures.HasStorage;
+            var storageItem = new StorageItem
+            {
+                Value = new byte[] { 0x01, 0x02, 0x03, 0x04 },
+                IsConstant = true
+            };
+            mockSnapshot.SetupGet(p => p.Contracts).Returns(new TestDataCache<UInt160, ContractState>(state));
+            mockSnapshot.SetupGet(p => p.Storages).Returns(new TestDataCache<StorageKey, StorageItem>(storageItem));
+            engine = new ApplicationEngine(TriggerType.Application, null, mockSnapshot.Object, 0);
+            engine.LoadScript(new byte[] { 0x01, 0x02, 0x03, 0x04 });
+            key = new byte[] { 0x01 };
+            value = new byte[] { 0x02 };
+            storageContext.IsReadOnly = false;
+            engine.CurrentContext.EvaluationStack.Push(value);
+            engine.CurrentContext.EvaluationStack.Push(key);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(storageContext));
+            InteropService.Invoke(engine, "System.Storage.Put".ToInteropMethodHash()).Should().BeFalse();
+
+            //success
+            storageItem.IsConstant = false;
+            engine.CurrentContext.EvaluationStack.Push(value);
+            engine.CurrentContext.EvaluationStack.Push(key);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(storageContext));
+            InteropService.Invoke(engine, "System.Storage.Put".ToInteropMethodHash()).Should().BeTrue();
+
+            //value length == 0
+            key = new byte[] { 0x01 };
+            value = new byte[0];
+            engine.CurrentContext.EvaluationStack.Push(value);
+            engine.CurrentContext.EvaluationStack.Push(key);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(storageContext));
+            InteropService.Invoke(engine, "System.Storage.Put".ToInteropMethodHash()).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void TestStorage_PutEx()
+        {
+            var engine = GetEngine(false, true);
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, "System.Storage.PutEx".ToInteropMethodHash()).Should().BeFalse();
+
+            var mockSnapshot = new Mock<Snapshot>();
+            var state = TestUtils.GetContract();
+            state.Manifest.Features = ContractFeatures.HasStorage;
+            var storageItem = new StorageItem
+            {
+                Value = new byte[] { 0x01, 0x02, 0x03, 0x04 },
+                IsConstant = false
+            };
+            mockSnapshot.SetupGet(p => p.Contracts).Returns(new TestDataCache<UInt160, ContractState>(state));
+            mockSnapshot.SetupGet(p => p.Storages).Returns(new TestDataCache<StorageKey, StorageItem>(storageItem));
+            engine = new ApplicationEngine(TriggerType.Application, null, mockSnapshot.Object, 0);
+            engine.LoadScript(new byte[] { 0x01, 0x02, 0x03, 0x04 });
+            var key = new byte[] { 0x01 };
+            var value = new byte[] { 0x02 };
+            var storageContext = new StorageContext
+            {
+                ScriptHash = state.ScriptHash,
+                IsReadOnly = false
+            };
+            engine.CurrentContext.EvaluationStack.Push((int)StorageFlags.None);
+            engine.CurrentContext.EvaluationStack.Push(value);
+            engine.CurrentContext.EvaluationStack.Push(key);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(storageContext));
+            InteropService.Invoke(engine, "System.Storage.PutEx".ToInteropMethodHash()).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void TestStorage_Delete()
+        {
+            var engine = GetEngine(false, true);
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, "System.Storage.Delete".ToInteropMethodHash()).Should().BeFalse();
+
+
+            var mockSnapshot = new Mock<Snapshot>();
+            var state = TestUtils.GetContract();
+            state.Manifest.Features = ContractFeatures.HasStorage;
+            var storageItem = new StorageItem
+            {
+                Value = new byte[] { 0x01, 0x02, 0x03, 0x04 },
+                IsConstant = false
+            };
+            mockSnapshot.SetupGet(p => p.Contracts).Returns(new TestDataCache<UInt160, ContractState>(state));
+            mockSnapshot.SetupGet(p => p.Storages).Returns(new TestDataCache<StorageKey, StorageItem>(storageItem));
+            engine = new ApplicationEngine(TriggerType.Application, null, mockSnapshot.Object, 0);
+            engine.LoadScript(new byte[] { 0x01, 0x02, 0x03, 0x04 });
+            state.Manifest.Features = ContractFeatures.HasStorage;
+            var key = new byte[] { 0x01 };
+            var storageContext = new StorageContext
+            {
+                ScriptHash = state.ScriptHash,
+                IsReadOnly = false
+            };
+            engine.CurrentContext.EvaluationStack.Push(key);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(storageContext));
+            InteropService.Invoke(engine, "System.Storage.Delete".ToInteropMethodHash()).Should().BeTrue();
+
+            //context is readonly
+            storageContext.IsReadOnly = true;
+            engine.CurrentContext.EvaluationStack.Push(key);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(storageContext));
+            InteropService.Invoke(engine, "System.Storage.Delete".ToInteropMethodHash()).Should().BeFalse();
+
+            //CheckStorageContext fail
+            storageContext.IsReadOnly = false;
+            state.Manifest.Features = ContractFeatures.NoProperty;
+            engine.CurrentContext.EvaluationStack.Push(key);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(storageContext));
+            InteropService.Invoke(engine, "System.Storage.Delete".ToInteropMethodHash()).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestStorageContext_AsReadOnly()
+        {
+            var engine = GetEngine();
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, "System.StorageContext.AsReadOnly".ToInteropMethodHash()).Should().BeFalse();
+
+            var state = TestUtils.GetContract();
+            var storageContext = new StorageContext
+            {
+                ScriptHash = state.ScriptHash,
+                IsReadOnly = false
+            };
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(storageContext));
+            InteropService.Invoke(engine, "System.StorageContext.AsReadOnly".ToInteropMethodHash()).Should().BeTrue();
+            var ret = (InteropInterface<StorageContext>)engine.CurrentContext.EvaluationStack.Pop();
+            ret.GetInterface<StorageContext>().IsReadOnly.Should().Be(true);
+        }
+
+        [TestMethod]
+        public void TestInvoke()
+        {
+            var engine = new ApplicationEngine(TriggerType.Verification, null, null, 0);
+            InteropService.Invoke(engine, 10000).Should().BeFalse();
+            InteropService.Invoke(engine, "System.StorageContext.AsReadOnly".ToInteropMethodHash()).Should().BeFalse();
         }
 
         public static void LogEvent(object sender, LogEventArgs args)
