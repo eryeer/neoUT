@@ -1,4 +1,5 @@
-﻿using Neo.Plugins;
+﻿using Microsoft.Extensions.Configuration;
+using Neo.Plugins;
 
 namespace Neo.UnitTests.Plugins
 {
@@ -25,6 +26,26 @@ namespace Neo.UnitTests.Plugins
             return OnMessage(message);
         }
 
+        public IConfigurationSection TestGetConfiguration()
+        {
+            return GetConfiguration();
+        }
+
         protected override bool OnMessage(object message) => true;
+
+        public static bool TestResumeNodeStartup()
+        {
+            return ResumeNodeStartup();
+        }
+
+        public static void TestSuspendNodeStartup()
+        {
+            SuspendNodeStartup();
+        }
+
+        public static void TestLoadPlugins(NeoSystem system)
+        {
+            LoadPlugins(system);
+        }
     }
 }

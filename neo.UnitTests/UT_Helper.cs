@@ -86,12 +86,8 @@ namespace Neo.UnitTests
             action1.ShouldThrow<ArgumentException>();
 
             ran.NextBigInteger(0).Should().Be(0);
-
-            Action action2 = () => ran.NextBigInteger(8);
-            action2.ShouldNotThrow();
-
-            Action action3 = () => ran.NextBigInteger(9);
-            action3.ShouldNotThrow();
+            ran.NextBigInteger(8).Should().NotBeNull();
+            ran.NextBigInteger(9).Should().NotBeNull();
         }
 
         [TestMethod]
@@ -102,12 +98,8 @@ namespace Neo.UnitTests
             action1.ShouldThrow<ArgumentException>();
 
             ran.NextBigInteger(0).Should().Be(0);
-
-            Action action2 = () => ran.NextBigInteger(8);
-            action2.ShouldNotThrow();
-
-            Action action3 = () => ran.NextBigInteger(9);
-            action3.ShouldNotThrow();
+            ran.NextBigInteger(8).Should().NotBeNull();
+            ran.NextBigInteger(9).Should().NotBeNull();
         }
 
         [TestMethod]

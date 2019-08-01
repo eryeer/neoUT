@@ -1,11 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neo.IO;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace Neo.UnitTests.IO
 {
@@ -51,7 +46,7 @@ namespace Neo.UnitTests.IO
         [TestMethod]
         public void TestParse()
         {
-            Action action=()=> UInt256.Parse(null);
+            Action action = () => UInt256.Parse(null);
             action.ShouldThrow<ArgumentNullException>();
             UInt256 result = UInt256.Parse("0x0000000000000000000000000000000000000000000000000000000000000000");
             Assert.AreEqual(UInt256.Zero, result);
@@ -59,17 +54,6 @@ namespace Neo.UnitTests.IO
             action1.ShouldThrow<FormatException>();
             UInt256 result1 = UInt256.Parse("0000000000000000000000000000000000000000000000000000000000000000");
             Assert.AreEqual(UInt256.Zero, result1);
-        }
-
-        [TestMethod]
-        public void TryParse()
-        {
-            UInt256 temp = new UInt256();
-            Assert.AreEqual(false, UInt256.TryParse(null, out temp));
-            Assert.AreEqual(true, UInt256.TryParse("0x0000000000000000000000000000000000000000000000000000000000000000", out temp));
-            Assert.AreEqual(UInt256.Zero, temp);
-            Assert.AreEqual(false, UInt256.TryParse("000000000000000000000000000000000000000000000000000000000000000", out temp));
-            Assert.AreEqual(false, UInt256.TryParse("0xKK00000000000000000000000000000000000000000000000000000000000000", out temp));
         }
 
         [TestMethod]
@@ -86,7 +70,7 @@ namespace Neo.UnitTests.IO
         [TestMethod]
         public void TestOperatorLarger()
         {
-            Assert.AreEqual(false, UInt256.Zero> UInt256.Zero);
+            Assert.AreEqual(false, UInt256.Zero > UInt256.Zero);
         }
 
         [TestMethod]
