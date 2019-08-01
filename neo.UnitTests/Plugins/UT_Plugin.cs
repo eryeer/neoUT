@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neo.Network.P2P.Payloads;
 using Neo.Plugins;
 using System;
 
@@ -12,36 +11,9 @@ namespace Neo.UnitTests.Plugins
         private static readonly object locker = new object();
 
         [TestMethod]
-        public void TestCheckPolicy()
-        {
-            lock (locker)
-            {
-                Transaction tx = new Transaction
-                {
-                    Script = TestUtils.GetByteArray(32, 0x42),
-                    Sender = UInt160.Zero,
-                    SystemFee = 4200000000,
-                    Attributes = new TransactionAttribute[0],
-                    Witnesses = new[]
-                    {
-                    new Witness
-                    {
-                        InvocationScript = new byte[0],
-                        VerificationScript = new byte[0]
-                    }
-                }
-                };
-                TestPolicyPlugin.GetPolicies().Clear();
-                Plugin.CheckPolicy(tx).Should().BeTrue();
-                var pp = new TestPolicyPlugin();
-                Plugin.CheckPolicy(tx).Should().BeFalse();
-            }
-        }
-
-        [TestMethod]
         public void TestGetConfigFile()
         {
-            var pp = new TestPolicyPlugin();
+            var pp = new TestLogPlugin();
             var file = pp.ConfigFile;
             file.EndsWith("config.json").Should().BeTrue();
         }
@@ -49,14 +21,14 @@ namespace Neo.UnitTests.Plugins
         [TestMethod]
         public void TestGetName()
         {
-            var pp = new TestPolicyPlugin();
-            pp.Name.Should().Be("TestPolicyPlugin");
+            var pp = new TestLogPlugin();
+            pp.Name.Should().Be("TestLogPlugin");
         }
 
         [TestMethod]
         public void TestGetVersion()
         {
-            var pp = new TestPolicyPlugin();
+            var pp = new TestLogPlugin();
             Action action = () => pp.Version.ToString();
             action.ShouldNotThrow();
         }
@@ -77,18 +49,15 @@ namespace Neo.UnitTests.Plugins
                 Plugin.Plugins.Clear();
                 Plugin.SendMessage("hey1").Should().BeFalse();
 
-                var pp = new TestPolicyPlugin();
-                Plugin.SendMessage("hey2").Should().BeFalse();
-
                 var lp = new TestLogPlugin();
-                Plugin.SendMessage("hey3").Should().BeTrue();
+                Plugin.SendMessage("hey2").Should().BeTrue();
             }
         }
 
         [TestMethod]
         public void TestNotifyPluginsLoadedAfterSystemConstructed()
         {
-            var pp = new TestPolicyPlugin();
+            var pp = new TestLogPlugin();
             Action action = () => Plugin.NotifyPluginsLoadedAfterSystemConstructed();
             action.ShouldNotThrow();
         }
@@ -97,17 +66,17 @@ namespace Neo.UnitTests.Plugins
         public void TestResumeNodeStartupAndSuspendNodeStartup()
         {
             var system = TestBlockchain.InitializeMockNeoSystem();
-            TestPolicyPlugin.TestLoadPlugins(system);
-            TestPolicyPlugin.TestSuspendNodeStartup();
-            TestPolicyPlugin.TestSuspendNodeStartup();
-            TestPolicyPlugin.TestResumeNodeStartup().Should().BeFalse();
-            TestPolicyPlugin.TestResumeNodeStartup().Should().BeTrue();
+            TestLogPlugin.TestLoadPlugins(system);
+            TestLogPlugin.TestSuspendNodeStartup();
+            TestLogPlugin.TestSuspendNodeStartup();
+            TestLogPlugin.TestResumeNodeStartup().Should().BeFalse();
+            TestLogPlugin.TestResumeNodeStartup().Should().BeTrue();
         }
 
         [TestMethod]
         public void TestGetConfiguration()
         {
-            var pp = new TestPolicyPlugin();
+            var pp = new TestLogPlugin();
             pp.TestGetConfiguration().Key.Should().Be("PluginConfiguration");
         }
     }
