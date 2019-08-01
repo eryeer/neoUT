@@ -1,5 +1,4 @@
-﻿using Akka.Actor;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Ledger;
 using Neo.Network.P2P.Payloads;
