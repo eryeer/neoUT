@@ -1,10 +1,8 @@
 ﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neo.IO.Json;
-using Neo.Wallets.NEP6;
+using Neo.Cryptography;
 using Neo.Wallets;
 using System;
-using Neo.Cryptography;
 
 namespace Neo.UnitTests.Wallets
 {
