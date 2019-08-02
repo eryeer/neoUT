@@ -345,10 +345,7 @@ namespace Neo.UnitTests.Ledger
         public void TestReVerifyTopUnverifiedTransactionsIfNeeded()
         {
             NeoSystem TheNeoSystem = TestBlockchain.InitializeMockNeoSystem();
-
             var s = Blockchain.Singleton.Height;
-            Console.WriteLine(s);
-
             _unit = new MemoryPool(TheNeoSystem, 600);
             _unit.LoadPolicy(TestBlockchain.GetStore().GetSnapshot());
             AddTransactions(2);
