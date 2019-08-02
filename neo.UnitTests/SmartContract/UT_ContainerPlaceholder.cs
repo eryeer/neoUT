@@ -6,7 +6,6 @@ using System;
 
 namespace Neo.UnitTests.SmartContract.Iterators
 {
-
     [TestClass]
     public class UT_ContainerPlaceholder
     {

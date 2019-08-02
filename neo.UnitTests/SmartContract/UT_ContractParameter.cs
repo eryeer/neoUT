@@ -3,8 +3,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Cryptography.ECC;
 using Neo.IO.Json;
 using Neo.SmartContract;
-using Neo.VM;
-using Neo.Wallets;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -249,7 +247,7 @@ namespace Neo.UnitTests.IO
         [TestMethod]
         public void TestToString()
         {
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 5; i++)
             {
                 if (i == 0)
                 {
@@ -262,7 +260,7 @@ namespace Neo.UnitTests.IO
                     contractParameter.Value = new byte[1];
                     Assert.AreEqual("00", contractParameter.ToString());
                 }
-                else if (i == 3)
+                else if (i == 2)
                 { 
                     ContractParameter contractParameter = new ContractParameter(ContractParameterType.Array);
                     Assert.AreEqual("[]", contractParameter.ToString());
@@ -270,7 +268,7 @@ namespace Neo.UnitTests.IO
                     ((IList<ContractParameter>)contractParameter.Value).Add(internalContractParameter);
                     Assert.AreEqual("[False]", contractParameter.ToString());
                 }
-                else if (i == 4)
+                else if (i == 3)
                 {
                     ContractParameter contractParameter = new ContractParameter(ContractParameterType.Map);
                     Assert.AreEqual("[]", contractParameter.ToString());
