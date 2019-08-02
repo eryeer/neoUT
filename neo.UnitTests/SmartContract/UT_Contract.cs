@@ -136,6 +136,7 @@ namespace Neo.UnitTests.IO
             Assert.AreEqual(1, contract.ParameterList.Length);
             Assert.AreEqual(ContractParameterType.Signature, contract.ParameterList[0]);
         }
+
         [TestMethod]
         public void TestCreateSignatureRedeemScript()
         {

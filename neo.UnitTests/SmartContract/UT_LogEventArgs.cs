@@ -12,12 +12,12 @@ namespace Neo.UnitTests.SmartContract.Iterators
         [TestMethod]
         public void TestGeneratorAndGet()
         {
-            IVerifiable container=new Header();
-            UInt160 scripthash=UInt160.Zero;
+            IVerifiable container = new Header();
+            UInt160 scripthash = UInt160.Zero;
             String message = "lalala";
-            LogEventArgs logEventArgs = new LogEventArgs(container, scripthash,message);
+            LogEventArgs logEventArgs = new LogEventArgs(container, scripthash, message);
             Assert.IsNotNull(logEventArgs);
-            Assert.AreEqual(container,logEventArgs.ScriptContainer);
+            Assert.AreEqual(container, logEventArgs.ScriptContainer);
             Assert.AreEqual(scripthash, logEventArgs.ScriptHash);
             Assert.AreEqual(message, logEventArgs.Message);
         }
