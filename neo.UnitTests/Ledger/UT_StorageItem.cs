@@ -19,37 +19,17 @@ namespace Neo.UnitTests.Ledger
         }
 
         [TestMethod]
-        public void Value_Get()
-        {
-            uut.Value.Should().BeNull();
-        }
-
-        [TestMethod]
-        public void Value_Set()
-        {
-            byte[] val = new byte[] { 0x42, 0x32 };
-            uut.Value = val;
-            uut.Value.Length.Should().Be(2);
-            uut.Value[0].Should().Be(val[0]);
-            uut.Value[1].Should().Be(val[1]);
-        }
-
-        [TestMethod]
-        public void Size_Get()
+        public void TestSize_Get()
         {
             uut.Value = TestUtils.GetByteArray(10, 0x42);
             uut.Size.Should().Be(12); // 2 + 10
-        }
 
-        [TestMethod]
-        public void Size_Get_Larger()
-        {
             uut.Value = TestUtils.GetByteArray(88, 0x42);
             uut.Size.Should().Be(90); // 2 + 88
         }
 
         [TestMethod]
-        public void Clone()
+        public void TestClone()
         {
             uut.Value = TestUtils.GetByteArray(10, 0x42);
 
@@ -63,7 +43,7 @@ namespace Neo.UnitTests.Ledger
         }
 
         [TestMethod]
-        public void Deserialize()
+        public void TestDeserialize()
         {
             byte[] data = new byte[] { 10, 66, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0 };
             int index = 0;
@@ -83,7 +63,7 @@ namespace Neo.UnitTests.Ledger
         }
 
         [TestMethod]
-        public void Serialize()
+        public void TestSerialize()
         {
             uut.Value = TestUtils.GetByteArray(10, 0x42);
 
@@ -100,10 +80,7 @@ namespace Neo.UnitTests.Ledger
             byte[] requiredData = new byte[] { 10, 66, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0 };
 
             data.Length.Should().Be(requiredData.Length);
-            for (int i = 0; i < requiredData.Length; i++)
-            {
-                data[i].Should().Be(requiredData[i]);
-            }
+            data.ToHexString().Should().Be(requiredData.ToHexString());
         }
 
         [TestMethod]
