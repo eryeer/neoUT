@@ -18,7 +18,13 @@ namespace Neo.UnitTests.Ledger
         }
 
         [TestMethod]
-        public void TestSize()
+        public void ScriptHash_Get()
+        {
+            uut.ScriptHash.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Size()
         {
             var ut = new StorageKey() { Key = new byte[17], ScriptHash = UInt160.Zero };
             ut.ToArray().Length.Should().Be(((ISerializable)ut).Size);
@@ -31,19 +37,43 @@ namespace Neo.UnitTests.Ledger
         }
 
         [TestMethod]
-        public void TestEquals_SameObj()
+        public void ScriptHash_Set()
+        {
+            UInt160 val = new UInt160(TestUtils.GetByteArray(20, 0x42));
+            uut.ScriptHash = val;
+            uut.ScriptHash.Should().Be(val);
+        }
+
+        [TestMethod]
+        public void Key_Get()
+        {
+            uut.Key.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Key_Set()
+        {
+            byte[] val = new byte[] { 0x42, 0x32 };
+            uut.Key = val;
+            uut.Key.Length.Should().Be(2);
+            uut.Key[0].Should().Be(val[0]);
+            uut.Key[1].Should().Be(val[1]);
+        }
+
+        [TestMethod]
+        public void Equals_SameObj()
         {
             uut.Equals(uut).Should().BeTrue();
         }
 
         [TestMethod]
-        public void TestEquals_Null()
+        public void Equals_Null()
         {
             uut.Equals(null).Should().BeFalse();
         }
 
         [TestMethod]
-        public void TestEquals_SameHash_SameKey()
+        public void Equals_SameHash_SameKey()
         {
             UInt160 val = new UInt160(TestUtils.GetByteArray(20, 0x42));
             byte[] keyVal = TestUtils.GetByteArray(10, 0x42);
@@ -59,7 +89,7 @@ namespace Neo.UnitTests.Ledger
         }
 
         [TestMethod]
-        public void TestEquals_DiffHash_SameKey()
+        public void Equals_DiffHash_SameKey()
         {
             UInt160 val = new UInt160(TestUtils.GetByteArray(20, 0x42));
             byte[] keyVal = TestUtils.GetByteArray(10, 0x42);
@@ -76,7 +106,7 @@ namespace Neo.UnitTests.Ledger
 
 
         [TestMethod]
-        public void TestEquals_SameHash_DiffKey()
+        public void Equals_SameHash_DiffKey()
         {
             UInt160 val = new UInt160(TestUtils.GetByteArray(20, 0x42));
             byte[] keyVal = TestUtils.GetByteArray(10, 0x42);
@@ -92,7 +122,7 @@ namespace Neo.UnitTests.Ledger
         }
 
         [TestMethod]
-        public void TestGetHashCode_Get()
+        public void GetHashCode_Get()
         {
             uut.ScriptHash = new UInt160(TestUtils.GetByteArray(20, 0x42));
             uut.Key = TestUtils.GetByteArray(10, 0x42);
@@ -100,7 +130,7 @@ namespace Neo.UnitTests.Ledger
         }
 
         [TestMethod]
-        public void TestEquals_Obj()
+        public void Equals_Obj()
         {
             uut.Equals(1u).Should().BeFalse();
             uut.Equals((object)uut).Should().BeTrue();
