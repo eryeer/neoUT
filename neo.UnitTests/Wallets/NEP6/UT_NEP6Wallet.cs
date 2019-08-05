@@ -133,6 +133,29 @@ namespace Neo.UnitTests.Wallets.NEP6
         }
 
         [TestMethod]
+        public void TestAddCount()
+        {
+            uut.CreateAccount(testScriptHash);
+            Assert.IsTrue(uut.Contains(testScriptHash));
+            WalletAccount account = uut.GetAccount(testScriptHash);
+            Assert.IsTrue(account.WatchOnly);
+            Assert.IsFalse(account.HasKey);
+            uut.Unlock("123");
+            uut.CreateAccount(keyPair.PrivateKey);
+            account = uut.GetAccount(testScriptHash);
+            Assert.IsFalse(account.WatchOnly);
+            Assert.IsTrue(account.HasKey);
+            uut.CreateAccount(testScriptHash);
+            account = uut.GetAccount(testScriptHash);
+            Assert.IsFalse(account.WatchOnly);
+            Assert.IsFalse(account.HasKey);
+            uut.CreateAccount(keyPair.PrivateKey);
+            account = uut.GetAccount(testScriptHash);
+            Assert.IsFalse(account.WatchOnly);
+            Assert.IsTrue(account.HasKey);
+        }
+
+        [TestMethod]
         public void TestCreateAccountWithPrivateKey()
         {
 
@@ -280,6 +303,23 @@ namespace Neo.UnitTests.Wallets.NEP6
             uut.Import(nep2key, "123");
             result = uut.Contains(testScriptHash);
             Assert.AreEqual(true, result);
+            uut.DeleteAccount(testScriptHash);
+            result = uut.Contains(testScriptHash);
+            Assert.AreEqual(false, result);
+            JObject wallet = new JObject();
+            wallet["name"] = "name";
+            wallet["version"] = new System.Version().ToString();
+            ScryptParameters sp = new ScryptParameters(16384, 16, 16);
+            wallet["scrypt"] = sp.ToJson();
+            wallet["accounts"] = new JArray();
+            wallet["extra"] = new JObject();
+            uut = new NEP6Wallet(wallet);
+            result = uut.Contains(testScriptHash);
+            Assert.AreEqual(false, result);
+            nep2key = keyPair.Export("123");
+            uut.Import(nep2key, "123");
+            result = uut.Contains(testScriptHash);
+            Assert.AreEqual(true, result);
         }
 
         [TestMethod]
@@ -336,6 +376,7 @@ namespace Neo.UnitTests.Wallets.NEP6
             uut.CreateAccount(keyPair.PrivateKey);
             bool result = uut.Contains(testScriptHash);
             Assert.AreEqual(true, result);
+            Assert.ThrowsException<CryptographicException>(() => uut.Unlock("1"));
         }
 
         [TestMethod]
@@ -352,9 +393,9 @@ namespace Neo.UnitTests.Wallets.NEP6
             Assert.AreEqual(true, result);
             uut.DeleteAccount(testScriptHash);
             Assert.AreEqual(false, uut.Contains(testScriptHash));
-            uut.CreateAccount(testScriptHash);
-            result = uut.VerifyPassword("1");
-            Assert.AreEqual(true, result);
+            uut.Import(nep2key, "123");
+            Assert.IsFalse(uut.VerifyPassword("1"));
+            Assert.IsTrue(uut.VerifyPassword("123"));
         }
 
         [TestMethod]
