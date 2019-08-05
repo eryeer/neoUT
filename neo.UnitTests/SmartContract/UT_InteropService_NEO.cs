@@ -16,6 +16,7 @@ using VMArray = Neo.VM.Types.Array;
 
 namespace Neo.UnitTests.SmartContract
 {
+    [TestClass]
     public class UT_InteropService_NEO
     {
         [TestMethod]
@@ -39,6 +40,7 @@ namespace Neo.UnitTests.SmartContract
             InteropService.Invoke(engine, InteropService.Neo_Crypto_CheckSig).Should().BeTrue();
             engine.CurrentContext.EvaluationStack.Pop().GetBoolean().Should().BeFalse();
         }
+
 
         [TestMethod]
         public void TestCrypto_CheckMultiSig()
@@ -131,12 +133,12 @@ namespace Neo.UnitTests.SmartContract
             engine.CurrentContext.EvaluationStack.Pop().GetBigInteger().Should().Be(block.Version);
 
             engine.CurrentContext.EvaluationStack.Push(1);
-            InteropService.Invoke(engine, InteropService.Neo_Header_GetVersion).Should().BeFalse(); engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Header_GetVersion).Should().BeFalse();
 
             engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(null));
             InteropService.Invoke(engine, InteropService.Neo_Header_GetVersion).Should().BeFalse();
         }
-
+        
         [TestMethod]
         public void TestHeader_GetMerkleRoot()
         {
@@ -149,7 +151,7 @@ namespace Neo.UnitTests.SmartContract
                 .Should().Be(block.MerkleRoot.ToArray().ToHexString());
 
             engine.CurrentContext.EvaluationStack.Push(1);
-            InteropService.Invoke(engine, InteropService.Neo_Header_GetMerkleRoot).Should().BeFalse(); engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Header_GetMerkleRoot).Should().BeFalse();
 
             engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(null));
             InteropService.Invoke(engine, InteropService.Neo_Header_GetMerkleRoot).Should().BeFalse();
@@ -167,7 +169,7 @@ namespace Neo.UnitTests.SmartContract
                 .Should().Be(block.NextConsensus.ToArray().ToHexString());
 
             engine.CurrentContext.EvaluationStack.Push(1);
-            InteropService.Invoke(engine, InteropService.Neo_Header_GetNextConsensus).Should().BeFalse(); engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Header_GetNextConsensus).Should().BeFalse();
 
             engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(null));
             InteropService.Invoke(engine, InteropService.Neo_Header_GetNextConsensus).Should().BeFalse();
@@ -184,12 +186,12 @@ namespace Neo.UnitTests.SmartContract
                 .Should().Be(tx.Script.ToHexString());
 
             engine.CurrentContext.EvaluationStack.Push(1);
-            InteropService.Invoke(engine, InteropService.Neo_Transaction_GetScript).Should().BeFalse(); engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Transaction_GetScript).Should().BeFalse();
 
             engine.CurrentContext.EvaluationStack.Push(new InteropInterface<Transaction>(null));
             InteropService.Invoke(engine, InteropService.Neo_Transaction_GetScript).Should().BeFalse();
         }
-
+        
         [TestMethod]
         public void TestTransaction_GetWitnesses()
         {
@@ -203,7 +205,7 @@ namespace Neo.UnitTests.SmartContract
                 .Should().Be(tx.Witnesses[0].VerificationScript.ToHexString());
 
             engine.CurrentContext.EvaluationStack.Push(1);
-            InteropService.Invoke(engine, InteropService.Neo_Transaction_GetWitnesses).Should().BeFalse(); engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Transaction_GetWitnesses).Should().BeFalse();
 
             engine.CurrentContext.EvaluationStack.Push(new InteropInterface<Transaction>(null));
             InteropService.Invoke(engine, InteropService.Neo_Transaction_GetWitnesses).Should().BeFalse();
@@ -234,7 +236,7 @@ namespace Neo.UnitTests.SmartContract
             InteropService.Invoke(engine, InteropService.Neo_Account_IsStandard).Should().BeTrue();
             engine.CurrentContext.EvaluationStack.Pop().GetBoolean().Should().BeFalse();
         }
-
+        
         [TestMethod]
         public void TestContract_Create()
         {
@@ -359,10 +361,26 @@ namespace Neo.UnitTests.SmartContract
             InteropService.Invoke(engine, InteropService.Neo_Contract_IsPayable).Should().BeFalse();
         }
 
+        [TestMethod]
+        public void TestEnumerator_Create()
+        {
+            var engine = GetEngine();
+            var arr =  new VMArray {
+                new byte[]{ 0x01},
+                new byte[]{ 0x02}
+            };
+            engine.CurrentContext.EvaluationStack.Push(arr);
+            InteropService.Invoke(engine, InteropService.Neo_Enumerator_Create).Should().BeTrue();
+            var ret = engine.CurrentContext.EvaluationStack.Pop();
+
+
+        }
+    
+
         private static ApplicationEngine GetEngine(bool hasContainer = false, bool hasSnapshot = false)
         {
             var tx = TestUtils.GetTransaction();
-            var snapshot = TestBlockchain.GetStore().GetSnapshot();
+            var snapshot = TestBlockchain.GetStore().GetSnapshot().Clone();
             ApplicationEngine engine;
             if (hasContainer && hasSnapshot)
             {

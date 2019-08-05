@@ -954,7 +954,7 @@ namespace Neo.UnitTests.SmartContract
         private static ApplicationEngine GetEngine(bool hasContainer = false, bool hasSnapshot = false)
         {
             var tx = TestUtils.GetTransaction();
-            var snapshot = TestBlockchain.GetStore().GetSnapshot();
+            var snapshot = TestBlockchain.GetStore().GetSnapshot().Clone();
             ApplicationEngine engine;
             if (hasContainer && hasSnapshot)
             {
