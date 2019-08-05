@@ -8,6 +8,8 @@ using Neo.Network.P2P;
 using Neo.Network.P2P.Payloads;
 using Neo.Persistence;
 using Neo.SmartContract;
+using Neo.SmartContract.Enumerators;
+using Neo.SmartContract.Iterators;
 using Neo.SmartContract.Manifest;
 using Neo.VM.Types;
 using Neo.Wallets;
@@ -40,7 +42,6 @@ namespace Neo.UnitTests.SmartContract
             InteropService.Invoke(engine, InteropService.Neo_Crypto_CheckSig).Should().BeTrue();
             engine.CurrentContext.EvaluationStack.Pop().GetBoolean().Should().BeFalse();
         }
-
 
         [TestMethod]
         public void TestCrypto_CheckMultiSig()
@@ -99,7 +100,7 @@ namespace Neo.UnitTests.SmartContract
             signatures = new VMArray
             {
                 signature1,
-                new byte[] { 0x01 }
+                new byte[64]
             };
             engine.CurrentContext.EvaluationStack.Push(signatures);
             engine.CurrentContext.EvaluationStack.Push(pubkeys);
@@ -138,7 +139,7 @@ namespace Neo.UnitTests.SmartContract
             engine.CurrentContext.EvaluationStack.Push(new InteropInterface<BlockBase>(null));
             InteropService.Invoke(engine, InteropService.Neo_Header_GetVersion).Should().BeFalse();
         }
-        
+
         [TestMethod]
         public void TestHeader_GetMerkleRoot()
         {
@@ -191,7 +192,7 @@ namespace Neo.UnitTests.SmartContract
             engine.CurrentContext.EvaluationStack.Push(new InteropInterface<Transaction>(null));
             InteropService.Invoke(engine, InteropService.Neo_Transaction_GetScript).Should().BeFalse();
         }
-        
+
         [TestMethod]
         public void TestTransaction_GetWitnesses()
         {
@@ -236,7 +237,7 @@ namespace Neo.UnitTests.SmartContract
             InteropService.Invoke(engine, InteropService.Neo_Account_IsStandard).Should().BeTrue();
             engine.CurrentContext.EvaluationStack.Pop().GetBoolean().Should().BeFalse();
         }
-        
+
         [TestMethod]
         public void TestContract_Create()
         {
@@ -362,20 +363,62 @@ namespace Neo.UnitTests.SmartContract
         }
 
         [TestMethod]
+        public void TestStorage_Find()
+        {
+            var mockSnapshot = new Mock<Snapshot>();
+            var state = TestUtils.GetContract();
+            state.Manifest.Features = ContractFeatures.HasStorage;
+
+            var storageItem = new StorageItem
+            {
+                Value = new byte[] { 0x01, 0x02, 0x03, 0x04 },
+                IsConstant = true
+            };
+            var storageKey = new StorageKey
+            {
+                ScriptHash = state.ScriptHash,
+                Key = new byte[] { 0x01 }
+            };
+            mockSnapshot.SetupGet(p => p.Contracts).Returns(new DicDataCache<UInt160, ContractState>(state.ScriptHash, state));
+            mockSnapshot.SetupGet(p => p.Storages).Returns(new DicDataCache<StorageKey, StorageItem>(storageKey, storageItem));
+            var engine = new ApplicationEngine(TriggerType.Application, null, mockSnapshot.Object, 0);
+            engine.LoadScript(new byte[] { 0x01 });
+
+            engine.CurrentContext.EvaluationStack.Push(new byte[] { 0x01 });
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<StorageContext>(new StorageContext
+            {
+                ScriptHash = state.ScriptHash,
+                IsReadOnly = false
+            }));
+            InteropService.Invoke(engine, InteropService.Neo_Storage_Find).Should().BeTrue();
+            var iterator = ((InteropInterface<StorageIterator>)engine.CurrentContext.EvaluationStack.Pop()).GetInterface<StorageIterator>();
+            iterator.Next();
+            var ele = iterator.Value();
+            ele.GetByteArray().ToHexString().Should().Be(storageItem.Value.ToHexString());
+
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Storage_Find).Should().BeFalse();
+        }
+
+        [TestMethod]
         public void TestEnumerator_Create()
         {
             var engine = GetEngine();
-            var arr =  new VMArray {
-                new byte[]{ 0x01},
-                new byte[]{ 0x02}
+            var arr = new VMArray {
+                new byte[]{ 0x01 },
+                new byte[]{ 0x02 }
             };
             engine.CurrentContext.EvaluationStack.Push(arr);
             InteropService.Invoke(engine, InteropService.Neo_Enumerator_Create).Should().BeTrue();
-            var ret = engine.CurrentContext.EvaluationStack.Pop();
+            var ret = (InteropInterface<IEnumerator>)engine.CurrentContext.EvaluationStack.Pop();
+            ret.GetInterface<IEnumerator>().Next();
+            ret.GetInterface<IEnumerator>().Value().GetByteArray().ToHexString()
+                .Should().Be(new byte[] { 0x01 }.ToHexString());
 
-
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Enumerator_Create).Should().BeFalse();
         }
-    
+
 
         private static ApplicationEngine GetEngine(bool hasContainer = false, bool hasSnapshot = false)
         {
