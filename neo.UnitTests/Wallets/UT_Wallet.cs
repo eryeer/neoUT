@@ -11,6 +11,7 @@ using Neo.UnitTests.Cryptography;
 using Neo.Wallets;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Neo.UnitTests.Wallets
 {
@@ -258,6 +259,14 @@ namespace Neo.UnitTests.Wallets
         {
             MyWallet wallet = new MyWallet();
             wallet.Import("L3tgppXLgdaeqSGSFw1Go3skBiy8vQAM7YMXvTHsKQtE16PBncSU").Should().NotBeNull();
+        }
+
+        [TestMethod]
+        public void TestImport3()
+        {
+            MyWallet wallet = new MyWallet();
+            X509Certificate2 cert = new X509Certificate2(@"C:\cer\11.p12", "123456");
+            wallet.Import(cert).Should().NotBeNull();
         }
 
         [TestMethod]
