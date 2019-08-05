@@ -265,7 +265,7 @@ namespace Neo.UnitTests.Wallets
         public void TestImport3()
         {
             MyWallet wallet = new MyWallet();
-            X509Certificate2 cert = new X509Certificate2(@"C:\cer\11.p12", "123456");
+            X509Certificate2 cert = new X509Certificate2(@"../../../../11.p12", "123456");
             wallet.Import(cert).Should().NotBeNull();
         }
 
