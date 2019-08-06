@@ -361,12 +361,12 @@ namespace Neo.UnitTests.SmartContract.Native.Tokens
             result[6].PublicKey.ToArray().ToHexString().Should().Be("03b8d9d5771d8f513aa0869b9cc8d50986403b78c6da36890638c3d46a5adce04a");
             result[6].Votes.Should().Be(new BigInteger(0));
 
-            /*StorageKey key = CreateStorageKey(33, ECCurve.Secp256r1.G.ToArray());
-            snapshot.Storages.Add(key, new StorageItem()
+            StorageKey key = NativeContract.NEO.CreateStorageKey(33, ECCurve.Secp256r1.G);
+            snapshot.Storages.Add(key, new StorageItem
             {
                 Value = new ValidatorState().ToByteArray()
             });
-            NativeContract.NEO.GetRegisteredValidators(snapshot).ToArray().Length.Should().Be(1);*/
+            NativeContract.NEO.GetRegisteredValidators(snapshot).ToArray().Length.Should().Be(8);
         }
 
         [TestMethod]
