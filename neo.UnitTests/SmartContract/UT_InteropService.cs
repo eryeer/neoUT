@@ -19,7 +19,7 @@ using System.Text;
 namespace Neo.UnitTests.SmartContract
 {
     [TestClass]
-    public class UT_InteropService
+    public partial class UT_InteropService
     {
         [TestInitialize]
         public void TestSetup()
