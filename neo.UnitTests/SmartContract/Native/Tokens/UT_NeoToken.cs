@@ -129,7 +129,7 @@ namespace Neo.UnitTests.SmartContract.Native.Tokens
             ret.Result.Should().BeTrue();
 
             snapshot.Storages.GetChangeSet().Count().Should().Be(keyCount + 1); // New validator
-            
+
             // Check GetRegisteredValidators
 
             var validators = NativeContract.NEO.GetRegisteredValidators(snapshot).OrderBy(u => u.PublicKey).ToArray();
@@ -322,7 +322,21 @@ namespace Neo.UnitTests.SmartContract.Native.Tokens
             {
                 var result = engine.ResultStack.Peek();
                 result.GetType().Should().Be(typeof(VM.Types.Array));
-                ((VM.Types.Array)result).Count.Should().Be(0);
+                ((VM.Types.Array)result).Count.Should().Be(7);
+                ((VM.Types.ByteArray)((VM.Types.Struct)((VM.Types.Array)result)[0])[0]).GetByteArray().ToHexString().Should().Be("02486fd15702c4490a26703112a5cc1d0923fd697a33406bd5a1c00e0013b09a70");
+                ((VM.Types.Struct)((VM.Types.Array)result)[0])[1].GetBigInteger().Should().Be(new BigInteger(0));
+                ((VM.Types.ByteArray)((VM.Types.Struct)((VM.Types.Array)result)[1])[0]).GetByteArray().ToHexString().Should().Be("024c7b7fb6c310fccf1ba33b082519d82964ea93868d676662d4a59ad548df0e7d");
+                ((VM.Types.Struct)((VM.Types.Array)result)[1])[1].GetBigInteger().Should().Be(new BigInteger(0));
+                ((VM.Types.ByteArray)((VM.Types.Struct)((VM.Types.Array)result)[2])[0]).GetByteArray().ToHexString().Should().Be("02aaec38470f6aad0042c6e877cfd8087d2676b0f516fddd362801b9bd3936399e");
+                ((VM.Types.Struct)((VM.Types.Array)result)[2])[1].GetBigInteger().Should().Be(new BigInteger(0));
+                ((VM.Types.ByteArray)((VM.Types.Struct)((VM.Types.Array)result)[3])[0]).GetByteArray().ToHexString().Should().Be("02ca0e27697b9c248f6f16e085fd0061e26f44da85b58ee835c110caa5ec3ba554");
+                ((VM.Types.Struct)((VM.Types.Array)result)[3])[1].GetBigInteger().Should().Be(new BigInteger(0));
+                ((VM.Types.ByteArray)((VM.Types.Struct)((VM.Types.Array)result)[4])[0]).GetByteArray().ToHexString().Should().Be("02df48f60e8f3e01c48ff40b9b7f1310d7a8b2a193188befe1c2e3df740e895093");
+                ((VM.Types.Struct)((VM.Types.Array)result)[4])[1].GetBigInteger().Should().Be(new BigInteger(0));
+                ((VM.Types.ByteArray)((VM.Types.Struct)((VM.Types.Array)result)[5])[0]).GetByteArray().ToHexString().Should().Be("03b209fd4f53a7170ea4444e0cb0a6bb6a53c2bd016926989cf85f9b0fba17a70c");
+                ((VM.Types.Struct)((VM.Types.Array)result)[5])[1].GetBigInteger().Should().Be(new BigInteger(0));
+                ((VM.Types.ByteArray)((VM.Types.Struct)((VM.Types.Array)result)[6])[0]).GetByteArray().ToHexString().Should().Be("03b8d9d5771d8f513aa0869b9cc8d50986403b78c6da36890638c3d46a5adce04a");
+                ((VM.Types.Struct)((VM.Types.Array)result)[6])[1].GetBigInteger().Should().Be(new BigInteger(0));
             }
         }
 
@@ -331,14 +345,28 @@ namespace Neo.UnitTests.SmartContract.Native.Tokens
         {
             Snapshot snapshot = Store.GetSnapshot().Clone();
             var result = NativeContract.NEO.GetRegisteredValidators(snapshot).ToArray();
-            result.Length.Should().Be(0);
+            result.Length.Should().Be(7);
+            result[0].PublicKey.ToArray().ToHexString().Should().Be("02486fd15702c4490a26703112a5cc1d0923fd697a33406bd5a1c00e0013b09a70");
+            result[0].Votes.Should().Be(new BigInteger(0));
+            result[1].PublicKey.ToArray().ToHexString().Should().Be("024c7b7fb6c310fccf1ba33b082519d82964ea93868d676662d4a59ad548df0e7d");
+            result[1].Votes.Should().Be(new BigInteger(0));
+            result[2].PublicKey.ToArray().ToHexString().Should().Be("02aaec38470f6aad0042c6e877cfd8087d2676b0f516fddd362801b9bd3936399e");
+            result[2].Votes.Should().Be(new BigInteger(0));
+            result[3].PublicKey.ToArray().ToHexString().Should().Be("02ca0e27697b9c248f6f16e085fd0061e26f44da85b58ee835c110caa5ec3ba554");
+            result[3].Votes.Should().Be(new BigInteger(0));
+            result[4].PublicKey.ToArray().ToHexString().Should().Be("02df48f60e8f3e01c48ff40b9b7f1310d7a8b2a193188befe1c2e3df740e895093");
+            result[4].Votes.Should().Be(new BigInteger(0));
+            result[5].PublicKey.ToArray().ToHexString().Should().Be("03b209fd4f53a7170ea4444e0cb0a6bb6a53c2bd016926989cf85f9b0fba17a70c");
+            result[5].Votes.Should().Be(new BigInteger(0));
+            result[6].PublicKey.ToArray().ToHexString().Should().Be("03b8d9d5771d8f513aa0869b9cc8d50986403b78c6da36890638c3d46a5adce04a");
+            result[6].Votes.Should().Be(new BigInteger(0));
 
-            StorageKey key = CreateStorageKey(33, ECCurve.Secp256r1.G.ToArray());
+            /*StorageKey key = CreateStorageKey(33, ECCurve.Secp256r1.G.ToArray());
             snapshot.Storages.Add(key, new StorageItem()
             {
                 Value = new ValidatorState().ToByteArray()
             });
-            NativeContract.NEO.GetRegisteredValidators(snapshot).ToArray().Length.Should().Be(1);
+            NativeContract.NEO.GetRegisteredValidators(snapshot).ToArray().Length.Should().Be(1);*/
         }
 
         [TestMethod]
@@ -360,6 +388,65 @@ namespace Neo.UnitTests.SmartContract.Native.Tokens
         }
 
         [TestMethod]
+        public void TestGetValidators2()
+        {
+            Snapshot snapshot = Store.GetSnapshot().Clone();
+            var result = NativeContract.NEO.GetValidators(snapshot);
+            result[0].ToArray().ToHexString().Should().Be("03b209fd4f53a7170ea4444e0cb0a6bb6a53c2bd016926989cf85f9b0fba17a70c");
+            result[1].ToArray().ToHexString().Should().Be("02df48f60e8f3e01c48ff40b9b7f1310d7a8b2a193188befe1c2e3df740e895093");
+            result[2].ToArray().ToHexString().Should().Be("03b8d9d5771d8f513aa0869b9cc8d50986403b78c6da36890638c3d46a5adce04a");
+            result[3].ToArray().ToHexString().Should().Be("02ca0e27697b9c248f6f16e085fd0061e26f44da85b58ee835c110caa5ec3ba554");
+            result[4].ToArray().ToHexString().Should().Be("024c7b7fb6c310fccf1ba33b082519d82964ea93868d676662d4a59ad548df0e7d");
+            result[5].ToArray().ToHexString().Should().Be("02aaec38470f6aad0042c6e877cfd8087d2676b0f516fddd362801b9bd3936399e");
+            result[6].ToArray().ToHexString().Should().Be("02486fd15702c4490a26703112a5cc1d0923fd697a33406bd5a1c00e0013b09a70");
+
+            StorageKey key = CreateStorageKey(15);
+            ValidatorsCountState state = new ValidatorsCountState();
+            for (int i = 0; i < 100; i++)
+            {
+                state.Votes[i] = new BigInteger(i + 1);
+            }
+            snapshot.Storages.Add(key, new StorageItem()
+            {
+                Value = state.ToByteArray()
+            });
+            NativeContract.NEO.GetValidators(snapshot).ToArray().Length.Should().Be(7);
+        }
+
+        [TestMethod]
+        public void TestInitialize()
+        {
+            Snapshot snapshot = Store.GetSnapshot().Clone();
+            var engine = new ApplicationEngine(TriggerType.System, null, snapshot, 0, true);
+            Action action = () => NativeContract.NEO.Initialize(engine);
+            action.ShouldThrow<InvalidOperationException>();
+
+            engine = new ApplicationEngine(TriggerType.Application, null, snapshot, 0, true);
+            NativeContract.NEO.Initialize(engine).Should().BeFalse();
+
+            snapshot.Storages.Delete(CreateStorageKey(11));
+            engine = new ApplicationEngine(TriggerType.Application, null, snapshot, 0, true);
+            NativeContract.NEO.Initialize(engine).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void TestOnBalanceChanging()
+        {
+        }
+
+        [TestMethod]
+        public void TestOnPersist()
+        {
+        }
+
+        [TestMethod]
+        public void TestTotalSupply()
+        {
+            Snapshot snapshot = Store.GetSnapshot().Clone();
+            NativeContract.NEO.TotalSupply(snapshot).Should().Be(new BigInteger(100000000));
+        }
+
+        [TestMethod]
         public void TestUnclaimedGas()
         {
             Snapshot snapshot = Store.GetSnapshot().Clone();
@@ -369,6 +456,26 @@ namespace Neo.UnitTests.SmartContract.Native.Tokens
                 Value = new AccountState().ToByteArray()
             });
             NativeContract.NEO.UnclaimedGas(snapshot, UInt160.Zero, 10).Should().Be(new BigInteger(0));
+        }
+
+        [TestMethod]
+        public void TestVote()
+        {
+            Snapshot snapshot = Store.GetSnapshot().Clone();
+            UInt160 account = UInt160.Parse("01ff00ff00ff00ff00ff00ff00ff00ff00ff00a4");
+            var ret = Check_Vote(snapshot, account.ToArray(), new byte[][] { ECCurve.Secp256r1.G.ToArray() }, false);
+            ret.State.Should().BeTrue();
+            ret.Result.Should().BeFalse();
+            ret = Check_Vote(snapshot, account.ToArray(), new byte[][] { ECCurve.Secp256r1.G.ToArray() }, true);
+            ret.State.Should().BeTrue();
+            ret.Result.Should().BeFalse();
+            snapshot.Storages.Add(CreateStorageKey(20, account.ToArray()), new StorageItem
+            {
+                Value = new AccountState().ToByteArray()
+            });
+            ret = Check_Vote(snapshot, account.ToArray(), new byte[][] { ECCurve.Secp256r1.G.ToArray() }, true);
+            ret.State.Should().BeTrue();
+            ret.Result.Should().BeTrue();
         }
 
         internal static (bool State, bool Result) Check_Vote(Snapshot snapshot, byte[] account, byte[][] pubkeys, bool signAccount)
