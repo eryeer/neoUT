@@ -11,6 +11,7 @@ using Neo.SmartContract;
 using Neo.SmartContract.Enumerators;
 using Neo.SmartContract.Iterators;
 using Neo.SmartContract.Manifest;
+using Neo.VM;
 using Neo.VM.Types;
 using Neo.Wallets;
 using System.Linq;
@@ -419,6 +420,110 @@ namespace Neo.UnitTests.SmartContract
             InteropService.Invoke(engine, InteropService.Neo_Enumerator_Create).Should().BeFalse();
         }
 
+        [TestMethod]
+        public void TestEnumerator_Next()
+        {
+            var engine = GetEngine();
+            var arr = new VMArray {
+                new byte[]{ 0x01 },
+                new byte[]{ 0x02 }
+            };
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<ArrayWrapper>(new ArrayWrapper(arr)));
+            InteropService.Invoke(engine, InteropService.Neo_Enumerator_Next).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetBoolean().Should().BeTrue();
+
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Enumerator_Next).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestEnumerator_Value()
+        {
+            var engine = GetEngine();
+            var arr = new VMArray {
+                new byte[]{ 0x01 },
+                new byte[]{ 0x02 }
+            };
+            var wrapper = new ArrayWrapper(arr);
+            wrapper.Next();
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<ArrayWrapper>(wrapper));
+            InteropService.Invoke(engine, InteropService.Neo_Enumerator_Value).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetByteArray().ToHexString().Should().Be(new byte[] { 0x01 }.ToHexString());
+
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Enumerator_Value).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestEnumerator_Concat()
+        {
+            var engine = GetEngine();
+            var arr1 = new VMArray {
+                new byte[]{ 0x01 },
+                new byte[]{ 0x02 }
+            };
+            var arr2 = new VMArray {
+                new byte[]{ 0x03 },
+                new byte[]{ 0x04 }
+            };
+            var wrapper1 = new ArrayWrapper(arr1);
+            var wrapper2 = new ArrayWrapper(arr2);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<ArrayWrapper>(wrapper2));
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<ArrayWrapper>(wrapper1));
+            InteropService.Invoke(engine, InteropService.Neo_Enumerator_Concat).Should().BeTrue();
+            var ret = ((InteropInterface<IEnumerator>)engine.CurrentContext.EvaluationStack.Pop()).GetInterface<IEnumerator>();
+            ret.Next().Should().BeTrue();
+            ret.Value().GetByteArray().ToHexString().Should().Be(new byte[] { 0x01 }.ToHexString());
+        }
+
+        [TestMethod]
+        public void TestIterator_Create()
+        {
+            var engine = GetEngine();
+            var arr = new VMArray {
+                new byte[]{ 0x01 },
+                new byte[]{ 0x02 }
+            };
+            engine.CurrentContext.EvaluationStack.Push(arr);
+            InteropService.Invoke(engine, InteropService.Neo_Iterator_Create).Should().BeTrue();
+            var ret = (InteropInterface<IIterator>)engine.CurrentContext.EvaluationStack.Pop();
+            ret.GetInterface<IIterator>().Next();
+            ret.GetInterface<IIterator>().Value().GetByteArray().ToHexString()
+                .Should().Be(new byte[] { 0x01 }.ToHexString());
+
+            var map = new Map
+            {
+                { new Integer(1), new Integer(2) },
+                { new Integer(3), new Integer(4) }
+            };
+            engine.CurrentContext.EvaluationStack.Push(map);
+            InteropService.Invoke(engine, InteropService.Neo_Iterator_Create).Should().BeTrue();
+            ret = (InteropInterface<IIterator>)engine.CurrentContext.EvaluationStack.Pop();
+            ret.GetInterface<IIterator>().Next();
+            ret.GetInterface<IIterator>().Key().GetBigInteger().Should().Be(1);
+            ret.GetInterface<IIterator>().Value().GetBigInteger().Should().Be(2);
+
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Iterator_Create).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestIterator_Key()
+        {
+            var engine = GetEngine();
+            var arr = new VMArray {
+                new byte[]{ 0x01 },
+                new byte[]{ 0x02 }
+            };
+            var wrapper = new ArrayWrapper(arr);
+            wrapper.Next();
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<ArrayWrapper>(wrapper));
+            InteropService.Invoke(engine, InteropService.Neo_Iterator_Key).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetBigInteger().Should().Be(0);
+            
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Iterator_Key).Should().BeFalse();
+        }
 
         private static ApplicationEngine GetEngine(bool hasContainer = false, bool hasSnapshot = false)
         {
