@@ -461,6 +461,12 @@ namespace Neo.UnitTests.SmartContract.Native.Tokens
         [TestMethod]
         public void TestVote()
         {
+            byte[] value = new AccountState()
+            {
+                Votes = new ECPoint[] { ECCurve.Secp256r1.G }
+            }.ToByteArray();
+            AccountState state = new AccountState(value);
+
             Snapshot snapshot = Store.GetSnapshot().Clone();
             UInt160 account = UInt160.Parse("01ff00ff00ff00ff00ff00ff00ff00ff00ff00a4");
             var ret = Check_Vote(snapshot, account.ToArray(), new byte[][] { ECCurve.Secp256r1.G.ToArray() }, false);
