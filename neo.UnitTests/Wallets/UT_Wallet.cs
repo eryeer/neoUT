@@ -91,6 +91,15 @@ namespace Neo.UnitTests.Wallets
     public class UT_Wallet
     {
         Store store;
+        private static KeyPair glkey;
+        private static string nep2Key;
+
+        [ClassInitialize]
+        public static void ClassInit(TestContext context)
+        {
+            glkey = UT_Crypto.generateCertainKey(32);
+            nep2Key = glkey.Export("pwd");
+        }
 
         [TestInitialize]
         public void TestSetup()
@@ -131,7 +140,7 @@ namespace Neo.UnitTests.Wallets
         {
             MyWallet wallet = new MyWallet();
             Contract contract = Contract.Create(new ContractParameterType[] { ContractParameterType.Boolean }, new byte[] { 1 });
-            wallet.CreateAccount(contract, UT_Crypto.generateCertainKey(32)).Should().NotBeNull();
+            wallet.CreateAccount(contract, glkey).Should().NotBeNull();
         }
 
         [TestMethod]
@@ -185,7 +194,7 @@ namespace Neo.UnitTests.Wallets
         {
             MyWallet wallet = new MyWallet();
             Contract contract = Contract.Create(new ContractParameterType[] { ContractParameterType.Boolean }, new byte[] { 1 });
-            WalletAccount account = wallet.CreateAccount(contract, UT_Crypto.generateCertainKey(32).PrivateKey);
+            WalletAccount account = wallet.CreateAccount(contract, glkey.PrivateKey);
             account.Lock = false;
 
             // Fake balance
@@ -215,7 +224,7 @@ namespace Neo.UnitTests.Wallets
         {
             MyWallet wallet = new MyWallet();
             Contract contract = Contract.Create(new ContractParameterType[] { ContractParameterType.Boolean }, new byte[] { 1 });
-            WalletAccount account = wallet.CreateAccount(contract, UT_Crypto.generateCertainKey(32).PrivateKey);
+            WalletAccount account = wallet.CreateAccount(contract, glkey.PrivateKey);
             account.Lock = false;
 
             // Fake balance
@@ -244,7 +253,6 @@ namespace Neo.UnitTests.Wallets
         [TestMethod]
         public void TestGetPrivateKeyFromNEP2()
         {
-            KeyPair key = UT_Crypto.generateCertainKey(32);
             Action action = () => Wallet.GetPrivateKeyFromNEP2(null, null);
             action.ShouldThrow<ArgumentNullException>();
 
@@ -254,10 +262,10 @@ namespace Neo.UnitTests.Wallets
             action = () => Wallet.GetPrivateKeyFromNEP2("3vQB7B6MrGQZaxCuFg4oh", "TestGetPrivateKeyFromNEP2");
             action.ShouldThrow<FormatException>();
 
-            action = () => Wallet.GetPrivateKeyFromNEP2(key.Export("TestGetPrivateKeyFromNEP2"), "Test");
+            action = () => Wallet.GetPrivateKeyFromNEP2(nep2Key, "Test");
             action.ShouldThrow<FormatException>();
 
-            Wallet.GetPrivateKeyFromNEP2(key.Export("TestGetPrivateKeyFromNEP2"), "TestGetPrivateKeyFromNEP2").Should().BeEquivalentTo(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 });
+            Wallet.GetPrivateKeyFromNEP2(nep2Key, "pwd").Should().BeEquivalentTo(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 });
         }
 
         [TestMethod]
@@ -283,8 +291,7 @@ namespace Neo.UnitTests.Wallets
         public void TestImport2()
         {
             MyWallet wallet = new MyWallet();
-            KeyPair key = UT_Crypto.generateCertainKey(32);
-            wallet.Import(key.Export("TestGetPrivateKeyFromNEP2"), "TestGetPrivateKeyFromNEP2").Should().NotBeNull();
+            wallet.Import(nep2Key, "pwd").Should().NotBeNull();
         }
 
         [TestMethod]
@@ -292,7 +299,7 @@ namespace Neo.UnitTests.Wallets
         {
             MyWallet wallet = new MyWallet();
             Contract contract = Contract.Create(new ContractParameterType[] { ContractParameterType.Boolean }, new byte[] { 1 });
-            WalletAccount account = wallet.CreateAccount(contract, UT_Crypto.generateCertainKey(32).PrivateKey);
+            WalletAccount account = wallet.CreateAccount(contract, glkey.PrivateKey);
             account.Lock = false;
 
             Action action = () => wallet.MakeTransaction(new TransferOutput[]
@@ -389,7 +396,7 @@ namespace Neo.UnitTests.Wallets
             action.ShouldThrow<ArgumentException>();
 
             Contract contract = Contract.Create(new ContractParameterType[] { ContractParameterType.Boolean }, new byte[] { 1 });
-            WalletAccount account = wallet.CreateAccount(contract, UT_Crypto.generateCertainKey(32).PrivateKey);
+            WalletAccount account = wallet.CreateAccount(contract, glkey.PrivateKey);
             account.Lock = false;
 
             // Fake balance
