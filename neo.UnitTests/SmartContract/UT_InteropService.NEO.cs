@@ -11,7 +11,6 @@ using Neo.SmartContract;
 using Neo.SmartContract.Enumerators;
 using Neo.SmartContract.Iterators;
 using Neo.SmartContract.Manifest;
-using Neo.VM;
 using Neo.VM.Types;
 using Neo.Wallets;
 using System.Linq;
@@ -19,8 +18,7 @@ using VMArray = Neo.VM.Types.Array;
 
 namespace Neo.UnitTests.SmartContract
 {
-    [TestClass]
-    public class UT_InteropService_NEO
+    public partial class UT_InteropService
     {
         [TestMethod]
         public void TestCheckSig()
@@ -525,29 +523,104 @@ namespace Neo.UnitTests.SmartContract
             InteropService.Invoke(engine, InteropService.Neo_Iterator_Key).Should().BeFalse();
         }
 
-        private static ApplicationEngine GetEngine(bool hasContainer = false, bool hasSnapshot = false)
+        [TestMethod]
+        public void TestIterator_Keys()
         {
-            var tx = TestUtils.GetTransaction();
-            var snapshot = TestBlockchain.GetStore().GetSnapshot().Clone();
-            ApplicationEngine engine;
-            if (hasContainer && hasSnapshot)
+            var engine = GetEngine();
+            var arr = new VMArray {
+                new byte[]{ 0x01 },
+                new byte[]{ 0x02 }
+            };
+            var wrapper = new ArrayWrapper(arr);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<ArrayWrapper>(wrapper));
+            InteropService.Invoke(engine, InteropService.Neo_Iterator_Keys).Should().BeTrue();
+            var ret = ((InteropInterface<IteratorKeysWrapper>)engine.CurrentContext.EvaluationStack.Pop()).GetInterface<IteratorKeysWrapper>();
+            ret.Next();
+            ret.Value().GetBigInteger().Should().Be(0);
+
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Iterator_Keys).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestIterator_Values()
+        {
+            var engine = GetEngine();
+            var arr = new VMArray {
+                new byte[]{ 0x01 },
+                new byte[]{ 0x02 }
+            };
+            var wrapper = new ArrayWrapper(arr);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<ArrayWrapper>(wrapper));
+            InteropService.Invoke(engine, InteropService.Neo_Iterator_Values).Should().BeTrue();
+            var ret = ((InteropInterface<IteratorValuesWrapper>)engine.CurrentContext.EvaluationStack.Pop()).GetInterface<IteratorValuesWrapper>();
+            ret.Next();
+            ret.Value().GetByteArray().ToHexString().Should().Be(new byte[] { 0x01 }.ToHexString());
+
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Iterator_Values).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestIterator_Concat()
+        {
+            var engine = GetEngine();
+            var arr1 = new VMArray {
+                new byte[]{ 0x01 },
+                new byte[]{ 0x02 }
+            };
+            var arr2 = new VMArray {
+                new byte[]{ 0x03 },
+                new byte[]{ 0x04 }
+            };
+            var wrapper1 = new ArrayWrapper(arr1);
+            var wrapper2 = new ArrayWrapper(arr2);
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<ArrayWrapper>(wrapper2));
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<ArrayWrapper>(wrapper1));
+            InteropService.Invoke(engine, InteropService.Neo_Iterator_Concat).Should().BeTrue();
+            var ret = ((InteropInterface<IIterator>)engine.CurrentContext.EvaluationStack.Pop()).GetInterface<IIterator>();
+            ret.Next().Should().BeTrue();
+            ret.Value().GetByteArray().ToHexString().Should().Be(new byte[] { 0x01 }.ToHexString());
+        }
+
+        [TestMethod]
+        public void TestJson_Deserialize()
+        {
+            var engine = GetEngine();
+            engine.CurrentContext.EvaluationStack.Push("1");
+            InteropService.Invoke(engine, InteropService.Neo_Json_Deserialize).Should().BeTrue();
+            var ret = engine.CurrentContext.EvaluationStack.Pop();
+            ret.GetBigInteger().Should().Be(1);
+        }
+
+        [TestMethod]
+        public void TestJson_Serialize()
+        {
+            var engine = GetEngine();
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Json_Serialize).Should().BeTrue();
+            var ret = engine.CurrentContext.EvaluationStack.Pop();
+            ret.GetString().Should().Be("1");
+        }
+
+        [TestMethod]
+        public void TestWitness_GetVerificationScript()
+        {
+            var engine = GetEngine();
+           var witnessWrapper = new WitnessWrapper
             {
-                engine = new ApplicationEngine(TriggerType.Application, tx, snapshot, 0);
-            }
-            else if (hasContainer && !hasSnapshot)
-            {
-                engine = new ApplicationEngine(TriggerType.Application, tx, null, 0);
-            }
-            else if (!hasContainer && hasSnapshot)
-            {
-                engine = new ApplicationEngine(TriggerType.Application, null, snapshot, 0);
-            }
-            else
-            {
-                engine = new ApplicationEngine(TriggerType.Application, null, null, 0);
-            }
-            engine.LoadScript(new byte[] { 0x01 });
-            return engine;
+                VerificationScript = new byte[] { 0x01 }
+            };
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<WitnessWrapper>(witnessWrapper));
+            InteropService.Invoke(engine, InteropService.Neo_Witness_GetVerificationScript).Should().BeTrue();
+            engine.CurrentContext.EvaluationStack.Pop().GetByteArray().ToHexString()
+                .Should().Be(witnessWrapper.VerificationScript.ToHexString());
+
+            engine.CurrentContext.EvaluationStack.Push(new InteropInterface<WitnessWrapper>(null));
+            InteropService.Invoke(engine, InteropService.Neo_Witness_GetVerificationScript).Should().BeFalse();
+
+            engine.CurrentContext.EvaluationStack.Push(1);
+            InteropService.Invoke(engine, InteropService.Neo_Witness_GetVerificationScript).Should().BeFalse();
         }
     }
 }
