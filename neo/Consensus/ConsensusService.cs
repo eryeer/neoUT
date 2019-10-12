@@ -108,7 +108,9 @@ namespace Neo.Consensus
         {
             clock_started = TimeProvider.Current.UtcNow;
             expected_delay = delay;
+            //取消上个定时器
             timer_token.CancelIfNotNull();
+            //重新设置一次性定时器
             timer_token = Context.System.Scheduler.ScheduleTellOnceCancelable(delay, Self, new Timer
             {
                 Height = context.Block.Index,
@@ -118,8 +120,10 @@ namespace Neo.Consensus
 
         private void CheckCommits()
         {
+            //收集到足够多的commit，每一个view号都等于自己的view号，交易已经收集齐
             if (context.CommitPayloads.Count(p => p?.ConsensusMessage.ViewNumber == context.ViewNumber) >= context.M && context.TransactionHashes.All(p => context.Transactions.ContainsKey(p)))
             {
+                //制造区块并广播
                 Block block = context.CreateBlock();
                 Log($"relay block: height={block.Index} hash={block.Hash} tx={block.Transactions.Length}");
                 localNode.Tell(new LocalNode.Relay { Inventory = block });
@@ -146,33 +150,42 @@ namespace Neo.Consensus
 
         private void CheckPreparations()
         {
+            //如果收到的PrepareResonse超过2/3，并且交易全部收集齐了
             if (context.PreparationPayloads.Count(p => p != null) >= context.M && context.TransactionHashes.All(p => context.Transactions.ContainsKey(p)))
             {
+                //制作commit消息,如果有commit就不制作了
                 ConsensusPayload payload = context.MakeCommit();
                 Log($"send commit");
+                //序列化ConsensusContext
                 context.Save();
+                //广播commit
                 localNode.Tell(new LocalNode.SendDirectly { Inventory = payload });
                 // Set timer, so we will resend the commit in case of a networking issue
                 ChangeTimer(TimeSpan.FromMilliseconds(Blockchain.MillisecondsPerBlock));
+                //检查CommitPayloads，足够多了就继续往下执行
                 CheckCommits();
             }
         }
 
         private void InitializeConsensus(byte viewNumber)
         {
+            //重置context的内容
             context.Reset(viewNumber);
             if (viewNumber > 0)
                 Log($"changeview: view={viewNumber} primary={context.Validators[context.GetPrimaryIndex((byte)(viewNumber - 1u))]}", LogLevel.Warning);
             Log($"initialize: height={context.Block.Index} view={viewNumber} index={context.MyIndex} role={(context.IsPrimary ? "Primary" : context.WatchOnly ? "WatchOnly" : "Backup")}");
             if (context.WatchOnly) return;
+            //议长节点行为
             if (context.IsPrimary)
             {
+                //TODO 需要再看
                 if (isRecovering)
                 {
                     ChangeTimer(TimeSpan.FromMilliseconds(Blockchain.MillisecondsPerBlock << (viewNumber + 1)));
                 }
                 else
                 {
+                    //如果是上个区块完成后立刻调用的此方法，则span不会超过Blockchain.TimePerBlock，如果是超时changeview，则会导致span过大，则使定时任务立即发送一条Timer消息，开始发起一轮PrepareRequest。
                     TimeSpan span = TimeProvider.Current.UtcNow - block_received_time;
                     if (span >= Blockchain.TimePerBlock)
                         ChangeTimer(TimeSpan.Zero);
@@ -181,6 +194,7 @@ namespace Neo.Consensus
                 }
             }
             else
+            //非议长节点会设置超时时间作为changeview的发起时间，最小为两倍出快时间，即30s
             {
                 ChangeTimer(TimeSpan.FromMilliseconds(Blockchain.MillisecondsPerBlock << (viewNumber + 1)));
             }
@@ -253,8 +267,10 @@ namespace Neo.Consensus
 
         private void OnConsensusPayload(ConsensusPayload payload)
         {
+            //如果区块已经发送，则忽略
             if (context.BlockSent) return;
             if (payload.Version != context.Block.Version) return;
+            //当前块高对不上，上一个块的hash对不上，则忽略
             if (payload.PrevHash != context.Block.PrevHash || payload.BlockIndex != context.Block.Index)
             {
                 if (context.Block.Index < payload.BlockIndex)
@@ -263,6 +279,7 @@ namespace Neo.Consensus
                 }
                 return;
             }
+            //发送者的id超出验证者数量，则忽略
             if (payload.ValidatorIndex >= context.Validators.Length) return;
             ConsensusMessage message;
             try
@@ -277,6 +294,7 @@ namespace Neo.Consensus
             {
                 return;
             }
+            //更新发送者的上一条发送信息为payload中的块高
             context.LastSeenMessage[payload.ValidatorIndex] = (int)payload.BlockIndex;
             foreach (IP2PPlugin plugin in Plugin.P2PPlugins)
                 if (!plugin.OnConsensusMessage(payload))
@@ -528,8 +546,10 @@ namespace Neo.Consensus
         {
             Log("OnStart");
             started = true;
+            //加载序列化的consensusContext
             if (!options.IgnoreRecoveryLogs && context.Load())
             {
+                //将context中的交易放入内存池，同步等待放入完成
                 if (context.Transactions != null)
                 {
                     Sender.Ask<Blockchain.FillCompleted>(new Blockchain.FillMemoryPool
@@ -537,12 +557,14 @@ namespace Neo.Consensus
                         Transactions = context.Transactions.Values
                     }).Wait();
                 }
+                //如果已经发送过commit，则检查prepareResponse，并重发commit
                 if (context.CommitSent)
                 {
                     CheckPreparations();
                     return;
                 }
             }
+            //初始化共识
             InitializeConsensus(0);
             // Issue a ChangeView with NewViewNumber of 0 to request recovery messages on start-up.
             if (!context.WatchOnly)
@@ -551,15 +573,20 @@ namespace Neo.Consensus
 
         private void OnTimer(Timer timer)
         {
+            //观察者节点或者block已经组装完成并发送，则返回
             if (context.WatchOnly || context.BlockSent) return;
+            //timer的块高和视图号已经跟不上当前的状态，则返回
             if (timer.Height != context.Block.Index || timer.ViewNumber != context.ViewNumber) return;
             Log($"timeout: height={timer.Height} view={timer.ViewNumber}");
+            //议长未发送过prepareRequest
             if (context.IsPrimary && !context.RequestSentOrReceived)
             {
                 SendPrepareRequest();
             }
+            //非议长节点或者已经发送过prepareRequest
             else if ((context.IsPrimary && context.RequestSentOrReceived) || context.IsBackup)
             {
+                //无论是议长还是议员，发送过commit，发送RecoveryMessage
                 if (context.CommitSent)
                 {
                     // Re-send commit periodically by sending recover message in case of a network issue.
@@ -567,6 +594,7 @@ namespace Neo.Consensus
                     localNode.Tell(new LocalNode.SendDirectly { Inventory = context.MakeRecoveryMessage() });
                     ChangeTimer(TimeSpan.FromMilliseconds(Blockchain.MillisecondsPerBlock << 1));
                 }
+                //没法送过commit，发送changeView
                 else
                 {
                     var reason = ChangeViewReason.Timeout;
@@ -634,16 +662,20 @@ namespace Neo.Consensus
         private void SendPrepareRequest()
         {
             Log($"send prepare request: height={context.Block.Index} view={context.ViewNumber}");
+            //生成PrepareRequest并广播
             localNode.Tell(new LocalNode.SendDirectly { Inventory = context.MakePrepareRequest() });
 
+            //如果是单共识节点，直接检查PreparationPayloads集合
             if (context.Validators.Length == 1)
                 CheckPreparations();
 
+            //广播交易Inv，交易hash打包分组发送，每组500条交易hash
             if (context.TransactionHashes.Length > 0)
             {
                 foreach (InvPayload payload in InvPayload.CreateGroup(InventoryType.TX, context.TransactionHashes))
                     localNode.Tell(Message.Create(MessageCommand.Inv, payload));
             }
+            //计时器更新，最少15s
             ChangeTimer(TimeSpan.FromMilliseconds((Blockchain.MillisecondsPerBlock << (context.ViewNumber + 1)) - (context.ViewNumber == 0 ? Blockchain.MillisecondsPerBlock : 0)));
         }
     }

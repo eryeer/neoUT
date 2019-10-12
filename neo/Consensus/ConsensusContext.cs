@@ -54,7 +54,7 @@ namespace Neo.Consensus
         public int CountFailed => LastSeenMessage.Count(p => p < (((int)Block.Index) - 1));
 
         #region Consensus States
-        public bool RequestSentOrReceived => PreparationPayloads[Block.ConsensusData.PrimaryIndex] != null;
+        public bool RequestSentOrReceived => PreparationPayloads[Block.ConsensusData.PrimaryIndex] != null; //如果是true，代表该节点已经收到过议长节点发送的perparation Request，或者自己作为议长节点已经发送过perparation Request
         public bool ResponseSent => !WatchOnly && PreparationPayloads[MyIndex] != null;
         public bool CommitSent => !WatchOnly && CommitPayloads[MyIndex] != null;
         public bool BlockSent => Block.Transactions != null;
@@ -274,10 +274,13 @@ namespace Neo.Consensus
 
         public ConsensusPayload MakePrepareRequest()
         {
+            //生成Nonce值
             byte[] buffer = new byte[sizeof(ulong)];
             random.NextBytes(buffer);
             Block.ConsensusData.Nonce = BitConverter.ToUInt64(buffer, 0);
+            //确保区块大小，区块中交易数量不超限制
             EnsureMaxBlockSize(Blockchain.Singleton.MemPool.GetSortedVerifiedTransactions());
+            //时间戳至少是上一个区块的时间戳+1
             Block.Timestamp = Math.Max(TimeProvider.Current.UtcNow.ToTimestampMS(), PrevHeader.Timestamp + 1);
 
             return PreparationPayloads[MyIndex] = MakeSignedPayload(new PrepareRequest
@@ -336,6 +339,7 @@ namespace Neo.Consensus
             {
                 Snapshot?.Dispose();
                 Snapshot = Blockchain.Singleton.GetSnapshot();
+                //设置context中block的一部分内容，PrevHash，Index，NextConsensus
                 Block = new Block
                 {
                     PrevHash = Snapshot.CurrentBlockHash,
@@ -343,7 +347,9 @@ namespace Neo.Consensus
                     NextConsensus = Blockchain.GetConsensusAddress(NativeContract.NEO.GetValidators(Snapshot).ToArray())
                 };
                 var pv = Validators;
+                //重新设置Validators
                 Validators = NativeContract.NEO.GetNextBlockValidators(Snapshot);
+                //重新设置witness数量大小
                 if (_witnessSize == 0 || (pv != null && pv.Length != Validators.Length))
                 {
                     // Compute the expected size of the witness
@@ -361,6 +367,7 @@ namespace Neo.Consensus
                     }
                 }
                 MyIndex = -1;
+                //重新设这各个payloads
                 ChangeViewPayloads = new ConsensusPayload[Validators.Length];
                 LastChangeViewPayloads = new ConsensusPayload[Validators.Length];
                 CommitPayloads = new ConsensusPayload[Validators.Length];
@@ -371,6 +378,7 @@ namespace Neo.Consensus
                         LastSeenMessage[i] = -1;
                 }
                 keyPair = null;
+                //重新设置共识节点的MyIndex，和对应钱包的KeyPair
                 for (int i = 0; i < Validators.Length; i++)
                 {
                     WalletAccount account = wallet?.GetAccount(Validators[i]);
@@ -388,6 +396,7 @@ namespace Neo.Consensus
                     else
                         LastChangeViewPayloads[i] = null;
             }
+            //重新设置viewNumber以及议长节点编号
             ViewNumber = viewNumber;
             Block.ConsensusData = new ConsensusData
             {
