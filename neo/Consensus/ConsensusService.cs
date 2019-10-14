@@ -61,31 +61,38 @@ namespace Neo.Consensus
 
         private bool AddTransaction(Transaction tx, bool verify)
         {
+            //如果是需要校验的交易，就来校验
             if (verify && !tx.Verify(context.Snapshot, context.Transactions.Values))
             {
                 Log($"Invalid transaction: {tx.Hash}{Environment.NewLine}{tx.ToArray().ToHexString()}", LogLevel.Warning);
                 RequestChangeView(ChangeViewReason.TxInvalid);
                 return false;
             }
+            //校验账户中是否由被block的账户
             if (!NativeContract.Policy.CheckPolicy(tx, context.Snapshot))
             {
                 Log($"reject tx: {tx.Hash}{Environment.NewLine}{tx.ToArray().ToHexString()}", LogLevel.Warning);
                 RequestChangeView(ChangeViewReason.TxRejectedByPolicy);
                 return false;
             }
+            //添加交易到context中
             context.Transactions[tx.Hash] = tx;
+            //检查并发送prepareResponse
             return CheckPrepareResponse();
         }
 
         private bool CheckPrepareResponse()
         {
+            //如果凑齐了所有需要的交易，则发送prepareResponse
             if (context.TransactionHashes.Length == context.Transactions.Count)
             {
                 // if we are the primary for this view, but acting as a backup because we recovered our own
                 // previously sent prepare request, then we don't want to send a prepare response.
+                //如果自己是议长节点，则不需要发送prepare response
                 if (context.IsPrimary || context.WatchOnly) return true;
 
                 // Check maximum block size via Native Contract policy
+                //预估区块大小如果超出最大上限，则changeview
                 if (context.GetExpectedBlockSize() > NativeContract.Policy.GetMaxBlockSize(context.Snapshot))
                 {
                     Log($"rejected block: {context.Block.Index}{Environment.NewLine} The size exceed the policy", LogLevel.Warning);
@@ -95,9 +102,11 @@ namespace Neo.Consensus
 
                 // Timeout extension due to prepare response sent
                 // around 2*15/M=30.0/5 ~ 40% block time (for M=5)
+                //延长40%的区块时间：6s
                 ExtendTimerByFactor(2);
 
                 Log($"send prepare response");
+                //发送prepare response
                 localNode.Tell(new LocalNode.SendDirectly { Inventory = context.MakePrepareResponse() });
                 CheckPreparations();
             }
@@ -123,7 +132,7 @@ namespace Neo.Consensus
             //收集到足够多的commit，每一个view号都等于自己的view号，交易已经收集齐
             if (context.CommitPayloads.Count(p => p?.ConsensusMessage.ViewNumber == context.ViewNumber) >= context.M && context.TransactionHashes.All(p => context.Transactions.ContainsKey(p)))
             {
-                //制造区块并广播
+                //区块填入Witness（多方议长、员签名）和transaction并广播
                 Block block = context.CreateBlock();
                 Log($"relay block: height={block.Index} hash={block.Hash} tx={block.Transactions.Length}");
                 localNode.Tell(new LocalNode.Relay { Inventory = block });
@@ -156,7 +165,7 @@ namespace Neo.Consensus
                 //制作commit消息,如果有commit就不制作了
                 ConsensusPayload payload = context.MakeCommit();
                 Log($"send commit");
-                //序列化ConsensusContext
+                //序列化保存ConsensusContext，此时以后就不会再对此个提案块做更改了，也不会changeView
                 context.Save();
                 //广播commit
                 localNode.Tell(new LocalNode.SendDirectly { Inventory = payload });
@@ -223,6 +232,7 @@ namespace Neo.Consensus
 
         private void OnCommitReceived(ConsensusPayload payload, Commit commit)
         {
+            //如果已经收到过发送者的commit消息，而且新收到的消息hash和已收到的commithash对不上，则不处理。
             ref ConsensusPayload existingCommitPayload = ref context.CommitPayloads[payload.ValidatorIndex];
             if (existingCommitPayload != null)
             {
@@ -233,17 +243,21 @@ namespace Neo.Consensus
 
             // Timeout extension: commit has been received with success
             // around 4*15s/M=60.0s/5=12.0s ~ 80% block time (for M=5)
+            //延长12s的处理时间
             ExtendTimerByFactor(4);
 
+            //必须是commit的视图号是当前视图号才能处理，否则就等着节点超时
             if (commit.ViewNumber == context.ViewNumber)
             {
                 Log($"{nameof(OnCommitReceived)}: height={payload.BlockIndex} view={commit.ViewNumber} index={payload.ValidatorIndex} nc={context.CountCommitted} nf={context.CountFailed}");
 
                 byte[] hashData = context.EnsureHeader()?.GetHashData();
+                //当block中txHashes为空的时候，说明还没收到过PrepareRequest，不做处理，只保存commit
                 if (hashData == null)
                 {
                     existingCommitPayload = payload;
                 }
+                //校验commit的签名，继续下个流程
                 else if (Crypto.Default.VerifySignature(hashData, commit.Signature,
                     context.Validators[payload.ValidatorIndex].EncodePoint(false)))
                 {
@@ -304,12 +318,15 @@ namespace Neo.Consensus
                 case ChangeView view:
                     OnChangeViewReceived(payload, view);
                     break;
+                //done
                 case PrepareRequest request:
                     OnPrepareRequestReceived(payload, request);
                     break;
+                //done
                 case PrepareResponse response:
                     OnPrepareResponseReceived(payload, response);
                     break;
+                //done
                 case Commit commit:
                     OnCommitReceived(payload, commit);
                     break;
@@ -417,16 +434,21 @@ namespace Neo.Consensus
             localNode.Tell(new LocalNode.SendDirectly { Inventory = context.MakeRecoveryMessage() });
         }
 
+        //只会接收到一条 PrepareRequest
         private void OnPrepareRequestReceived(ConsensusPayload payload, PrepareRequest message)
         {
+            //交易处于已发送或接受prepare状态或者处于changeview状态，则忽略
             if (context.RequestSentOrReceived || context.NotAcceptingPayloadsDueToViewChanging) return;
+            //如果不是议长节点发的或者视图编号不等，则忽略
             if (payload.ValidatorIndex != context.Block.ConsensusData.PrimaryIndex || message.ViewNumber != context.ViewNumber) return;
             Log($"{nameof(OnPrepareRequestReceived)}: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex} tx={message.TransactionHashes.Length}");
+            //校验时间戳
             if (message.Timestamp <= context.PrevHeader.Timestamp || message.Timestamp > TimeProvider.Current.UtcNow.AddMinutes(10).ToTimestampMS())
             {
                 Log($"Timestamp incorrect: {message.Timestamp}", LogLevel.Warning);
                 return;
             }
+            //校验数据库中是否包含当前的新交易
             if (message.TransactionHashes.Any(p => context.Snapshot.ContainsTransaction(p)))
             {
                 Log($"Invalid request: transaction already exists", LogLevel.Warning);
@@ -435,18 +457,24 @@ namespace Neo.Consensus
 
             // Timeout extension: prepare request has been received with success
             // around 2*15/M=30.0/5 ~ 40% block time (for M=5)
+            //议员节点继上次设置changeView时间后重新延长定时，延长40%的区块时间：6s
             ExtendTimerByFactor(2);
 
+            //接收prepareRequest，赋值context
             context.Block.Timestamp = message.Timestamp;
             context.Block.ConsensusData.Nonce = message.Nonce;
             context.TransactionHashes = message.TransactionHashes;
             context.Transactions = new Dictionary<UInt256, Transaction>();
+            //存储PrepareRequest之前 清空PreparationPayloads
             for (int i = 0; i < context.PreparationPayloads.Length; i++)
                 if (context.PreparationPayloads[i] != null)
                     if (!context.PreparationPayloads[i].GetDeserializedMessage<PrepareResponse>().PreparationHash.Equals(payload.Hash))
                         context.PreparationPayloads[i] = null;
+            //赋值PrepareRequest给议长的PreparationPayloads
             context.PreparationPayloads[payload.ValidatorIndex] = payload;
+            //计算默克尔树根之后，计算context hash
             byte[] hashData = context.EnsureHeader().GetHashData();
+            //排除提前收到commit的情况，如果存在commit且校验不通过，则删除
             for (int i = 0; i < context.CommitPayloads.Length; i++)
                 if (context.CommitPayloads[i]?.ConsensusMessage.ViewNumber == context.ViewNumber)
                     if (!Crypto.Default.VerifySignature(hashData, context.CommitPayloads[i].GetDeserializedMessage<Commit>().Signature, context.Validators[i].EncodePoint(false)))
@@ -463,6 +491,7 @@ namespace Neo.Consensus
             List<Transaction> unverified = new List<Transaction>();
             foreach (UInt256 hash in context.TransactionHashes)
             {
+                //从已校验池里获取交易添加到context中
                 if (mempoolVerified.TryGetValue(hash, out Transaction tx))
                 {
                     if (!AddTransaction(tx, false))
@@ -470,13 +499,16 @@ namespace Neo.Consensus
                 }
                 else
                 {
+                    //从未校验池里获取交易添加到临时list unverified中
                     if (Blockchain.Singleton.MemPool.TryGetValue(hash, out tx))
                         unverified.Add(tx);
                 }
             }
+            //把unverified的tx经校验后添加到context中
             foreach (Transaction tx in unverified)
                 if (!AddTransaction(tx, true))
                     return;
+            //本地交易池没有的交易，需要找其他节点去要
             if (context.Transactions.Count < context.TransactionHashes.Length)
             {
                 UInt256[] hashes = context.TransactionHashes.Where(i => !context.Transactions.ContainsKey(i)).ToArray();
@@ -489,18 +521,25 @@ namespace Neo.Consensus
 
         private void OnPrepareResponseReceived(ConsensusPayload payload, PrepareResponse message)
         {
+            //viewnumber要对应的上
             if (message.ViewNumber != context.ViewNumber) return;
+            //发送者的消息不能已存在，不能是changeView中
             if (context.PreparationPayloads[payload.ValidatorIndex] != null || context.NotAcceptingPayloadsDueToViewChanging) return;
+            //当已经收到request后校验request的hash和response的hash是否对的上
             if (context.PreparationPayloads[context.Block.ConsensusData.PrimaryIndex] != null && !message.PreparationHash.Equals(context.PreparationPayloads[context.Block.ConsensusData.PrimaryIndex].Hash))
                 return;
 
             // Timeout extension: prepare response has been received with success
             // around 2*15/M=30.0/5 ~ 40% block time (for M=5)
+            //延长6s超时时间
             ExtendTimerByFactor(2);
 
             Log($"{nameof(OnPrepareResponseReceived)}: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex}");
+            //接收PrepareResponse
             context.PreparationPayloads[payload.ValidatorIndex] = payload;
+            //如果是watchonly节点，或者已经发送了commit的就不再处理了
             if (context.WatchOnly || context.CommitSent) return;
+            //如果已经收到过或发出过PrepareRequest，则检查Prepare，并往下一步走
             if (context.RequestSentOrReceived)
                 CheckPreparations();
         }
@@ -520,12 +559,15 @@ namespace Neo.Consensus
                     case SetViewNumber setView:
                         InitializeConsensus(setView.ViewNumber);
                         break;
+                    //共识议长打包、议员changeview的超时定时任务
                     case Timer timer:
                         OnTimer(timer);
                         break;
+                    //共识消息
                     case ConsensusPayload payload:
                         OnConsensusPayload(payload);
                         break;
+                    //补充发送本地缺失的transaction
                     case Transaction transaction:
                         OnTransaction(transaction);
                         break;
@@ -611,10 +653,13 @@ namespace Neo.Consensus
 
         private void OnTransaction(Transaction transaction)
         {
+            //接收交易条件，非议长节点、不能在changeview期间、必须接收到Prepare request、不能发送过Prepare response，更不能发送过区块
             if (!context.IsBackup || context.NotAcceptingPayloadsDueToViewChanging || !context.RequestSentOrReceived || context.ResponseSent || context.BlockSent)
                 return;
+            //该交易不能在context中存在，且必须存在于TxHash集合中。
             if (context.Transactions.ContainsKey(transaction.Hash)) return;
             if (!context.TransactionHashes.Contains(transaction.Hash)) return;
+            //新接收的交易需要校验
             AddTransaction(transaction, true);
         }
 

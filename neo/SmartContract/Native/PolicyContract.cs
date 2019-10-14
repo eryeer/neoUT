@@ -30,6 +30,7 @@ namespace Neo.SmartContract.Native
 
         internal bool CheckPolicy(Transaction tx, Snapshot snapshot)
         {
+            //获取被屏蔽的账户
             UInt160[] blockedAccounts = GetBlockedAccounts(snapshot);
             if (blockedAccounts.Intersect(tx.GetScriptHashesForVerifying(snapshot)).Any())
                 return false;

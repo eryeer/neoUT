@@ -50,6 +50,7 @@ namespace Neo.Ledger
                 PrimaryIndex = 0,
                 Nonce = 2083236893
             },
+            //创世区块包含一个交易，即部署原生合约的交易
             Transactions = new[] { DeployNativeContracts() }
         };
 
@@ -57,16 +58,22 @@ namespace Neo.Ledger
         private const int MaxTxToReverifyPerIdle = 10;
         private static readonly object lockObj = new object();
         private readonly NeoSystem system;
+        //缓存中的区块头索引列表
         private readonly List<UInt256> header_index = new List<UInt256>();
+        //数据库中的区块头个数
         private uint stored_header_count = 0;
+        //已验证的区块缓存（由于之前的区块不连续，所以不能持久化）
         private readonly Dictionary<UInt256, Block> block_cache = new Dictionary<UInt256, Block>();
+        //未进行验证的区块缓存（超出header高度，不能进行头验证）
         private readonly Dictionary<uint, LinkedList<Block>> block_cache_unverified = new Dictionary<uint, LinkedList<Block>>();
         internal readonly RelayCache ConsensusRelayCache = new RelayCache(100);
         private Snapshot currentSnapshot;
 
         public Store Store { get; }
         public MemoryPool MemPool { get; }
+        //当前数据库中区块的高度
         public uint Height => currentSnapshot.Height;
+        //当前数据库中区块头的高度
         public uint HeaderHeight => currentSnapshot.HeaderHeight;
         public UInt256 CurrentBlockHash => currentSnapshot.CurrentBlockHash;
         public UInt256 CurrentHeaderHash => currentSnapshot.CurrentHeaderHash;
@@ -98,21 +105,27 @@ namespace Neo.Ledger
         public Blockchain(NeoSystem system, Store store)
         {
             this.system = system;
+            //初始化memoryPool
             this.MemPool = new MemoryPool(system, ProtocolSettings.Default.MemoryPoolMaxTransactions);
             this.Store = store;
             lock (lockObj)
             {
                 if (singleton != null)
                     throw new InvalidOperationException();
+                //把区块头索引从数据库取出放入内存
                 header_index.AddRange(store.GetHeaderHashList().Find().OrderBy(p => (uint)p.Key).SelectMany(p => p.Value.Hashes));
+                //存储的区块头个数响应增加
                 stored_header_count += (uint)header_index.Count;
+                //如果区块头个数为零，则从存储的区块添加到区块头索引。
                 if (stored_header_count == 0)
                 {
                     header_index.AddRange(store.GetBlocks().Find().OrderBy(p => p.Value.Index).Select(p => p.Key));
                 }
                 else
                 {
+                    //从数据库获取最高索引号
                     HashIndexState hashIndex = store.GetHeaderHashIndex().Get();
+                    //如果最高索引号大于存储的头数量，则从block中将区块头索引添加到header_index里面
                     if (hashIndex.Index >= stored_header_count)
                     {
                         DataCache<UInt256, TrimmedBlock> cache = store.GetBlocks();
@@ -123,13 +136,16 @@ namespace Neo.Ledger
                         }
                     }
                 }
+                //如果header_index为0，则需要持久化创世区块
                 if (header_index.Count == 0)
                 {
                     Persist(GenesisBlock);
                 }
                 else
                 {
+                    //获取当前的快照
                     UpdateCurrentSnapshot();
+                    //更新内存池的policy包含每区块最大交易数量，每字节费用
                     MemPool.LoadPolicy(currentSnapshot);
                 }
                 singleton = this;
@@ -220,6 +236,7 @@ namespace Neo.Ledger
 
         private void AddUnverifiedBlockToCache(Block block)
         {
+            //将block以linklist形式保存再block_cache_unverified的map里面
             if (!block_cache_unverified.TryGetValue(block.Index, out LinkedList<Block> blocks))
             {
                 blocks = new LinkedList<Block>();
@@ -256,15 +273,19 @@ namespace Neo.Ledger
 
         private RelayResultReason OnNewBlock(Block block)
         {
+            //块高小于等于本地存储最高块高，则忽略
             if (block.Index <= Height)
                 return RelayResultReason.AlreadyExists;
+            //区块缓存中包含了该区块，则忽略
             if (block_cache.ContainsKey(block.Hash))
                 return RelayResultReason.AlreadyExists;
+            //块高度太高不能做连续校验，则将此区块先缓存到block_cache_unverified字典中
             if (block.Index - 1 >= header_index.Count)
             {
                 AddUnverifiedBlockToCache(block);
                 return RelayResultReason.UnableToVerify;
             }
+            //当为最高header_index的下一个可校验区块时，则校验区块
             if (block.Index == header_index.Count)
             {
                 if (!block.Verify(currentSnapshot))
@@ -272,13 +293,16 @@ namespace Neo.Ledger
             }
             else
             {
+                //如果头索引中包含了该区块，则校验该区块的hash
                 if (!block.Hash.Equals(header_index[(int)block.Index]))
                     return RelayResultReason.Invalid;
             }
+            //如果区块是数据库中区块的下一个连续区块
             if (block.Index == Height + 1)
             {
                 Block block_persist = block;
                 List<Block> blocksToPersistList = new List<Block>();
+                //添加可以连续持久化的区块到blocksToPersistList
                 while (true)
                 {
                     blocksToPersistList.Add(block_persist);
@@ -290,21 +314,24 @@ namespace Neo.Ledger
                 int blocksPersisted = 0;
                 foreach (Block blockToPersist in blocksToPersistList)
                 {
+                    //block_cache_unverified 移除要持久化的区块
                     block_cache_unverified.Remove(blockToPersist.Index);
+
+                    //***持久化***
                     Persist(blockToPersist);
 
                     // 15000 is the default among of seconds per block, while MilliSecondsPerBlock is the current
                     uint extraBlocks = (15000 - MillisecondsPerBlock) / 1000;
-
+                    
                     if (blocksPersisted++ < blocksToPersistList.Count - (2 + Math.Max(0, extraBlocks))) continue;
                     // Empirically calibrated for relaying the most recent 2 blocks persisted with 15s network
                     // Increase in the rate of 1 block per second in configurations with faster blocks
-
+                    //区块高度如果没有落后超过100的话，就把区块广播出去，给别人做持久化，经验上15s一个区块的话，广播两个，速度加快的话就多广播几个。
                     if (blockToPersist.Index + 100 >= header_index.Count)
                         system.LocalNode.Tell(new LocalNode.RelayDirectly { Inventory = blockToPersist });
                 }
                 SaveHeaderHashList();
-
+                //如果存在已持久化区块的下一个未校验的区块，则把区块重发重持久化
                 if (block_cache_unverified.TryGetValue(Height + 1, out LinkedList<Block> unverifiedBlocks))
                 {
                     foreach (var unverifiedBlock in unverifiedBlocks)
@@ -314,20 +341,25 @@ namespace Neo.Ledger
             }
             else
             {
+                //添加到已校验区块缓存中
                 block_cache.Add(block.Hash, block);
+                //区块高度如果没有落后超过100的话，就把区块广播出去，给别人做持久化，经验上15s一个区块的话，广播两个，速度加快的话就多广播几个。
                 if (block.Index + 100 >= header_index.Count)
                     system.LocalNode.Tell(new LocalNode.RelayDirectly { Inventory = block });
+                //区块高度高于一个头高度，将header添加到header_index进去
                 if (block.Index == header_index.Count)
                 {
                     header_index.Add(block.Hash);
                     using (Snapshot snapshot = GetSnapshot())
                     {
+                        //snapshot存储blocks，HeaderHashIndex，视情更新HeaderHashList，但是不能更新blockHashIndex（因为没有persist）
                         snapshot.Blocks.Add(block.Hash, block.Header.Trim());
                         snapshot.HeaderHashIndex.GetAndChange().Hash = block.Hash;
                         snapshot.HeaderHashIndex.GetAndChange().Index = block.Index;
                         SaveHeaderHashList(snapshot);
                         snapshot.Commit();
                     }
+                    //更新shanpshot
                     UpdateCurrentSnapshot();
                 }
             }
@@ -384,7 +416,9 @@ namespace Neo.Ledger
 
         private void OnPersistCompleted(Block block)
         {
+            //移除已经持久化的block_cache
             block_cache.Remove(block.Hash);
+            //更新内存池的交易
             MemPool.UpdatePoolForBlockPersisted(block, currentSnapshot);
             Context.System.EventStream.Publish(new PersistCompleted { Block = block });
         }
@@ -430,6 +464,7 @@ namespace Neo.Ledger
             {
                 List<ApplicationExecuted> all_application_executed = new List<ApplicationExecuted>();
                 snapshot.PersistingBlock = block;
+                //创世区块不执行，加载native contract
                 if (block.Index > 0)
                 {
                     using (ApplicationEngine engine = new ApplicationEngine(TriggerType.System, null, snapshot, 0, true))
@@ -441,17 +476,21 @@ namespace Neo.Ledger
                         all_application_executed.Add(application_executed);
                     }
                 }
+                //snapshot添加blocks
                 snapshot.Blocks.Add(block.Hash, block.Trim());
                 foreach (Transaction tx in block.Transactions)
                 {
+                    //包装tx
                     var state = new TransactionState
                     {
                         BlockIndex = block.Index,
                         Transaction = tx
                     };
 
+                    //snapshot添加tx
                     snapshot.Transactions.Add(tx.Hash, state);
 
+                    //使用VM执行tx
                     using (ApplicationEngine engine = new ApplicationEngine(TriggerType.Application, tx, snapshot.Clone(), tx.SystemFee))
                     {
                         engine.LoadScript(tx.Script);
@@ -465,7 +504,9 @@ namespace Neo.Ledger
                         all_application_executed.Add(application_executed);
                     }
                 }
+                //snapshot修改BlockHashIndex
                 snapshot.BlockHashIndex.GetAndChange().Set(block);
+                //添加当前header到header_index，并snapshot修改HeaderHashIndex
                 if (block.Index == header_index.Count)
                 {
                     header_index.Add(block.Hash);
@@ -494,6 +535,7 @@ namespace Neo.Ledger
                 }
                 if (commitExceptions != null) throw new AggregateException(commitExceptions);
             }
+            //更新snapshot为最新
             UpdateCurrentSnapshot();
             OnPersistCompleted(block);
         }
@@ -511,10 +553,12 @@ namespace Neo.Ledger
 
         private void SaveHeaderHashList(Snapshot snapshot = null)
         {
+            //内存中的区块头高度大于数据库中的区块头高度小于2000时，忽略
             if ((header_index.Count - stored_header_count < 2000))
                 return;
             bool snapshot_created = snapshot == null;
             if (snapshot_created) snapshot = GetSnapshot();
+            //区块头2000个一存，更新store
             try
             {
                 while (header_index.Count - stored_header_count >= 2000)

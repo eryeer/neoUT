@@ -76,6 +76,7 @@ namespace Neo.Consensus
             this.store = store;
         }
 
+        //区块填入Witness（多方议长、员签名）和transaction
         public Block CreateBlock()
         {
             Contract contract = Contract.CreateMultiSigContract(M, Validators);
@@ -329,6 +330,7 @@ namespace Neo.Consensus
         {
             return PreparationPayloads[MyIndex] = MakeSignedPayload(new PrepareResponse
             {
+                //PreparationHash 由议长的prepare request求hash得到
                 PreparationHash = PreparationPayloads[Block.ConsensusData.PrimaryIndex].Hash
             });
         }
