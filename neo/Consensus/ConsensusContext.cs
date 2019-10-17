@@ -24,6 +24,7 @@ namespace Neo.Consensus
         private static readonly byte[] ConsensusStateKey = { 0xf4 };
 
         public Block Block;
+        //该ViewNumber在reset、recover时设置
         public byte ViewNumber;
         public ECPoint[] Validators;
         public int MyIndex;
@@ -35,6 +36,7 @@ namespace Neo.Consensus
         public ConsensusPayload[] LastChangeViewPayloads;
         // LastSeenMessage array stores the height of the last seen message, for each validator.
         // if this node never heard from validator i, LastSeenMessage[i] will be -1.
+        //这个智能接收和context的block index相同的共识消息index。如果有恶意发送老index的会被过滤
         public int[] LastSeenMessage;
 
         public Snapshot Snapshot { get; private set; }
@@ -279,7 +281,7 @@ namespace Neo.Consensus
             byte[] buffer = new byte[sizeof(ulong)];
             random.NextBytes(buffer);
             Block.ConsensusData.Nonce = BitConverter.ToUInt64(buffer, 0);
-            //确保区块大小，区块中交易数量不超限制
+            //确保区块大小，区块中交易数量不超限制，其中将TransactionHashes初始化为array
             EnsureMaxBlockSize(Blockchain.Singleton.MemPool.GetSortedVerifiedTransactions());
             //时间戳至少是上一个区块的时间戳+1
             Block.Timestamp = Math.Max(TimeProvider.Current.UtcNow.ToTimestampMS(), PrevHeader.Timestamp + 1);
@@ -292,6 +294,7 @@ namespace Neo.Consensus
             });
         }
 
+        //制作请求恢复消息，包含时间戳
         public ConsensusPayload MakeRecoveryRequest()
         {
             return MakeSignedPayload(new RecoveryRequest
@@ -303,6 +306,7 @@ namespace Neo.Consensus
         public ConsensusPayload MakeRecoveryMessage()
         {
             PrepareRequest prepareRequestMessage = null;
+            //如果议长节点发送了prepareRequest，议员节点接受了PrepareRequest，则TransactionHashes一定不为null
             if (TransactionHashes != null)
             {
                 prepareRequestMessage = new PrepareRequest
@@ -315,11 +319,16 @@ namespace Neo.Consensus
             }
             return MakeSignedPayload(new RecoveryMessage()
             {
+                //将LastChangeViewPayloads中取M个赋值
                 ChangeViewMessages = LastChangeViewPayloads.Where(p => p != null).Select(p => RecoveryMessage.ChangeViewPayloadCompact.FromPayload(p)).Take(M).ToDictionary(p => (int)p.ValidatorIndex),
+                //赋值现组装的PrepareRequest
                 PrepareRequestMessage = prepareRequestMessage,
                 // We only need a PreparationHash set if we don't have the PrepareRequest information.
+                //取个数最多的PreparationPayloads的hash
                 PreparationHash = TransactionHashes == null ? PreparationPayloads.Where(p => p != null).GroupBy(p => p.GetDeserializedMessage<PrepareResponse>().PreparationHash, (k, g) => new { Hash = k, Count = g.Count() }).OrderByDescending(p => p.Count).Select(p => p.Hash).FirstOrDefault() : null,
+                //赋值preparationPayloads
                 PreparationMessages = PreparationPayloads.Where(p => p != null).Select(p => RecoveryMessage.PreparationPayloadCompact.FromPayload(p)).ToDictionary(p => (int)p.ValidatorIndex),
+                //赋值commitPayloads
                 CommitMessages = CommitSent
                     ? CommitPayloads.Where(p => p != null).Select(p => RecoveryMessage.CommitPayloadCompact.FromPayload(p)).ToDictionary(p => (int)p.ValidatorIndex)
                     : new Dictionary<int, RecoveryMessage.CommitPayloadCompact>()
@@ -392,6 +401,7 @@ namespace Neo.Consensus
             }
             else
             {
+                //如果是changeView的话，则在reset时要将之前changeView的消息转存到LastChangeViewPayloads中
                 for (int i = 0; i < LastChangeViewPayloads.Length; i++)
                     if (ChangeViewPayloads[i]?.GetDeserializedMessage<ChangeView>().NewViewNumber >= viewNumber)
                         LastChangeViewPayloads[i] = ChangeViewPayloads[i];

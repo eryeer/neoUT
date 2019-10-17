@@ -32,6 +32,7 @@ namespace Neo.Network.P2P
         {
             this.Remote = remote;
             this.Local = local;
+            //连接超时用timer，onReceived之后就取消掉
             this.timer = Context.System.Scheduler.ScheduleTellOnceCancelable(TimeSpan.FromSeconds(connectionTimeoutLimitStart), Self, Timer.Instance, ActorRefs.NoSender);
             switch (connection)
             {
@@ -108,6 +109,7 @@ namespace Neo.Network.P2P
         private void OnReceived(ByteString data)
         {
             timer.CancelIfNotNull();
+            //连接处理时间最多60s，超时断开
             timer = Context.System.Scheduler.ScheduleTellOnceCancelable(TimeSpan.FromSeconds(connectionTimeoutLimit), Self, Timer.Instance, ActorRefs.NoSender);
             try
             {

@@ -381,7 +381,9 @@ namespace Neo.Ledger
             {
                 foreach (Header header in headers)
                 {
+                    //如果添加的header不能和缓存中的连续，则break；
                     if (header.Index - 1 >= header_index.Count) break;
+                    //如果已经header已经存在了，则忽略
                     if (header.Index < header_index.Count) continue;
                     if (!header.Verify(snapshot)) break;
                     header_index.Add(header.Hash);
@@ -427,12 +429,14 @@ namespace Neo.Ledger
         {
             switch (message)
             {
+                //未使用
                 case Import import:
                     OnImport(import.Blocks);
                     break;
                 case FillMemoryPool fill:
                     OnFillMemoryPool(fill.Transactions);
                     break;
+                //由taskmanager发起的获取header任务，收到headers时进行处理
                 case Header[] headers:
                     OnNewHeaders(headers);
                     break;

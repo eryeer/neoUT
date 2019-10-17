@@ -40,6 +40,7 @@ namespace Neo.Network.P2P
             foreach (IP2PPlugin plugin in Plugin.P2PPlugins)
                 if (!plugin.OnP2PMessage(msg))
                     return;
+            //初始化时version为空，在收到第一条消息，即MessageCommand.Version消息时，将version赋值
             if (version == null)
             {
                 if (msg.Command != MessageCommand.Version)
@@ -47,6 +48,7 @@ namespace Neo.Network.P2P
                 OnVersionMessageReceived((VersionPayload)msg.Payload);
                 return;
             }
+            //在未接受到过verack之前，verack一直是false
             if (!verack)
             {
                 if (msg.Command != MessageCommand.Verack)
@@ -157,6 +159,7 @@ namespace Neo.Network.P2P
 
         private void OnGetBlocksMessageReceived(GetBlocksPayload payload)
         {
+            //取出最多500个区块的inv，发送给区块索取方，让他再来获取区块
             UInt256 hash = payload.HashStart;
             int count = payload.Count < 0 ? InvPayload.MaxHashesCount : payload.Count;
             TrimmedBlock state = Blockchain.Singleton.Store.GetBlocks().TryGet(hash);
@@ -212,12 +215,15 @@ namespace Neo.Network.P2P
 
         private void OnGetHeadersMessageReceived(GetBlocksPayload payload)
         {
+            //设置起始获取hash高度
             UInt256 hash = payload.HashStart;
+            //一次获取2000个header
             int count = payload.Count < 0 ? HeadersPayload.MaxHeadersCount : payload.Count;
             DataCache<UInt256, TrimmedBlock> cache = Blockchain.Singleton.Store.GetBlocks();
             TrimmedBlock state = cache.TryGet(hash);
             if (state == null) return;
             List<Header> headers = new List<Header>();
+            //循环获取所有header
             for (uint i = 1; i <= count; i++)
             {
                 uint index = state.Index + i;
@@ -250,6 +256,7 @@ namespace Neo.Network.P2P
             switch (payload.Type)
             {
                 case InventoryType.Block:
+                    //排除数据库中存在的inv
                     using (Snapshot snapshot = Blockchain.Singleton.GetSnapshot())
                         hashes = hashes.Where(p => !snapshot.ContainsBlock(p)).ToArray();
                     break;
@@ -259,6 +266,7 @@ namespace Neo.Network.P2P
                     break;
             }
             if (hashes.Length == 0) return;
+            //发送NewTasks来获取区块或交易
             system.TaskManager.Tell(new TaskManager.NewTasks { Payload = InvPayload.Create(payload.Type, hashes) }, Context.Parent);
         }
 
@@ -281,13 +289,16 @@ namespace Neo.Network.P2P
 
         private void OnVerackMessageReceived()
         {
+            //将verack修改为true
             verack = true;
             Context.Parent.Tell(MessageCommand.Verack);
         }
 
         private void OnVersionMessageReceived(VersionPayload payload)
         {
+            //存储payload
             version = payload;
+            //通知remoteNode处理payload
             Context.Parent.Tell(payload);
         }
 

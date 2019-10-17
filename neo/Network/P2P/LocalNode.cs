@@ -44,6 +44,7 @@ namespace Neo.Network.P2P
         {
             Random rand = new Random();
             Nonce = (uint)rand.Next();
+            //从csproj中获取信息
             UserAgent = $"/{Assembly.GetExecutingAssembly().GetName().Name}:{Assembly.GetExecutingAssembly().GetVersion()}/";
         }
 

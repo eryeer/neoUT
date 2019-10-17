@@ -32,13 +32,16 @@ namespace Neo.Network.P2P
         public uint LastBlockIndex { get; private set; } = 0;
         public bool IsFullNode { get; private set; } = false;
 
+        //第二个参数connection为tcp的manager
         public RemoteNode(NeoSystem system, object connection, IPEndPoint remote, IPEndPoint local)
             : base(connection, remote, local)
         {
             this.system = system;
+            //创建protocolHandler的actor
             this.protocol = Context.ActorOf(ProtocolHandler.Props(system));
+            //localNode的RemoteNode字典中添加自己的角色
             LocalNode.Singleton.RemoteNodes.TryAdd(Self, this);
-
+            //添加全节点能力，根据端口配置添加TCP/WS能力
             var capabilities = new List<NodeCapability>
             {
                 new FullNodeCapability(Blockchain.Singleton.Height)
@@ -46,12 +49,13 @@ namespace Neo.Network.P2P
 
             if (LocalNode.Singleton.ListenerTcpPort > 0) capabilities.Add(new ServerCapability(NodeCapabilityType.TcpServer, (ushort)LocalNode.Singleton.ListenerTcpPort));
             if (LocalNode.Singleton.ListenerWsPort > 0) capabilities.Add(new ServerCapability(NodeCapabilityType.WsServer, (ushort)LocalNode.Singleton.ListenerWsPort));
-
+            //发送MessageCommand.Version类型的消息到远程连接节点中
             SendMessage(Message.Create(MessageCommand.Version, VersionPayload.Create(LocalNode.Nonce, LocalNode.UserAgent, capabilities.ToArray())));
         }
 
         private void CheckMessageQueue()
         {
+            //如果还没完成初始化，则不发送消息
             if (!verack || !ack) return;
             Queue<Message> queue = message_queue_high;
             if (queue.Count == 0)
@@ -98,6 +102,7 @@ namespace Neo.Network.P2P
                     message_queue = message_queue_low;
                     break;
             }
+            //智能单次发送的消息，queue里面不能有多个
             if (!is_single || message_queue.All(p => p.Command != message.Command))
                 message_queue.Enqueue(message);
             CheckMessageQueue();
@@ -131,6 +136,7 @@ namespace Neo.Network.P2P
                 case Relay relay:
                     OnRelay(relay.Inventory);
                     break;
+                //在初始化后首次收到远程发来的versionPayload的时候处理
                 case VersionPayload payload:
                     OnVersionPayload(payload);
                     break;
@@ -183,12 +189,15 @@ namespace Neo.Network.P2P
         {
             verack = true;
             system.TaskManager.Tell(new TaskManager.Register { Version = Version });
+            //在ack完成之后，才可以进行message的发送，这一步是检查messageQueue中是否已经有消息，有消息则开始发送消息。
             CheckMessageQueue();
         }
 
         private void OnVersionPayload(VersionPayload version)
         {
+            //赋值版本号
             Version = version;
+            //赋值是否是全节点，起始区块高度，以及Tcp端口号
             foreach (NodeCapability capability in version.Capabilities)
             {
                 switch (capability)
@@ -203,11 +212,13 @@ namespace Neo.Network.P2P
                         break;
                 }
             }
+            //如果远端节点连接的Nonce和本地Nonce相等，或者Magic号不一致，则断开连接
             if (version.Nonce == LocalNode.Nonce || version.Magic != ProtocolSettings.Default.Magic)
             {
                 Disconnect(true);
                 return;
             }
+            //保证两个节点之间只有一个连接
             if (LocalNode.Singleton.RemoteNodes.Values.Where(p => p != this).Any(p => p.Remote.Address.Equals(Remote.Address) && p.Version?.Nonce == version.Nonce))
             {
                 Disconnect(true);

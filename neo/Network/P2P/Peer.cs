@@ -111,6 +111,7 @@ namespace Neo.Network.P2P
                 case Peers peers:
                     AddPeers(peers.EndPoints);
                     break;
+                 //没有引用，即当前代码没有可信的ip地址连接
                 case Connect connect:
                     ConnectToPeer(connect.EndPoint, connect.IsTrusted);
                     break;
@@ -176,13 +177,15 @@ namespace Neo.Network.P2P
 
         private void OnTcpConnected(IPEndPoint remote, IPEndPoint local)
         {
+            //删除正在连接的ConnectingPeers集合中对应的remote地址
             ImmutableInterlocked.Update(ref ConnectingPeers, p => p.Remove(remote));
+            //如果当前连接数大于最大连接数，且远程地址不在信任ip地址中，则丢弃
             if (MaxConnections != -1 && ConnectedPeers.Count >= MaxConnections && !TrustedIpAddresses.Contains(remote.Address))
             {
                 Sender.Tell(Tcp.Abort.Instance);
                 return;
             }
-
+            //找出一个地址的所有连接数，如果连接一个地址的连接数超过3个，则丢弃连接
             ConnectedAddresses.TryGetValue(remote.Address, out int count);
             if (count >= MaxConnectionsPerAddress)
             {
@@ -190,10 +193,15 @@ namespace Neo.Network.P2P
             }
             else
             {
+                //如果连接一个地址的连接数不超过3个，则该地址的连接数+1
                 ConnectedAddresses[remote.Address] = count + 1;
+                //创建连接对应的remoteNode actor
                 IActorRef connection = Context.ActorOf(ProtocolProps(Sender, remote, local), $"connection_{Guid.NewGuid()}");
+                //监听这个连接
                 Context.Watch(connection);
+                //向Tcp管理器注册该连接
                 Sender.Tell(new Tcp.Register(connection));
+                //已连接节点中添加这个actor和ip端口的映射
                 ConnectedPeers.TryAdd(connection, remote);
             }
         }

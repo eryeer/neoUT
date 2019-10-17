@@ -141,12 +141,14 @@ namespace Neo.Consensus
 
         private void CheckExpectedView(byte viewNumber)
         {
+            //原来的viewNumber不能大于等于最新的viewNumber
             if (context.ViewNumber >= viewNumber) return;
             // if there are `M` change view payloads with NewViewNumber greater than viewNumber, then, it is safe to move
             if (context.ChangeViewPayloads.Count(p => p != null && p.GetDeserializedMessage<ChangeView>().NewViewNumber >= viewNumber) >= context.M)
             {
                 if (!context.WatchOnly)
                 {
+                    //如果收到的changeview的view号比自己期待的view号小，则广播自己期待的view号，并且以自己期待的view号初始化共识
                     ChangeView message = context.ChangeViewPayloads[context.MyIndex]?.GetDeserializedMessage<ChangeView>();
                     // Communicate the network about my agreement to move to `viewNumber`
                     // if my last change view payload, `message`, has NewViewNumber lower than current view to change
@@ -216,17 +218,21 @@ namespace Neo.Consensus
 
         private void OnChangeViewReceived(ConsensusPayload payload, ChangeView message)
         {
+            //如果发现请求的view号比当前节点上下文的view号还小，则直接给请求节点发送RecoveryMessage
             if (message.NewViewNumber <= context.ViewNumber)
                 OnRecoveryRequestReceived(payload);
-
+            //如果已经发送过commit则不会处理changeView
             if (context.CommitSent) return;
 
+            //检查发送者的changeView有没有重复发送，重复发送的话就忽略
             var expectedView = context.ChangeViewPayloads[payload.ValidatorIndex]?.GetDeserializedMessage<ChangeView>().NewViewNumber ?? (byte)0;
             if (message.NewViewNumber <= expectedView)
                 return;
 
             Log($"{nameof(OnChangeViewReceived)}: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex} nv={message.NewViewNumber} reason={message.Reason}");
+            //保存changeView消息
             context.ChangeViewPayloads[payload.ValidatorIndex] = payload;
+            //检查changeView消息，继续向下执行
             CheckExpectedView(message.NewViewNumber);
         }
 
@@ -315,6 +321,7 @@ namespace Neo.Consensus
                     return;
             switch (message)
             {
+                //done
                 case ChangeView view:
                     OnChangeViewReceived(payload, view);
                     break;
@@ -330,9 +337,11 @@ namespace Neo.Consensus
                 case Commit commit:
                     OnCommitReceived(payload, commit);
                     break;
+                //done
                 case RecoveryRequest _:
                     OnRecoveryRequestReceived(payload);
                     break;
+                    
                 case RecoveryMessage recovery:
                     OnRecoveryMessageReceived(payload, recovery);
                     break;
@@ -357,35 +366,45 @@ namespace Neo.Consensus
             Log($"{nameof(OnRecoveryMessageReceived)}: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex}");
             try
             {
+                //当recovery消息的viewNumber大于context的viewNumber时
                 if (message.ViewNumber > context.ViewNumber)
                 {
+                    //已经发送过commit的话，忽略
                     if (context.CommitSent) return;
                     ConsensusPayload[] changeViewPayloads = message.GetChangeViewPayloads(context, payload);
                     totalChangeViews = changeViewPayloads.Length;
+                    //循环校验和处理changeView的消息，即如果全处理完，并通过，会进行changeView动作，viewNumber相应增加
                     foreach (ConsensusPayload changeViewPayload in changeViewPayloads)
                         if (ReverifyAndProcessPayload(changeViewPayload)) validChangeViews++;
                 }
+                //如果视图版本号和消息中的相等，并且不处于changeView中，并且没有发送commit
                 if (message.ViewNumber == context.ViewNumber && !context.NotAcceptingPayloadsDueToViewChanging && !context.CommitSent)
                 {
+                    //如果没有发送或收到PrepareRequest说明刚刚changeView
                     if (!context.RequestSentOrReceived)
                     {
                         ConsensusPayload prepareRequestPayload = message.GetPrepareRequestPayload(context, payload);
+                        //如果有PrepareRequest，则进行OnPrepareRequestReceived的处理
                         if (prepareRequestPayload != null)
                         {
                             totalPrepReq = 1;
                             if (ReverifyAndProcessPayload(prepareRequestPayload)) validPrepReq++;
                         }
+                        //如果没有PrepareRequest，且为主节点，则发送PrepareRequest
                         else if (context.IsPrimary)
                             SendPrepareRequest();
                     }
+                    //赋值除了议长节点其他的议员节点的prepareResponse
                     ConsensusPayload[] prepareResponsePayloads = message.GetPrepareResponsePayloads(context, payload);
                     totalPrepResponses = prepareResponsePayloads.Length;
+                    //校验并处理prepareResponse
                     foreach (ConsensusPayload prepareResponsePayload in prepareResponsePayloads)
                         if (ReverifyAndProcessPayload(prepareResponsePayload)) validPrepResponses++;
                 }
                 if (message.ViewNumber <= context.ViewNumber)
                 {
                     // Ensure we know about all commits from lower view numbers.
+                    //存储所有commit，如果消息视图号小于当前上下文编号，则只记录，不处理commit
                     ConsensusPayload[] commitPayloads = message.GetCommitPayloadsFromRecoveryMessage(context, payload);
                     totalCommits = commitPayloads.Length;
                     foreach (ConsensusPayload commitPayload in commitPayloads)
@@ -411,15 +430,18 @@ namespace Neo.Consensus
             // and issues a change view for the same view, it will have a different hash and will correctly respond
             // again; however replay attacks of the ChangeView message from arbitrary nodes will not trigger an
             // additional recovery message response.
+            //防止相同时间戳的RecoverRequest的攻击
             if (!knownHashes.Add(payload.Hash)) return;
 
             Log($"On{payload.ConsensusMessage.GetType().Name}Received: height={payload.BlockIndex} index={payload.ValidatorIndex} view={payload.ConsensusMessage.ViewNumber}");
             if (context.WatchOnly) return;
+            //如果该节点已经发送过commit，则直接广播RecoveryMessage
             if (!context.CommitSent)
             {
                 bool shouldSendRecovery = false;
                 int allowedRecoveryNodeCount = context.F;
                 // Limit recoveries to be sent from an upper limit of `f` nodes
+                //并不是所有未发送commit的节点收到recoveryRequest之后会发送RecoveryMessage，只有算法指定的节点才会发送，节点个数等于F个数。
                 for (int i = 1; i <= allowedRecoveryNodeCount; i++)
                 {
                     var chosenIndex = (payload.ValidatorIndex + i) % context.Validators.Length;
@@ -431,6 +453,7 @@ namespace Neo.Consensus
                 if (!shouldSendRecovery) return;
             }
             Log($"send recovery: view={context.ViewNumber}");
+            //制作RecoveryMessage并广播
             localNode.Tell(new LocalNode.SendDirectly { Inventory = context.MakeRecoveryMessage() });
         }
 
@@ -463,6 +486,7 @@ namespace Neo.Consensus
             //接收prepareRequest，赋值context
             context.Block.Timestamp = message.Timestamp;
             context.Block.ConsensusData.Nonce = message.Nonce;
+            //此时TransactionHashes接收到的一定不为null，因为议长对其进行了数组初始化
             context.TransactionHashes = message.TransactionHashes;
             context.Transactions = new Dictionary<UInt256, Transaction>();
             //存储PrepareRequest之前 清空PreparationPayloads
@@ -480,13 +504,14 @@ namespace Neo.Consensus
                     if (!Crypto.Default.VerifySignature(hashData, context.CommitPayloads[i].GetDeserializedMessage<Commit>().Signature, context.Validators[i].EncodePoint(false)))
                         context.CommitPayloads[i] = null;
 
+            //如果没有交易，就直接向下执行了
             if (context.TransactionHashes.Length == 0)
             {
                 // There are no tx so we should act like if all the transactions were filled
                 CheckPrepareResponse();
                 return;
             }
-
+            //有交易的话要封装交易
             Dictionary<UInt256, Transaction> mempoolVerified = Blockchain.Singleton.MemPool.GetVerifiedTransactions().ToDictionary(p => p.Hash);
             List<Transaction> unverified = new List<Transaction>();
             foreach (UInt256 hash in context.TransactionHashes)
@@ -556,6 +581,7 @@ namespace Neo.Consensus
                 if (!started) return;
                 switch (message)
                 {
+                    //未使用
                     case SetViewNumber setView:
                         InitializeConsensus(setView.ViewNumber);
                         break;
@@ -571,6 +597,7 @@ namespace Neo.Consensus
                     case Transaction transaction:
                         OnTransaction(transaction);
                         break;
+                    //持久化完成的消息
                     case Blockchain.PersistCompleted completed:
                         OnPersistCompleted(completed.Block);
                         break;
@@ -580,7 +607,9 @@ namespace Neo.Consensus
 
         private void RequestRecovery()
         {
+            //正在共识的提案块为当前数据库区块头高+1时才做recovery，说明此前没有收到过该提案块的对应区块
             if (context.Block.Index == Blockchain.Singleton.HeaderHeight + 1)
+                //recoveryRequest中会包含时间戳
                 localNode.Tell(new LocalNode.SendDirectly { Inventory = context.MakeRecoveryRequest() });
         }
 
@@ -646,6 +675,7 @@ namespace Neo.Consensus
                         reason = ChangeViewReason.TxNotFound;
                     }
 
+                    //请求changeView
                     RequestChangeView(reason);
                 }
             }
@@ -677,6 +707,7 @@ namespace Neo.Consensus
             return Akka.Actor.Props.Create(() => new ConsensusService(localNode, taskManager, store, wallet)).WithMailbox("consensus-service-mailbox");
         }
 
+        //请求changeView的原因：超时，交易找不到，交易校验不通过，交易规则校验不通过，区块规则校验不通过
         private void RequestChangeView(ChangeViewReason reason)
         {
             if (context.WatchOnly) return;
@@ -685,7 +716,9 @@ namespace Neo.Consensus
             // The latter may happen by nodes in higher views with, at least, `M` proofs
             byte expectedView = context.ViewNumber;
             expectedView++;
+            //定时器至少延长60s
             ChangeTimer(TimeSpan.FromMilliseconds(Blockchain.MillisecondsPerBlock << (expectedView + 1)));
+            //在不能拥有达成ChangeView的节点个数时，先申请恢复。
             if ((context.CountCommitted + context.CountFailed) > context.F)
             {
                 Log($"Skip requesting change view to nv={expectedView} because nc={context.CountCommitted} nf={context.CountFailed}");
@@ -693,7 +726,9 @@ namespace Neo.Consensus
                 return;
             }
             Log($"request change view: height={context.Block.Index} view={context.ViewNumber} nv={expectedView} nc={context.CountCommitted} nf={context.CountFailed}");
+            //制作广播changeView消息，并把自己的消息储存到ChangeViewPayloads中
             localNode.Tell(new LocalNode.SendDirectly { Inventory = context.MakeChangeView(reason) });
+            //检查changeView消息有没有收齐，收齐则继续向下执行
             CheckExpectedView(expectedView);
         }
 

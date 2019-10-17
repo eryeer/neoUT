@@ -407,6 +407,7 @@ namespace Neo.Ledger
             List<PoolItem> invalidItems = new List<PoolItem>();
 
             // Since unverifiedSortedTxPool is ordered in an ascending manner, we take from the end.
+            //从unverifiedSortedTxPool倒着取交易费用最大的交易进行校验，通过的话加到reverifiedItems，没通过的话加到invalidItems
             foreach (PoolItem item in unverifiedSortedTxPool.Reverse().Take(count))
             {
                 if (item.Tx.Reverify(snapshot, _unsortedTransactions.Select(p => p.Value.Tx)))
@@ -428,6 +429,7 @@ namespace Neo.Ledger
 
                 var rebroadcastCutOffTime = DateTime.UtcNow.AddMilliseconds(
                     -Blockchain.MillisecondsPerBlock * blocksTillRebroadcast);
+                //把校验过的添加到已校验池
                 foreach (PoolItem item in reverifiedItems)
                 {
                     if (_unsortedTransactions.TryAdd(item.Tx.Hash, item))
@@ -444,7 +446,7 @@ namespace Neo.Ledger
                     _unverifiedTransactions.Remove(item.Tx.Hash);
                     unverifiedSortedTxPool.Remove(item);
                 }
-
+                //删除校验不通过的交易
                 foreach (PoolItem item in invalidItems)
                 {
                     _unverifiedTransactions.Remove(item.Tx.Hash);
