@@ -319,7 +319,7 @@ namespace Neo.Consensus
             }
             return MakeSignedPayload(new RecoveryMessage()
             {
-                //将LastChangeViewPayloads中取M个赋值
+                //将LastChangeViewPayloads中取M个赋值，赋值到ChangeViewMessages，代表changView已经结束，给要恢复的节点作为changeView的消息输入，让他也进行changeView
                 ChangeViewMessages = LastChangeViewPayloads.Where(p => p != null).Select(p => RecoveryMessage.ChangeViewPayloadCompact.FromPayload(p)).Take(M).ToDictionary(p => (int)p.ValidatorIndex),
                 //赋值现组装的PrepareRequest
                 PrepareRequestMessage = prepareRequestMessage,

@@ -148,7 +148,7 @@ namespace Neo.Consensus
             {
                 if (!context.WatchOnly)
                 {
-                    //如果收到的changeview的view号比自己期待的view号小，则广播自己期待的view号，并且以自己期待的view号初始化共识
+                    //如果收到的changeview的view号比自己期待的view号大或者自己还没准备changeView，则广播同意移动到的viewNumber号（bug，实际上移动到的是自己的view+1号）
                     ChangeView message = context.ChangeViewPayloads[context.MyIndex]?.GetDeserializedMessage<ChangeView>();
                     // Communicate the network about my agreement to move to `viewNumber`
                     // if my last change view payload, `message`, has NewViewNumber lower than current view to change
@@ -189,7 +189,7 @@ namespace Neo.Consensus
             //议长节点行为
             if (context.IsPrimary)
             {
-                //TODO 需要再看
+                //处理recoveryMessage是会为true
                 if (isRecovering)
                 {
                     ChangeTimer(TimeSpan.FromMilliseconds(Blockchain.MillisecondsPerBlock << (viewNumber + 1)));
@@ -644,7 +644,7 @@ namespace Neo.Consensus
 
         private void OnTimer(Timer timer)
         {
-            //观察者节点或者block已经组装完成并发送，则返回
+            //观察者节点或者block已经组装完成并发送，则返回（blockSent应对该节点为议员节点超时的情形，如果是议长节点，刚初始化block不可能blockSent）
             if (context.WatchOnly || context.BlockSent) return;
             //timer的块高和视图号已经跟不上当前的状态，则返回
             if (timer.Height != context.Block.Index || timer.ViewNumber != context.ViewNumber) return;

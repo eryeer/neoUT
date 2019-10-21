@@ -379,6 +379,7 @@ namespace Neo.Ledger
 
             // If we know about headers of future blocks, no point in verifying transactions from the unverified tx pool
             // until we get caught up.
+            //如果规则改变的话，就直接通过block.tell进行交易发送了，就不需要直接reverify了。
             if (block.Index > 0 && block.Index < Blockchain.Singleton.HeaderHeight || policyChanged)
                 return;
 
