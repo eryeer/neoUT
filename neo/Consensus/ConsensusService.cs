@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Akka.Configuration;
+using Akka.Event;
 using Neo.Cryptography;
 using Neo.IO;
 using Neo.IO.Actors;
@@ -19,6 +20,35 @@ namespace Neo.Consensus
 {
     public sealed class ConsensusService : UntypedActor
     {
+
+        public static bool watchSwitch = false;
+        public static bool countSwitch = false;
+        public Akka.Event.ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
+
+        public static System.Diagnostics.Stopwatch stopwatchSetViewNumber = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchConsensusPayloadCommon = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchChangeView = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPrepareRequest = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPrepareResponse = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchCommit = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchRecoveryRequest = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchRecoveryMessage = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTransaction = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistCompleted = new System.Diagnostics.Stopwatch();
+
+        public static long countSetViewNumber = 0;
+        public static long countTimer = 0;
+        public static long countConsensusPayloadCommon = 0;
+        public static long countChangeView = 0;
+        public static long countPrepareRequest = 0;
+        public static long countPrepareResponse = 0;
+        public static long countCommit = 0;
+        public static long countRecoveryRequest = 0;
+        public static long countRecoveryMessage = 0;
+        public static long countTransaction = 0;
+        public static long countPersistCompleted = 0;
+
         public class Start { public bool IgnoreRecoveryLogs; }
         public class SetViewNumber { public byte ViewNumber; }
         internal class Timer { public uint Height; public byte ViewNumber; }
@@ -63,13 +93,13 @@ namespace Neo.Consensus
         {
             if (verify && !tx.Verify(context.Snapshot, context.Transactions.Values))
             {
-                Log($"Invalid transaction: {tx.Hash}{Environment.NewLine}{tx.ToArray().ToHexString()}", LogLevel.Warning);
+                Log($"Invalid transaction: {tx.Hash}{Environment.NewLine}{tx.ToArray().ToHexString()}", Plugins.LogLevel.Warning);
                 RequestChangeView(ChangeViewReason.TxInvalid);
                 return false;
             }
             if (!NativeContract.Policy.CheckPolicy(tx, context.Snapshot))
             {
-                Log($"reject tx: {tx.Hash}{Environment.NewLine}{tx.ToArray().ToHexString()}", LogLevel.Warning);
+                Log($"reject tx: {tx.Hash}{Environment.NewLine}{tx.ToArray().ToHexString()}", Plugins.LogLevel.Warning);
                 RequestChangeView(ChangeViewReason.TxRejectedByPolicy);
                 return false;
             }
@@ -88,7 +118,7 @@ namespace Neo.Consensus
                 // Check maximum block size via Native Contract policy
                 if (context.GetExpectedBlockSize() > NativeContract.Policy.GetMaxBlockSize(context.Snapshot))
                 {
-                    Log($"rejected block: {context.Block.Index}{Environment.NewLine} The size exceed the policy", LogLevel.Warning);
+                    Log($"rejected block: {context.Block.Index}{Environment.NewLine} The size exceed the policy", Plugins.LogLevel.Warning);
                     RequestChangeView(ChangeViewReason.BlockRejectedByPolicy);
                     return false;
                 }
@@ -162,7 +192,7 @@ namespace Neo.Consensus
         {
             context.Reset(viewNumber);
             if (viewNumber > 0)
-                Log($"changeview: view={viewNumber} primary={context.Validators[context.GetPrimaryIndex((byte)(viewNumber - 1u))]}", LogLevel.Warning);
+                Log($"changeview: view={viewNumber} primary={context.Validators[context.GetPrimaryIndex((byte)(viewNumber - 1u))]}", Plugins.LogLevel.Warning);
             Log($"initialize: height={context.Block.Index} view={viewNumber} index={context.MyIndex} role={(context.IsPrimary ? "Primary" : context.WatchOnly ? "WatchOnly" : "Backup")}");
             if (context.WatchOnly) return;
             if (context.IsPrimary)
@@ -186,7 +216,7 @@ namespace Neo.Consensus
             }
         }
 
-        private void Log(string message, LogLevel level = LogLevel.Info)
+        private void Log(string message, Plugins.LogLevel level = Plugins.LogLevel.Info)
         {
             Plugin.Log(nameof(ConsensusService), level, message);
         }
@@ -213,7 +243,7 @@ namespace Neo.Consensus
             if (existingCommitPayload != null)
             {
                 if (existingCommitPayload.Hash != payload.Hash)
-                    Log($"{nameof(OnCommitReceived)}: different commit from validator! height={payload.BlockIndex} index={payload.ValidatorIndex} view={commit.ViewNumber} existingView={existingCommitPayload.ConsensusMessage.ViewNumber}", LogLevel.Warning);
+                    Log($"{nameof(OnCommitReceived)}: different commit from validator! height={payload.BlockIndex} index={payload.ValidatorIndex} view={commit.ViewNumber} existingView={existingCommitPayload.ConsensusMessage.ViewNumber}", Plugins.LogLevel.Warning);
                 return;
             }
 
@@ -253,13 +283,17 @@ namespace Neo.Consensus
 
         private void OnConsensusPayload(ConsensusPayload payload)
         {
+            if (watchSwitch)
+            {
+                stopwatchConsensusPayloadCommon.Start();
+            }
             if (context.BlockSent) return;
             if (payload.Version != context.Block.Version) return;
             if (payload.PrevHash != context.Block.PrevHash || payload.BlockIndex != context.Block.Index)
             {
                 if (context.Block.Index < payload.BlockIndex)
                 {
-                    Log($"chain sync: expected={payload.BlockIndex} current={context.Block.Index - 1} nodes={LocalNode.Singleton.ConnectedCount}", LogLevel.Warning);
+                    Log($"chain sync: expected={payload.BlockIndex} current={context.Block.Index - 1} nodes={LocalNode.Singleton.ConnectedCount}", Plugins.LogLevel.Warning);
                 }
                 return;
             }
@@ -281,25 +315,99 @@ namespace Neo.Consensus
             foreach (IP2PPlugin plugin in Plugin.P2PPlugins)
                 if (!plugin.OnConsensusMessage(payload))
                     return;
+
+            if (watchSwitch)
+            {
+                stopwatchConsensusPayloadCommon.Stop();
+                AkkaLog.Info($"Class: ConsensusService Type: ConsensusPayloadCommon TimeSpan:{stopwatchConsensusPayloadCommon.Elapsed.TotalSeconds}");
+                stopwatchConsensusPayloadCommon.Reset();
+            }
+            if (countSwitch) countConsensusPayloadCommon++;
             switch (message)
             {
                 case ChangeView view:
+                    if (watchSwitch)
+                    {
+                        stopwatchChangeView.Start();
+                    }
                     OnChangeViewReceived(payload, view);
+                    if (watchSwitch)
+                    {
+                        stopwatchChangeView.Stop();
+                        AkkaLog.Info($"Class: ConsensusService Type: ChangeView TimeSpan:{stopwatchChangeView.Elapsed.TotalSeconds}");
+                        stopwatchChangeView.Reset();
+                    }
+                    if (countSwitch) countChangeView++;
                     break;
                 case PrepareRequest request:
+                    if (watchSwitch)
+                    {
+                        stopwatchPrepareRequest.Start();
+                    }
                     OnPrepareRequestReceived(payload, request);
+                    if (watchSwitch)
+                    {
+                        stopwatchPrepareRequest.Stop();
+                        AkkaLog.Info($"Class: ConsensusService Type: PrepareRequest TimeSpan:{stopwatchPrepareRequest.Elapsed.TotalSeconds}");
+                        stopwatchPrepareRequest.Reset();
+                    }
+                    if (countSwitch) countPrepareRequest++;
                     break;
                 case PrepareResponse response:
+                    if (watchSwitch)
+                    {
+                        stopwatchPrepareResponse.Start();
+                    }
                     OnPrepareResponseReceived(payload, response);
+                    if (watchSwitch)
+                    {
+                        stopwatchPrepareResponse.Stop();
+                        AkkaLog.Info($"Class: ConsensusService Type: PrepareResponse TimeSpan:{stopwatchPrepareResponse.Elapsed.TotalSeconds}");
+                        stopwatchPrepareResponse.Reset();
+                    }
+                    if (countSwitch) countPrepareResponse++;
                     break;
                 case Commit commit:
+                    if (watchSwitch)
+                    {
+                        stopwatchCommit.Start();
+                    }
                     OnCommitReceived(payload, commit);
+                    if (watchSwitch)
+                    {
+                        stopwatchCommit.Stop();
+                        AkkaLog.Info($"Class: ConsensusService Type: Commit TimeSpan:{stopwatchCommit.Elapsed.TotalSeconds}");
+                        stopwatchCommit.Reset();
+                    }
+                    if (countSwitch) countCommit++;
                     break;
                 case RecoveryRequest _:
+                    if (watchSwitch)
+                    {
+                        stopwatchRecoveryRequest.Start();
+                    }
                     OnRecoveryRequestReceived(payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchRecoveryRequest.Stop();
+                        AkkaLog.Info($"Class: ConsensusService Type: RecoveryRequest TimeSpan:{stopwatchRecoveryRequest.Elapsed.TotalSeconds}");
+                        stopwatchRecoveryRequest.Reset();
+                    }
+                    if (countSwitch) countRecoveryRequest++;
                     break;
                 case RecoveryMessage recovery:
+                    if (watchSwitch)
+                    {
+                        stopwatchRecoveryMessage.Start();
+                    }
                     OnRecoveryMessageReceived(payload, recovery);
+                    if (watchSwitch)
+                    {
+                        stopwatchRecoveryMessage.Stop();
+                        AkkaLog.Info($"Class: ConsensusService Type: RecoveryMessage TimeSpan:{stopwatchRecoveryMessage.Elapsed.TotalSeconds}");
+                        stopwatchRecoveryMessage.Reset();
+                    }
+                    if (countSwitch) countRecoveryMessage++;
                     break;
             }
         }
@@ -406,12 +514,12 @@ namespace Neo.Consensus
             Log($"{nameof(OnPrepareRequestReceived)}: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex} tx={message.TransactionHashes.Length}");
             if (message.Timestamp <= context.PrevHeader.Timestamp || message.Timestamp > TimeProvider.Current.UtcNow.AddMinutes(10).ToTimestampMS())
             {
-                Log($"Timestamp incorrect: {message.Timestamp}", LogLevel.Warning);
+                Log($"Timestamp incorrect: {message.Timestamp}", Plugins.LogLevel.Warning);
                 return;
             }
             if (message.TransactionHashes.Any(p => context.Snapshot.ContainsTransaction(p)))
             {
-                Log($"Invalid request: transaction already exists", LogLevel.Warning);
+                Log($"Invalid request: transaction already exists", Plugins.LogLevel.Warning);
                 return;
             }
 
@@ -500,19 +608,63 @@ namespace Neo.Consensus
                 switch (message)
                 {
                     case SetViewNumber setView:
+                        if (watchSwitch)
+                        {
+                            stopwatchSetViewNumber.Start();
+                        }
                         InitializeConsensus(setView.ViewNumber);
+                        if (watchSwitch)
+                        {
+                            stopwatchSetViewNumber.Stop();
+                            AkkaLog.Info($"Class: ConsensusService Type: SetViewNumber TimeSpan:{stopwatchSetViewNumber.Elapsed.TotalSeconds}");
+                            stopwatchSetViewNumber.Reset();
+                        }
+                        if (countSwitch) countSetViewNumber++;
                         break;
                     case Timer timer:
+                        if (watchSwitch)
+                        {
+                            stopwatchTimer.Start();
+                        }
                         OnTimer(timer);
+                        if (watchSwitch)
+                        {
+                            stopwatchTimer.Stop();
+                            AkkaLog.Info($"Class: ConsensusService Type: Timer TimeSpan:{stopwatchTimer.Elapsed.TotalSeconds}");
+                            stopwatchTimer.Reset();
+                        }
+                        if (countSwitch) countTimer++;
                         break;
                     case ConsensusPayload payload:
                         OnConsensusPayload(payload);
                         break;
                     case Transaction transaction:
+                        if (watchSwitch)
+                        {
+                            stopwatchTransaction.Start();
+                        }
                         OnTransaction(transaction);
+                        if (watchSwitch)
+                        {
+                            stopwatchTransaction.Stop();
+                            AkkaLog.Info($"Class: ConsensusService Type: Transaction TimeSpan:{stopwatchTransaction.Elapsed.TotalSeconds}");
+                            stopwatchTransaction.Reset();
+                        }
+                        if (countSwitch) countTransaction++;
                         break;
                     case Blockchain.PersistCompleted completed:
+                        if (watchSwitch)
+                        {
+                            stopwatchPersistCompleted.Start();
+                        }
                         OnPersistCompleted(completed.Block);
+                        if (watchSwitch)
+                        {
+                            stopwatchPersistCompleted.Stop();
+                            AkkaLog.Info($"Class: ConsensusService Type: PersistCompleted TimeSpan:{stopwatchPersistCompleted.Elapsed.TotalSeconds}");
+                            stopwatchPersistCompleted.Reset();
+                        }
+                        if (countSwitch) countPersistCompleted++;
                         break;
                 }
             }
