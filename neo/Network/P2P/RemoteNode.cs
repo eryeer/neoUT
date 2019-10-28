@@ -17,8 +17,8 @@ namespace Neo.Network.P2P
 {
     public class RemoteNode : Connection
     {
-        public static bool watchSwitch = false;
-        public ILoggingAdapter Log { get; } = Context.GetLogger();
+        public static bool watchSwitchRemoteNode = false;
+        public static bool countSwitchRemoteNode = false;
 
         public static System.Diagnostics.Stopwatch stopwatchMessage = new System.Diagnostics.Stopwatch();
         public static System.Diagnostics.Stopwatch stopwatchIInventory = new System.Diagnostics.Stopwatch();
@@ -144,102 +144,103 @@ namespace Neo.Network.P2P
             switch (message)
             {
                 case Message msg:
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchMessage.Start();
                     }
                     EnqueueMessage(msg);
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchMessage.Stop();
                         Log.Info($"Class:RemoteNode Type: Message TimeSpan:{stopwatchMessage.Elapsed.TotalSeconds}");
                         stopwatchMessage.Reset();
-                        countMessage++;
                     }
+                    if (countSwitchRemoteNode) countMessage++;
                     break;
                 case IInventory inventory:
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchIInventory.Start();
                     }
                     OnSend(inventory);
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchIInventory.Stop();
                         Log.Info($"Class:RemoteNode Type: IInventory TimeSpan:{stopwatchIInventory.Elapsed.TotalSeconds}");
                         stopwatchIInventory.Reset();
-                        countIInventory++;
                     }
+                    if (countSwitchRemoteNode) countIInventory++;
                     break;
                 case Relay relay:
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchRelay.Start();
                     }
                     OnRelay(relay.Inventory);
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchRelay.Stop();
                         Log.Info($"Class:RemoteNode Type: Relay TimeSpan:{stopwatchRelay.Elapsed.TotalSeconds}");
                         stopwatchRelay.Reset();
-                        countRelay++;
                     }
+                    if (countSwitchRemoteNode) countRelay++;
                     break;
                 case VersionPayload payload:
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchVersionPayload.Start();
                     }
                     OnVersionPayload(payload);
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchVersionPayload.Stop();
                         Log.Info($"Class:RemoteNode Type: VersionPayload TimeSpan:{stopwatchVersionPayload.Elapsed.TotalSeconds}");
                         stopwatchVersionPayload.Reset();
                         countVersionPayload++;
                     }
+                    if (countSwitchRemoteNode) countVersionPayload++;
                     break;
                 case MessageCommand.Verack:
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchVerack.Start();
                     }
                     OnVerack();
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchVerack.Stop();
                         Log.Info($"Class:RemoteNode Type: Verack TimeSpan:{stopwatchVerack.Elapsed.TotalSeconds}");
                         stopwatchVerack.Reset();
-                        countVerack++;
                     }
+                    if (countSwitchRemoteNode) countVerack++;
                     break;
                 case ProtocolHandler.SetFilter setFilter:
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchSetFilter.Start();
                     }
                     OnSetFilter(setFilter.Filter);
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchSetFilter.Stop();
                         Log.Info($"Class:RemoteNode Type: SetFilter TimeSpan:{stopwatchSetFilter.Elapsed.TotalSeconds}");
                         stopwatchVerack.Reset();
-                        countSetFilter++;
                     }
+                    if (countSwitchRemoteNode) countSetFilter++;
                     break;
                 case PingPayload payload:
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchPingPayload.Start();
                     }
                     OnPingPayload(payload);
-                    if (watchSwitch)
+                    if (watchSwitchRemoteNode)
                     {
                         stopwatchPingPayload.Stop();
                         Log.Info($"Class:RemoteNode Type: SetFilter TimeSpan:{stopwatchPingPayload.Elapsed.TotalSeconds}");
                         stopwatchPingPayload.Reset();
-                        countPingPayload++;
                     }
+                    if (countSwitchRemoteNode) countPingPayload++;
                     break;
             }
         }

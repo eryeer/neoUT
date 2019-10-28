@@ -1,4 +1,5 @@
 using Akka.Actor;
+using Akka.Event;
 using Akka.IO;
 using System;
 using System.Net;
@@ -9,6 +10,23 @@ namespace Neo.Network.P2P
 {
     public abstract class Connection : UntypedActor
     {
+        public static bool watchSwitch = false;
+        public static bool countSwitch = false;
+        public ILoggingAdapter Log { get; } = Context.GetLogger();
+
+        public static System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchAck = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchReceived = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchConnectionClosed = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTPSTimer = new System.Diagnostics.Stopwatch();
+
+        public static long countTimer = 0;
+        public static long countAck = 0;
+        public static long countReceived = 0;
+        public static long countConnectionClosed = 0;
+        public static long countTPSTimer = 0;
+
+
         internal class Timer { public static Timer Instance = new Timer(); }
         internal class Ack : Tcp.Event { public static Ack Instance = new Ack(); }
 
@@ -91,16 +109,60 @@ namespace Neo.Network.P2P
             switch (message)
             {
                 case Timer _:
+                    if (watchSwitch)
+                    {
+                        stopwatchTimer.Start();
+                    }
                     Disconnect(true);
+                    if (watchSwitch)
+                    {
+                        stopwatchTimer.Stop();
+                        Log.Info($"Class: Connection Type: Timer TimeSpan:{stopwatchTimer.Elapsed.TotalSeconds}");
+                        stopwatchTimer.Reset();
+                    }
+                    if (countSwitch) countTimer++;
                     break;
                 case Ack _:
+                    if (watchSwitch)
+                    {
+                        stopwatchAck.Start();
+                    }
                     OnAck();
+                    if (watchSwitch)
+                    {
+                        stopwatchAck.Stop();
+                        Log.Info($"Class: Connection Type: Ack TimeSpan:{stopwatchAck.Elapsed.TotalSeconds}");
+                        stopwatchAck.Reset();
+                    }
+                    if (countSwitch) countAck++;
                     break;
                 case Tcp.Received received:
+                    if (watchSwitch)
+                    {
+                        stopwatchReceived.Start();
+                    }
                     OnReceived(received.Data);
+                    if (watchSwitch)
+                    {
+                        stopwatchReceived.Stop();
+                        Log.Info($"Class: Connection Type: Received TimeSpan:{stopwatchReceived.Elapsed.TotalSeconds}");
+                        stopwatchReceived.Reset();
+                    }
+                    if (countSwitch) countReceived++;
                     break;
                 case Tcp.ConnectionClosed _:
+                    if (watchSwitch)
+                    {
+                        stopwatchConnectionClosed.Start();
+                    }
                     Context.Stop(Self);
+                    if (watchSwitch)
+                    {
+                        stopwatchConnectionClosed.Stop();
+                        Log.Info($"Class: Connection Type: ConnectionClosed TimeSpan:{stopwatchConnectionClosed.Elapsed.TotalSeconds}");
+                        stopwatchConnectionClosed.Reset();
+                    }
+                    if (countSwitch) countConnectionClosed++;
                     break;
             }
         }

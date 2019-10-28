@@ -17,7 +17,7 @@ namespace Neo.Network.P2P.Payloads
 {
     public class Transaction : IEquatable<Transaction>, IInventory, IInteroperable
     {
-        public const int MaxTransactionSize = 102400;
+        public const int MaxTransactionSize = 10240000;
         public const uint MaxValidUntilBlockIncrement = 2102400;
         /// <summary>
         /// Maximum number of attributes that can be contained within a transaction
@@ -84,6 +84,15 @@ namespace Neo.Network.P2P.Payloads
         {
             DeserializeUnsigned(reader);
             Witnesses = reader.ReadSerializableArray<Witness>();
+        }
+
+        internal static Transaction DeserializeFrom(BinaryReader reader)
+        {
+            Transaction transaction = new Transaction();
+
+            transaction.DeserializeUnsigned(reader);
+            transaction.Witnesses = reader.ReadSerializableArray<Witness>();
+            return transaction;
         }
 
         public void DeserializeUnsigned(BinaryReader reader)

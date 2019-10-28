@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Akka.Configuration;
+using Akka.Event;
 using Neo.Cryptography;
 using Neo.IO;
 using Neo.IO.Actors;
@@ -18,6 +19,44 @@ namespace Neo.Network.P2P
 {
     internal class ProtocolHandler : UntypedActor
     {
+        public static bool watchSwitch = false;
+        public static bool countSwitch = false;
+        public Akka.Event.ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
+
+        public static System.Diagnostics.Stopwatch stopwatchAddr = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchBlock = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchConsensus = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchFilterAdd = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchFilterClear = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchFilterLoad = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchGetAddr = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchGetBlocks = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchGetData = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchGetHeaders = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchHeaders = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchInv = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchMempool = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPing = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPong = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTransaction = new System.Diagnostics.Stopwatch();
+
+        public static long countAddr = 0;
+        public static long countBlock = 0;
+        public static long countConsensus = 0;
+        public static long countFilterAdd = 0;
+        public static long countFilterClear = 0;
+        public static long countFilterLoad = 0;
+        public static long countGetAddr = 0;
+        public static long countGetBlocks = 0;
+        public static long countGetData = 0;
+        public static long countGetHeaders = 0;
+        public static long countHeaders = 0;
+        public static long countInv = 0;
+        public static long countMempool = 0;
+        public static long countPing = 0;
+        public static long countPong = 0;
+        public static long countTransaction = 0;
+
         public class SetFilter { public BloomFilter Filter; }
 
         private readonly NeoSystem system;
@@ -57,53 +96,229 @@ namespace Neo.Network.P2P
             switch (msg.Command)
             {
                 case MessageCommand.Addr:
+                    if (watchSwitch)
+                    {
+                        stopwatchAddr.Start();
+                    }
                     OnAddrMessageReceived((AddrPayload)msg.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchAddr.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Addr TimeSpan:{stopwatchAddr.Elapsed.TotalSeconds}");
+                        stopwatchAddr.Reset();
+                    }
+                    if (countSwitch) countAddr++;
                     break;
                 case MessageCommand.Block:
+                    if (watchSwitch)
+                    {
+                        stopwatchBlock.Start();
+                    }
                     OnInventoryReceived((Block)msg.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchBlock.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Block TimeSpan:{stopwatchBlock.Elapsed.TotalSeconds}");
+                        stopwatchBlock.Reset();
+                    }
+                    if (countSwitch) countBlock++;
                     break;
                 case MessageCommand.Consensus:
+                    if (watchSwitch)
+                    {
+                        stopwatchConsensus.Start();
+                    }
                     OnInventoryReceived((ConsensusPayload)msg.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchConsensus.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Consensus TimeSpan:{stopwatchConsensus.Elapsed.TotalSeconds}");
+                        stopwatchConsensus.Reset();
+                    }
+                    if (countSwitch) countConsensus++;
                     break;
                 case MessageCommand.FilterAdd:
+                    if (watchSwitch)
+                    {
+                        stopwatchFilterAdd.Start();
+                    }
                     OnFilterAddMessageReceived((FilterAddPayload)msg.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchFilterAdd.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: FilterAdd TimeSpan:{stopwatchFilterAdd.Elapsed.TotalSeconds}");
+                        stopwatchFilterAdd.Reset();
+                    }
+                    if (countSwitch) countFilterAdd++;
                     break;
                 case MessageCommand.FilterClear:
+                    if (watchSwitch)
+                    {
+                        stopwatchFilterClear.Start();
+                    }
                     OnFilterClearMessageReceived();
+                    if (watchSwitch)
+                    {
+                        stopwatchFilterClear.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: FilterClear TimeSpan:{stopwatchFilterClear.Elapsed.TotalSeconds}");
+                        stopwatchFilterClear.Reset();
+                    }
+                    if (countSwitch) countFilterClear++;
                     break;
                 case MessageCommand.FilterLoad:
+                    if (watchSwitch)
+                    {
+                        stopwatchFilterLoad.Start();
+                    }
                     OnFilterLoadMessageReceived((FilterLoadPayload)msg.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchFilterLoad.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: FilterLoad TimeSpan:{stopwatchFilterLoad.Elapsed.TotalSeconds}");
+                        stopwatchFilterLoad.Reset();
+                    }
+                    if (countSwitch) countFilterLoad++;
                     break;
                 case MessageCommand.GetAddr:
+                    if (watchSwitch)
+                    {
+                        stopwatchGetAddr.Start();
+                    }
                     OnGetAddrMessageReceived();
+                    if (watchSwitch)
+                    {
+                        stopwatchGetAddr.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: GetAddr TimeSpan:{stopwatchGetAddr.Elapsed.TotalSeconds}");
+                        stopwatchGetAddr.Reset();
+                    }
+                    if (countSwitch) countGetAddr++;
                     break;
                 case MessageCommand.GetBlocks:
+                    if (watchSwitch)
+                    {
+                        stopwatchGetBlocks.Start();
+                    }
                     OnGetBlocksMessageReceived((GetBlocksPayload)msg.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchGetBlocks.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: GetBlocks TimeSpan:{stopwatchGetBlocks.Elapsed.TotalSeconds}");
+                        stopwatchGetBlocks.Reset();
+                    }
+                    if (countSwitch) countGetBlocks++;
                     break;
                 case MessageCommand.GetData:
+                    if (watchSwitch)
+                    {
+                        stopwatchGetData.Start();
+                    }
                     OnGetDataMessageReceived((InvPayload)msg.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchGetData.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: GetData TimeSpan:{stopwatchGetData.Elapsed.TotalSeconds}");
+                        stopwatchGetData.Reset();
+                    }
+                    if (countSwitch) countGetData++;
                     break;
                 case MessageCommand.GetHeaders:
+                    if (watchSwitch)
+                    {
+                        stopwatchGetHeaders.Start();
+                    }
                     OnGetHeadersMessageReceived((GetBlocksPayload)msg.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchGetHeaders.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: GetHeaders TimeSpan:{stopwatchGetHeaders.Elapsed.TotalSeconds}");
+                        stopwatchGetHeaders.Reset();
+                    }
+                    if (countSwitch) countGetHeaders++;
                     break;
                 case MessageCommand.Headers:
+                    if (watchSwitch)
+                    {
+                        stopwatchHeaders.Start();
+                    }
                     OnHeadersMessageReceived((HeadersPayload)msg.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchHeaders.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Headers TimeSpan:{stopwatchHeaders.Elapsed.TotalSeconds}");
+                        stopwatchHeaders.Reset();
+                    }
+                    if (countSwitch) countHeaders++;
                     break;
                 case MessageCommand.Inv:
+                    if (watchSwitch)
+                    {
+                        stopwatchInv.Start();
+                    }
                     OnInvMessageReceived((InvPayload)msg.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchInv.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Inv TimeSpan:{stopwatchInv.Elapsed.TotalSeconds}");
+                        stopwatchInv.Reset();
+                    }
+                    if (countSwitch) countInv++;
                     break;
                 case MessageCommand.Mempool:
+                    if (watchSwitch)
+                    {
+                        stopwatchMempool.Start();
+                    }
                     OnMemPoolMessageReceived();
+                    if (watchSwitch)
+                    {
+                        stopwatchMempool.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Mempool TimeSpan:{stopwatchMempool.Elapsed.TotalSeconds}");
+                        stopwatchMempool.Reset();
+                    }
+                    if (countSwitch) countMempool++;
                     break;
                 case MessageCommand.Ping:
+                    if (watchSwitch)
+                    {
+                        stopwatchPing.Start();
+                    }
                     OnPingMessageReceived((PingPayload)msg.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchPing.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Ping TimeSpan:{stopwatchPing.Elapsed.TotalSeconds}");
+                        stopwatchPing.Reset();
+                    }
+                    if (countSwitch) countPing++;
                     break;
                 case MessageCommand.Pong:
+                    if (watchSwitch)
+                    {
+                        stopwatchPong.Start();
+                    }
                     OnPongMessageReceived((PingPayload)msg.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchPong.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Pong TimeSpan:{stopwatchPong.Elapsed.TotalSeconds}");
+                        stopwatchPong.Reset();
+                    }
+                    if (countSwitch) countPong++;
                     break;
                 case MessageCommand.Transaction:
+                    if (watchSwitch)
+                    {
+                        stopwatchTransaction.Start();
+                    }
                     if (msg.Payload.Size <= Transaction.MaxTransactionSize)
                         OnInventoryReceived((Transaction)msg.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchTransaction.Stop();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Transaction TimeSpan:{stopwatchTransaction.Elapsed.TotalSeconds}");
+                        stopwatchTransaction.Reset();
+                    }
+                    if (countSwitch) countTransaction++;
                     break;
                 case MessageCommand.Verack:
                 case MessageCommand.Version:
