@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Akka.Configuration;
+using Akka.Event;
 using Akka.IO;
 using Neo.Cryptography;
 using Neo.IO;
@@ -7,6 +8,7 @@ using Neo.IO.Actors;
 using Neo.Ledger;
 using Neo.Network.P2P.Capabilities;
 using Neo.Network.P2P.Payloads;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -15,6 +17,25 @@ namespace Neo.Network.P2P
 {
     public class RemoteNode : Connection
     {
+        public static bool watchSwitch = false;
+        public ILoggingAdapter Log { get; } = Context.GetLogger();
+
+        public static System.Diagnostics.Stopwatch stopwatchMessage = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchIInventory = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchRelay = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchVersionPayload = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchVerack = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchSetFilter = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPingPayload = new System.Diagnostics.Stopwatch();
+
+        public static long countMessage = 0;
+        public static long countIInventory = 0;
+        public static long countRelay = 0;
+        public static long countVersionPayload = 0;
+        public static long countVerack = 0;
+        public static long countSetFilter = 0;
+        public static long countPingPayload = 0;
+
         internal class Relay { public IInventory Inventory; }
 
         private readonly NeoSystem system;
@@ -123,25 +144,102 @@ namespace Neo.Network.P2P
             switch (message)
             {
                 case Message msg:
+                    if (watchSwitch)
+                    {
+                        stopwatchMessage.Start();
+                    }
                     EnqueueMessage(msg);
+                    if (watchSwitch)
+                    {
+                        stopwatchMessage.Stop();
+                        Log.Info($"Class:RemoteNode Type: Message TimeSpan:{stopwatchMessage.Elapsed.TotalSeconds}");
+                        stopwatchMessage.Reset();
+                        countMessage++;
+                    }
                     break;
                 case IInventory inventory:
+                    if (watchSwitch)
+                    {
+                        stopwatchIInventory.Start();
+                    }
                     OnSend(inventory);
+                    if (watchSwitch)
+                    {
+                        stopwatchIInventory.Stop();
+                        Log.Info($"Class:RemoteNode Type: IInventory TimeSpan:{stopwatchIInventory.Elapsed.TotalSeconds}");
+                        stopwatchIInventory.Reset();
+                        countIInventory++;
+                    }
                     break;
                 case Relay relay:
+                    if (watchSwitch)
+                    {
+                        stopwatchRelay.Start();
+                    }
                     OnRelay(relay.Inventory);
+                    if (watchSwitch)
+                    {
+                        stopwatchRelay.Stop();
+                        Log.Info($"Class:RemoteNode Type: Relay TimeSpan:{stopwatchRelay.Elapsed.TotalSeconds}");
+                        stopwatchRelay.Reset();
+                        countRelay++;
+                    }
                     break;
                 case VersionPayload payload:
+                    if (watchSwitch)
+                    {
+                        stopwatchVersionPayload.Start();
+                    }
                     OnVersionPayload(payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchVersionPayload.Stop();
+                        Log.Info($"Class:RemoteNode Type: VersionPayload TimeSpan:{stopwatchVersionPayload.Elapsed.TotalSeconds}");
+                        stopwatchVersionPayload.Reset();
+                        countVersionPayload++;
+                    }
                     break;
                 case MessageCommand.Verack:
+                    if (watchSwitch)
+                    {
+                        stopwatchVerack.Start();
+                    }
                     OnVerack();
+                    if (watchSwitch)
+                    {
+                        stopwatchVerack.Stop();
+                        Log.Info($"Class:RemoteNode Type: Verack TimeSpan:{stopwatchVerack.Elapsed.TotalSeconds}");
+                        stopwatchVerack.Reset();
+                        countVerack++;
+                    }
                     break;
                 case ProtocolHandler.SetFilter setFilter:
+                    if (watchSwitch)
+                    {
+                        stopwatchSetFilter.Start();
+                    }
                     OnSetFilter(setFilter.Filter);
+                    if (watchSwitch)
+                    {
+                        stopwatchSetFilter.Stop();
+                        Log.Info($"Class:RemoteNode Type: SetFilter TimeSpan:{stopwatchSetFilter.Elapsed.TotalSeconds}");
+                        stopwatchVerack.Reset();
+                        countSetFilter++;
+                    }
                     break;
                 case PingPayload payload:
+                    if (watchSwitch)
+                    {
+                        stopwatchPingPayload.Start();
+                    }
                     OnPingPayload(payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchPingPayload.Stop();
+                        Log.Info($"Class:RemoteNode Type: SetFilter TimeSpan:{stopwatchPingPayload.Elapsed.TotalSeconds}");
+                        stopwatchPingPayload.Reset();
+                        countPingPayload++;
+                    }
                     break;
             }
         }
