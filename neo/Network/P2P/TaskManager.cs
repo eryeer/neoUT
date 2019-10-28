@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Akka.Configuration;
+using Akka.Event;
 using Neo.IO.Actors;
 using Neo.IO.Caching;
 using Neo.Ledger;
@@ -13,6 +14,26 @@ namespace Neo.Network.P2P
 {
     internal class TaskManager : UntypedActor
     {
+        public static bool watchSwitch = false;
+        public static bool countSwitch = false;
+        public Akka.Event.ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
+
+        public static System.Diagnostics.Stopwatch stopwatchRegister = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchNewTasks = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTaskCompleted = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchHeaderTaskCompleted = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchRestartTasks = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTerminated = new System.Diagnostics.Stopwatch();
+
+        public static long countRegister = 0;
+        public static long countNewTasks = 0;
+        public static long countTaskCompleted = 0;
+        public static long countHeaderTaskCompleted = 0;
+        public static long countRestartTasks = 0;
+        public static long countTimer = 0;
+        public static long countTerminated = 0;
+
         public class Register { public VersionPayload Version; }
         public class NewTasks { public InvPayload Payload; }
         public class TaskCompleted { public UInt256 Hash; }
@@ -84,25 +105,102 @@ namespace Neo.Network.P2P
             switch (message)
             {
                 case Register register:
+                    if (watchSwitch)
+                    {
+                        stopwatchRegister.Start();
+                    }
                     OnRegister(register.Version);
+                    if (watchSwitch)
+                    {
+                        stopwatchRegister.Stop();
+                        AkkaLog.Info($"Class:TaskManager Type: Register TimeSpan:{stopwatchRegister.Elapsed.TotalSeconds}");
+                        stopwatchRegister.Reset();
+                    }
+                    if (countSwitch) countRegister++;
                     break;
                 case NewTasks tasks:
+                    if (watchSwitch)
+                    {
+                        stopwatchNewTasks.Start();
+                    }
                     OnNewTasks(tasks.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchNewTasks.Stop();
+                        AkkaLog.Info($"Class:TaskManager Type: NewTasks TimeSpan:{stopwatchNewTasks.Elapsed.TotalSeconds}");
+                        stopwatchNewTasks.Reset();
+                    }
+                    if (countSwitch) countNewTasks++;
                     break;
                 case TaskCompleted completed:
+                    if (watchSwitch)
+                    {
+                        stopwatchTaskCompleted.Start();
+                    }
                     OnTaskCompleted(completed.Hash);
+                    if (watchSwitch)
+                    {
+                        stopwatchTaskCompleted.Stop();
+                        AkkaLog.Info($"Class:TaskManager Type: TaskCompleted TimeSpan:{stopwatchTaskCompleted.Elapsed.TotalSeconds}");
+                        stopwatchTaskCompleted.Reset();
+                    }
+                    if (countSwitch) countTaskCompleted++;
                     break;
                 case HeaderTaskCompleted _:
+                    if (watchSwitch)
+                    {
+                        stopwatchHeaderTaskCompleted.Start();
+                    }
                     OnHeaderTaskCompleted();
+                    if (watchSwitch)
+                    {
+                        stopwatchHeaderTaskCompleted.Stop();
+                        AkkaLog.Info($"Class:TaskManager Type: HeaderTaskCompleted TimeSpan:{stopwatchHeaderTaskCompleted.Elapsed.TotalSeconds}");
+                        stopwatchHeaderTaskCompleted.Reset();
+                    }
+                    if (countSwitch) countHeaderTaskCompleted++;
                     break;
                 case RestartTasks restart:
+                    if (watchSwitch)
+                    {
+                        stopwatchRestartTasks.Start();
+                    }
                     OnRestartTasks(restart.Payload);
+                    if (watchSwitch)
+                    {
+                        stopwatchRestartTasks.Stop();
+                        AkkaLog.Info($"Class:TaskManager Type: RestartTasks TimeSpan:{stopwatchRestartTasks.Elapsed.TotalSeconds}");
+                        stopwatchRestartTasks.Reset();
+                    }
+                    if (countSwitch) countRestartTasks++;
                     break;
                 case Timer _:
+                    if (watchSwitch)
+                    {
+                        stopwatchTimer.Start();
+                    }
                     OnTimer();
+                    if (watchSwitch)
+                    {
+                        stopwatchTimer.Stop();
+                        AkkaLog.Info($"Class:TaskManager Type: Timer TimeSpan:{stopwatchTimer.Elapsed.TotalSeconds}");
+                        stopwatchTimer.Reset();
+                    }
+                    if (countSwitch) countTimer++;
                     break;
                 case Terminated terminated:
+                    if (watchSwitch)
+                    {
+                        stopwatchTerminated.Start();
+                    }
                     OnTerminated(terminated.ActorRef);
+                    if (watchSwitch)
+                    {
+                        stopwatchTerminated.Stop();
+                        AkkaLog.Info($"Class:TaskManager Type: Terminated TimeSpan:{stopwatchTerminated.Elapsed.TotalSeconds}");
+                        stopwatchTerminated.Reset();
+                    }
+                    if (countSwitch) countTerminated++;
                     break;
             }
         }
