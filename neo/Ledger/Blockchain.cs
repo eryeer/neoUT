@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Akka.Configuration;
+using Akka.Event;
 using Neo.Cryptography.ECC;
 using Neo.IO;
 using Neo.IO.Actors;
@@ -20,6 +21,9 @@ namespace Neo.Ledger
 {
     public sealed partial class Blockchain : UntypedActor
     {
+        public static bool watchSwitchBlockchain = false;
+        public static bool countSwitchBlockchain = false;
+        public ILoggingAdapter Log { get; } = Context.GetLogger();
         public partial class ApplicationExecuted { }
         public class PersistCompleted { public Block Block; }
         public class Import { public IEnumerable<Block> Blocks; }
@@ -389,37 +393,151 @@ namespace Neo.Ledger
             Context.System.EventStream.Publish(new PersistCompleted { Block = block });
         }
 
+        public static System.Diagnostics.Stopwatch stopwatchImport = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchFillMemoryPool = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchHeaderArray = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchBlock = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTransactionArray = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTransaction = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchConsensusPayload = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchIdle = new System.Diagnostics.Stopwatch();
+
+        public static long countImport = 0;
+        public static long countFillMemoryPool = 0;
+        public static long countHeaderArray = 0;
+        public static long countBlock = 0;
+        public static long countTransactionArray = 0;
+        public static long countTransaction = 0;
+        public static long countConsensusPayload = 0;
+        public static long countIdle = 0;
+
         protected override void OnReceive(object message)
         {
             switch (message)
             {
                 case Import import:
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchImport.Start();
+                    }
                     OnImport(import.Blocks);
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchImport.Stop();
+                        Log.Info($"Class:Blockchain Type: Import TimeSpan:{stopwatchImport.Elapsed.TotalSeconds}");
+                        stopwatchImport.Reset();
+                        countImport++;
+                    }
+                    if (countSwitchBlockchain) countImport++;
                     break;
                 case FillMemoryPool fill:
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchFillMemoryPool.Start();
+                    }
                     OnFillMemoryPool(fill.Transactions);
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchFillMemoryPool.Stop();
+                        Log.Info($"Class:Blockchain Type: FillMemoryPool TimeSpan:{stopwatchFillMemoryPool.Elapsed.TotalSeconds}");
+                        stopwatchFillMemoryPool.Reset();
+                        countFillMemoryPool++;
+                    }
+                    if (countSwitchBlockchain) countFillMemoryPool++;
                     break;
                 case Header[] headers:
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchHeaderArray.Start();
+                    }
                     OnNewHeaders(headers);
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchHeaderArray.Stop();
+                        Log.Info($"Class:Blockchain Type: Header TimeSpan:{stopwatchHeaderArray.Elapsed.TotalSeconds}");
+                        stopwatchHeaderArray.Reset();
+                        countHeaderArray++;
+                    }
+                    if (countSwitchBlockchain) countHeaderArray++;
                     break;
                 case Block block:
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchBlock.Start();
+                    }
                     Sender.Tell(OnNewBlock(block));
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchBlock.Stop();
+                        Log.Info($"Class:Blockchain Type: Block TimeSpan:{stopwatchBlock.Elapsed.TotalSeconds}");
+                        stopwatchBlock.Reset();
+                        countBlock++;
+                    }
+                    if (countSwitchBlockchain) countBlock++;
                     break;
                 case Transaction[] transactions:
                     {
+                        if (watchSwitchBlockchain)
+                        {
+                            stopwatchTransactionArray.Start();
+                        }
                         // This message comes from a mempool's revalidation, already relayed
                         foreach (var tx in transactions) OnNewTransaction(tx, false);
+                        if (watchSwitchBlockchain)
+                        {
+                            stopwatchTransactionArray.Stop();
+                            Log.Info($"Class:Blockchain Type: TransactionArray TimeSpan:{stopwatchTransactionArray.Elapsed.TotalSeconds}");
+                            stopwatchTransactionArray.Reset();
+                            countTransactionArray++;
+                        }
+                        if (countSwitchBlockchain) countTransactionArray++;
                         break;
                     }
                 case Transaction transaction:
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchTransaction.Start();
+                    }
                     Sender.Tell(OnNewTransaction(transaction, true));
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchTransaction.Stop();
+                        Log.Info($"Class:Blockchain Type: Transaction TimeSpan:{stopwatchTransaction.Elapsed.TotalSeconds}");
+                        stopwatchTransaction.Reset();
+                        countTransaction++;
+                    }
+                    if (countSwitchBlockchain) countTransaction++;
                     break;
                 case ConsensusPayload payload:
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchConsensusPayload.Start();
+                    }
                     Sender.Tell(OnNewConsensus(payload));
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchConsensusPayload.Stop();
+                        Log.Info($"Class:Blockchain Type: ConsensusPayload TimeSpan:{stopwatchConsensusPayload.Elapsed.TotalSeconds}");
+                        stopwatchConsensusPayload.Reset();
+                        countConsensusPayload++;
+                    }
+                    if (countSwitchBlockchain) countConsensusPayload++;
                     break;
                 case Idle _:
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchIdle.Start();
+                    }
                     if (MemPool.ReVerifyTopUnverifiedTransactionsIfNeeded(MaxTxToReverifyPerIdle, currentSnapshot))
                         Self.Tell(Idle.Instance, ActorRefs.NoSender);
+                    if (watchSwitchBlockchain)
+                    {
+                        stopwatchIdle.Stop();
+                        Log.Info($"Class:Blockchain Type: Idle TimeSpan:{stopwatchIdle.Elapsed.TotalSeconds}");
+                        stopwatchIdle.Reset();
+                        countIdle++;
+                    }
+                    if (countSwitchBlockchain) countIdle++;
                     break;
             }
         }

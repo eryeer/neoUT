@@ -1,4 +1,5 @@
 using Akka.Actor;
+using Akka.Event;
 using Akka.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -19,6 +20,9 @@ namespace Neo.Network.P2P
 {
     public abstract class Peer : UntypedActor
     {
+        public static bool watchSwitchPeer = false;
+        public static bool countSwitchPeer = false;
+        public ILoggingAdapter Log { get; } = Context.GetLogger();
         public class Peers { public IEnumerable<IPEndPoint> EndPoints; }
         public class Connect { public IPEndPoint EndPoint; public bool IsTrusted = false; }
         private class Timer { }
@@ -98,36 +102,163 @@ namespace Neo.Network.P2P
 
         protected abstract void NeedMorePeers(int count);
 
+        public static System.Diagnostics.Stopwatch stopwatchChannelsConfig = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPeers = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchConnect = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchWsConnected = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTcpConnected = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTcpBound = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTcpCommandFailed = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTerminated = new System.Diagnostics.Stopwatch();
+
+        public static long countChannelsConfig = 0;
+        public static long countTimer = 0;
+        public static long countPeers = 0;
+        public static long countConnect = 0;
+        public static long countWsConnected = 0;
+        public static long countTcpConnected = 0;
+        public static long countTcpBound = 0;
+        public static long countTcpCommandFailed = 0;
+        public static long countTerminated = 0;
         protected override void OnReceive(object message)
         {
             switch (message)
             {
                 case ChannelsConfig config:
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchChannelsConfig.Start();
+                    }
                     OnStart(config);
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchChannelsConfig.Stop();
+                        Log.Info($"Class:Peer Type: Message TimeSpan:{stopwatchChannelsConfig.Elapsed.TotalSeconds}");
+                        stopwatchChannelsConfig.Reset();
+                        countChannelsConfig++;
+                    }
+                    if (countSwitchPeer) countChannelsConfig++;
                     break;
                 case Timer _:
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchTimer.Start();
+                    }
                     OnTimer();
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchTimer.Stop();
+                        Log.Info($"Class:Peer Type: Timer TimeSpan:{stopwatchTimer.Elapsed.TotalSeconds}");
+                        stopwatchTimer.Reset();
+                        countTimer++;
+                    }
+                    if (countSwitchPeer) countTimer++;
                     break;
                 case Peers peers:
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchPeers.Start();
+                    }
                     AddPeers(peers.EndPoints);
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchPeers.Stop();
+                        Log.Info($"Class:Peer Type: Peers TimeSpan:{stopwatchPeers.Elapsed.TotalSeconds}");
+                        stopwatchPeers.Reset();
+                        countPeers++;
+                    }
+                    if (countSwitchPeer) countPeers++;
                     break;
                 case Connect connect:
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchConnect.Start();
+                    }
                     ConnectToPeer(connect.EndPoint, connect.IsTrusted);
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchConnect.Stop();
+                        Log.Info($"Class:Peer Type: Connect TimeSpan:{stopwatchConnect.Elapsed.TotalSeconds}");
+                        stopwatchConnect.Reset();
+                        countConnect++;
+                    }
+                    if (countSwitchPeer) countConnect++;
                     break;
                 case WsConnected ws:
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchWsConnected.Start();
+                    }
                     OnWsConnected(ws.Socket, ws.Remote, ws.Local);
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchWsConnected.Stop();
+                        Log.Info($"Class:Peer Type: WsConnected TimeSpan:{stopwatchWsConnected.Elapsed.TotalSeconds}");
+                        stopwatchWsConnected.Reset();
+                        countWsConnected++;
+                    }
+                    if (countSwitchPeer) countWsConnected++;
                     break;
                 case Tcp.Connected connected:
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchTcpConnected.Start();
+                    }
                     OnTcpConnected(((IPEndPoint)connected.RemoteAddress).Unmap(), ((IPEndPoint)connected.LocalAddress).Unmap());
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchTcpConnected.Stop();
+                        Log.Info($"Class:Peer Type: TcpConnected TimeSpan:{stopwatchTcpConnected.Elapsed.TotalSeconds}");
+                        stopwatchTcpConnected.Reset();
+                        countTcpConnected++;
+                    }
+                    if (countSwitchPeer) countTcpConnected++;
                     break;
                 case Tcp.Bound _:
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchTcpBound.Start();
+                    }
                     tcp_listener = Sender;
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchTcpBound.Stop();
+                        Log.Info($"Class:Peer Type: TcpBound TimeSpan:{stopwatchTcpBound.Elapsed.TotalSeconds}");
+                        stopwatchTcpBound.Reset();
+                        countTcpBound++;
+                    }
+                    if (countSwitchPeer) countTcpBound++;
                     break;
                 case Tcp.CommandFailed commandFailed:
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchTcpCommandFailed.Start();
+                    }
                     OnTcpCommandFailed(commandFailed.Cmd);
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchTcpCommandFailed.Stop();
+                        Log.Info($"Class:Peer Type: TcpCommandFailed TimeSpan:{stopwatchTcpCommandFailed.Elapsed.TotalSeconds}");
+                        stopwatchTcpCommandFailed.Reset();
+                        countTcpCommandFailed++;
+                    }
+                    if (countSwitchPeer) countTcpCommandFailed++;
                     break;
                 case Terminated terminated:
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchTerminated.Start();
+                    }
                     OnTerminated(terminated.ActorRef);
+                    if (watchSwitchPeer)
+                    {
+                        stopwatchTerminated.Stop();
+                        Log.Info($"Class:Peer Type: Terminated TimeSpan:{stopwatchTerminated.Elapsed.TotalSeconds}");
+                        stopwatchTerminated.Reset();
+                        countTerminated++;
+                    }
+                    if (countSwitchPeer) countTerminated++;
                     break;
             }
         }

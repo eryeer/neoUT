@@ -284,6 +284,57 @@ namespace Neo.Consensus
                 TaskManager.countTimer = 0;
                 TaskManager.countTerminated = 0;
             }
+            if (Blockchain.countSwitchBlockchain) {
+                AkkaLog.Info($"Class: Blockchain Type: Import Count: {Blockchain.countImport}");
+                AkkaLog.Info($"Class: Blockchain Type: FillMemoryPool Count: {Blockchain.countFillMemoryPool}");
+                AkkaLog.Info($"Class: Blockchain Type: HeaderArray Count: {Blockchain.countHeaderArray}");
+                AkkaLog.Info($"Class: Blockchain Type: Block Count: {Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: TransactionArray Count: {Blockchain.countTransactionArray}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Count: {Blockchain.countTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: ConsensusPayload Count: {Blockchain.countConsensusPayload}");
+                AkkaLog.Info($"Class: Blockchain Type: Idle Count: {Blockchain.countIdle}");
+                Blockchain.countImport = 0;
+                Blockchain.countFillMemoryPool = 0;
+                Blockchain.countHeaderArray = 0;
+                Blockchain.countBlock = 0;
+                Blockchain.countTransactionArray = 0;
+                Blockchain.countTransaction = 0;
+                Blockchain.countConsensusPayload = 0;
+                Blockchain.countIdle = 0;
+            }
+            if (Peer.countSwitchPeer)
+            {
+                AkkaLog.Info($"Class: Peer Type: ChannelsConfig Count: {Peer.countChannelsConfig}");
+                AkkaLog.Info($"Class: Peer Type: Timer Count: {Peer.countTimer}");
+                AkkaLog.Info($"Class: Peer Type: Peers Count: {Peer.countPeers}");
+                AkkaLog.Info($"Class: Peer Type: Connect Count: {Peer.countConnect}");
+                AkkaLog.Info($"Class: Peer Type: WsConnected Count: {Peer.countWsConnected}");
+                AkkaLog.Info($"Class: Peer Type: TcpConnected Count: {Peer.countTcpConnected}");
+                AkkaLog.Info($"Class: Peer Type: TcpBound Count: {Peer.countTcpBound}");
+                AkkaLog.Info($"Class: Peer Type: TcpCommandFailed Count: {Peer.countTcpCommandFailed}");
+                AkkaLog.Info($"Class: Peer Type: Terminated Count: {Peer.countTerminated}");
+                Peer.countChannelsConfig = 0;
+                Peer.countTimer = 0;
+                Peer.countPeers = 0;
+                Peer.countConnect = 0;
+                Peer.countWsConnected = 0;
+                Peer.countTcpConnected = 0;
+                Peer.countTcpBound = 0;
+                Peer.countTcpCommandFailed = 0;
+                Peer.countTerminated = 0;
+            }
+            if (LocalNode.countSwitchLocalNode)
+            {
+                AkkaLog.Info($"Class: LocalNode Type: Message Count: {LocalNode.countMessage}");
+                AkkaLog.Info($"Class: LocalNode Type: Relay Count: {LocalNode.countRelay}");
+                AkkaLog.Info($"Class: LocalNode Type: RelayDirectly Count: {LocalNode.countRelayDirectly}");
+                AkkaLog.Info($"Class: LocalNode Type: SendDirectly Count: {LocalNode.countSendDirectly}");
+                LocalNode.countMessage = 0;
+                LocalNode.countRelay = 0;
+                LocalNode.countRelayDirectly = 0;
+                LocalNode.countSendDirectly = 0;
+            }
+
 
         }
 

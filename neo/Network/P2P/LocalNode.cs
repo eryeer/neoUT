@@ -16,7 +16,8 @@ namespace Neo.Network.P2P
 {
     public class LocalNode : Peer
     {
-        public static bool watchSwitch = false;
+        public static bool watchSwitchLocalNode = false;
+        public static bool countSwitchLocalNode = false;
         public ILoggingAdapter Log { get; } = Context.GetLogger();
         public class Relay { public IInventory Inventory; }
         internal class RelayDirectly { public IInventory Inventory; }
@@ -151,60 +152,64 @@ namespace Neo.Network.P2P
             switch (message)
             {
                 case Message msg:
-                    if (watchSwitch)
+                    if (watchSwitchLocalNode)
                     {
                         stopwatchMessage.Start();
                     }
                     BroadcastMessage(msg);
-                    if (watchSwitch)
+                    if (watchSwitchLocalNode)
                     {
                         stopwatchMessage.Stop();
                         Log.Info($"Class:LocalNode Type: Message TimeSpan:{stopwatchMessage.Elapsed.TotalSeconds}");
                         stopwatchMessage.Reset();
                         countMessage++;
                     }
+                    if (countSwitchLocalNode) countMessage++;
                     break;
                 case Relay relay:
-                    if (watchSwitch)
+                    if (watchSwitchLocalNode)
                     {
                         stopwatchRelay.Start();
                     }
                     OnRelay(relay.Inventory);
-                    if (watchSwitch)
+                    if (watchSwitchLocalNode)
                     {
                         stopwatchRelay.Stop();
                         Log.Info($"Class:LocalNode Type: Relay TimeSpan:{stopwatchRelay.Elapsed.TotalSeconds}");
                         stopwatchRelay.Reset();
                         countRelay++;
                     }
+                    if (countSwitchLocalNode) countRelay++;
                     break;
                 case RelayDirectly relay:
-                    if (watchSwitch)
+                    if (watchSwitchLocalNode)
                     {
                         stopwatchRelayDirectly.Start();
                     }
                     OnRelayDirectly(relay.Inventory);
-                    if (watchSwitch)
+                    if (watchSwitchLocalNode)
                     {
                         stopwatchRelayDirectly.Stop();
                         Log.Info($"Class:LocalNode Type: RelayDirectly TimeSpan:{stopwatchRelayDirectly.Elapsed.TotalSeconds}");
                         stopwatchRelayDirectly.Reset();
                         countRelayDirectly++;
                     }
+                    if (countSwitchLocalNode) countRelayDirectly++;
                     break;
                 case SendDirectly send:
-                    if (watchSwitch)
+                    if (watchSwitchLocalNode)
                     {
                         stopwatchSendDirectly.Start();
                     }
                     OnSendDirectly(send.Inventory);
-                    if (watchSwitch)
+                    if (watchSwitchLocalNode)
                     {
                         stopwatchSendDirectly.Stop();
                         Log.Info($"Class:LocalNode Type: SendDirectly TimeSpan:{stopwatchSendDirectly.Elapsed.TotalSeconds}");
                         stopwatchSendDirectly.Reset();
                         countSendDirectly++;
                     }
+                    if (countSwitchLocalNode) countSendDirectly++;
                     break;
                 case RelayResultReason _:
                     break;
