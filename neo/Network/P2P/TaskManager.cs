@@ -35,6 +35,14 @@ namespace Neo.Network.P2P
         public static long countTimer = 0;
         public static long countTerminated = 0;
 
+        public static double totalTimeRegister = 0;
+        public static double totalTimeNewTasks = 0;
+        public static double totalTimeTaskCompleted = 0;
+        public static double totalTimeHeaderTaskCompleted = 0;
+        public static double totalTimeRestartTasks = 0;
+        public static double totalTimeTimer = 0;
+        public static double totalTimeTerminated = 0;
+
         public class Register { public VersionPayload Version; }
         public class NewTasks { public InvPayload Payload; }
         public class TaskCompleted { public UInt256 Hash; }
@@ -103,105 +111,120 @@ namespace Neo.Network.P2P
 
         protected override void OnReceive(object message)
         {
+            double timespan = 0;
             switch (message)
             {
                 case Register register:
-                    if (watchSwitch)
-                    {
-                        stopwatchRegister.Start();
-                    }
+                    stopwatchRegister.Start();
                     OnRegister(register.Version);
+                    stopwatchRegister.Stop();
+                    timespan = stopwatchRegister.Elapsed.TotalSeconds;
+                    stopwatchRegister.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchRegister.Stop();
-                        AkkaLog.Info($"Class:TaskManager Type: Register TimeSpan:{stopwatchRegister.Elapsed.TotalSeconds}");
-                        stopwatchRegister.Reset();
+                        AkkaLog.Info($"Class:TaskManager Type: Register TimeSpan:{timespan}");
                     }
-                    if (countSwitch) countRegister++; 
+                    if (countSwitch)
+                    {
+                        countRegister++;
+                        totalTimeRegister += timespan;
+                    }
                     break;
                 case NewTasks tasks:
-                    if (watchSwitch)
-                    {
-                        stopwatchNewTasks.Start();
-                    }
+                    stopwatchNewTasks.Start();
                     OnNewTasks(tasks.Payload);
+                    stopwatchNewTasks.Stop();
+                    timespan = stopwatchNewTasks.Elapsed.TotalSeconds;
+                    stopwatchNewTasks.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchNewTasks.Stop();
-                        AkkaLog.Info($"Class:TaskManager Type: NewTasks TimeSpan:{stopwatchNewTasks.Elapsed.TotalSeconds}");
-                        stopwatchNewTasks.Reset();
+                        AkkaLog.Info($"Class:TaskManager Type: NewTasks TimeSpan:{timespan}");
                     }
-                    if (countSwitch) countNewTasks++;
+                    if (countSwitch)
+                    {
+                        countNewTasks++;
+                        totalTimeNewTasks += timespan;
+                    }
                     break;
                 case TaskCompleted completed:
-                    if (watchSwitch)
-                    {
-                        stopwatchTaskCompleted.Start();
-                    }
+                    stopwatchTaskCompleted.Start();
                     OnTaskCompleted(completed.Hash);
+                    stopwatchTaskCompleted.Stop();
+                    timespan = stopwatchTaskCompleted.Elapsed.TotalSeconds;
+                    stopwatchTaskCompleted.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchTaskCompleted.Stop();
-                        AkkaLog.Info($"Class:TaskManager Type: TaskCompleted TimeSpan:{stopwatchTaskCompleted.Elapsed.TotalSeconds}");
-                        stopwatchTaskCompleted.Reset();
+                        AkkaLog.Info($"Class:TaskManager Type: TaskCompleted TimeSpan:{timespan}");
                     }
-                    if (countSwitch) countTaskCompleted++;
+                    if (countSwitch)
+                    {
+                        countTaskCompleted++;
+                        totalTimeTaskCompleted += timespan;
+                    }
                     break;
                 case HeaderTaskCompleted _:
-                    if (watchSwitch)
-                    {
-                        stopwatchHeaderTaskCompleted.Start();
-                    }
+                    stopwatchHeaderTaskCompleted.Start();
                     OnHeaderTaskCompleted();
+                    stopwatchHeaderTaskCompleted.Stop();
+                    timespan = stopwatchHeaderTaskCompleted.Elapsed.TotalSeconds;
+                    stopwatchHeaderTaskCompleted.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchHeaderTaskCompleted.Stop();
-                        AkkaLog.Info($"Class:TaskManager Type: HeaderTaskCompleted TimeSpan:{stopwatchHeaderTaskCompleted.Elapsed.TotalSeconds}");
-                        stopwatchHeaderTaskCompleted.Reset();
+                        AkkaLog.Info($"Class:TaskManager Type: HeaderTaskCompleted TimeSpan:{timespan}");
                     }
-                    if (countSwitch) countHeaderTaskCompleted++;
+                    if (countSwitch)
+                    {
+                        countHeaderTaskCompleted++;
+                        totalTimeHeaderTaskCompleted += timespan;
+                    }
                     break;
                 case RestartTasks restart:
-                    if (watchSwitch)
-                    {
-                        stopwatchRestartTasks.Start();
-                    }
+                    stopwatchRestartTasks.Start();
                     OnRestartTasks(restart.Payload);
+                    stopwatchRestartTasks.Stop();
+                    timespan = stopwatchRestartTasks.Elapsed.TotalSeconds;
+                    stopwatchRestartTasks.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchRestartTasks.Stop();
-                        AkkaLog.Info($"Class:TaskManager Type: RestartTasks TimeSpan:{stopwatchRestartTasks.Elapsed.TotalSeconds}");
-                        stopwatchRestartTasks.Reset();
+                        AkkaLog.Info($"Class:TaskManager Type: RestartTasks TimeSpan:{timespan}");
                     }
-                    if (countSwitch) countRestartTasks++; 
+                    if (countSwitch)
+                    {
+                        countRestartTasks++;
+                        totalTimeRestartTasks += timespan;
+                    }
                     break;
                 case Timer _:
-                    if (watchSwitch)
-                    {
-                        stopwatchTimer.Start();
-                    }
+                    stopwatchTimer.Start();
                     OnTimer();
+                    stopwatchTimer.Stop();
+                    timespan = stopwatchTimer.Elapsed.TotalSeconds;
+                    stopwatchTimer.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchTimer.Stop();
-                        AkkaLog.Info($"Class:TaskManager Type: Timer TimeSpan:{stopwatchTimer.Elapsed.TotalSeconds}");
-                        stopwatchTimer.Reset();
+                        AkkaLog.Info($"Class:TaskManager Type: Timer TimeSpan:{timespan}");
                     }
-                    if (countSwitch) countTimer++; 
+                    if (countSwitch)
+                    {
+                        countTimer++;
+                        totalTimeTimer += timespan;
+                    }
                     break;
                 case Terminated terminated:
-                    if (watchSwitch)
-                    {
-                        stopwatchTerminated.Start();
-                    }
+                    stopwatchTerminated.Start();
                     OnTerminated(terminated.ActorRef);
+                    stopwatchTerminated.Stop();
+                    timespan = stopwatchTerminated.Elapsed.TotalSeconds;
+                    stopwatchTerminated.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchTerminated.Stop();
-                        AkkaLog.Info($"Class:TaskManager Type: Terminated TimeSpan:{stopwatchTerminated.Elapsed.TotalSeconds}");
-                        stopwatchTerminated.Reset();
+                        AkkaLog.Info($"Class:TaskManager Type: Terminated TimeSpan:{timespan}");
                     }
-                    if (countSwitch) countTerminated++;
+                    if (countSwitch)
+                    {
+                        countTerminated++;
+                        totalTimeTerminated += timespan;
+                    }
                     break;
             }
         }

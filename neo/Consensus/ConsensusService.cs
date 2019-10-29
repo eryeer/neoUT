@@ -269,13 +269,13 @@ namespace Neo.Consensus
             //TaskManager
             if (TaskManager.countSwitch)
             {
-                AkkaLog.Info($"Class: TaskManager Type: Register Count: {TaskManager.countRegister}");
-                AkkaLog.Info($"Class: TaskManager Type: NewTasks Count: {TaskManager.countNewTasks}");
-                AkkaLog.Info($"Class: TaskManager Type: TaskCompleted Count: {TaskManager.countTaskCompleted}");
-                AkkaLog.Info($"Class: TaskManager Type: HeaderTaskCompleted Count: {TaskManager.countHeaderTaskCompleted}");
-                AkkaLog.Info($"Class: TaskManager Type: RestartTasks Count: {TaskManager.countRestartTasks}");
-                AkkaLog.Info($"Class: TaskManager Type: Timer Count: {TaskManager.countTimer}");
-                AkkaLog.Info($"Class: TaskManager Type: Terminated Count: {TaskManager.countTerminated}");
+                AkkaLog.Info($"Class: TaskManager Type: Register Count: {TaskManager.countRegister} averageTimespan: {TaskManager.totalTimeRegister / TaskManager.countRegister}");
+                AkkaLog.Info($"Class: TaskManager Type: NewTasks Count: {TaskManager.countNewTasks} averageTimespan: {TaskManager.totalTimeNewTasks / TaskManager.countNewTasks}");
+                AkkaLog.Info($"Class: TaskManager Type: TaskCompleted Count: {TaskManager.countTaskCompleted} averageTimespan: {TaskManager.totalTimeTaskCompleted / TaskManager.countTaskCompleted}");
+                AkkaLog.Info($"Class: TaskManager Type: HeaderTaskCompleted Count: {TaskManager.countHeaderTaskCompleted} averageTimespan: {TaskManager.totalTimeHeaderTaskCompleted / TaskManager.countHeaderTaskCompleted}");
+                AkkaLog.Info($"Class: TaskManager Type: RestartTasks Count: {TaskManager.countRestartTasks} averageTimespan: {TaskManager.totalTimeRestartTasks / TaskManager.countRestartTasks}");
+                AkkaLog.Info($"Class: TaskManager Type: Timer Count: {TaskManager.countTimer} averageTimespan: {TaskManager.totalTimeTimer / TaskManager.countTimer}");
+                AkkaLog.Info($"Class: TaskManager Type: Terminated Count: {TaskManager.countTerminated} averageTimespan: {TaskManager.totalTimeTerminated / TaskManager.countTerminated}");
                 TaskManager.countRegister = 0;
                 TaskManager.countNewTasks = 0;
                 TaskManager.countTaskCompleted = 0;
@@ -283,7 +283,16 @@ namespace Neo.Consensus
                 TaskManager.countRestartTasks = 0;
                 TaskManager.countTimer = 0;
                 TaskManager.countTerminated = 0;
+
+                TaskManager.totalTimeRegister = 0;
+                TaskManager.totalTimeNewTasks = 0;
+                TaskManager.totalTimeTaskCompleted = 0;
+                TaskManager.totalTimeHeaderTaskCompleted = 0;
+                TaskManager.totalTimeRestartTasks = 0;
+                TaskManager.totalTimeTimer = 0;
+                TaskManager.totalTimeTerminated = 0;
             }
+
             if (Blockchain.countSwitchBlockchain) {
                 AkkaLog.Info($"Class: Blockchain Type: Import Count: {Blockchain.countImport}");
                 AkkaLog.Info($"Class: Blockchain Type: FillMemoryPool Count: {Blockchain.countFillMemoryPool}");
