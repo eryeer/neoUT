@@ -186,13 +186,13 @@ namespace Neo.Consensus
             //RemoteNode
             if (RemoteNode.countSwitchRemoteNode)
             {
-                AkkaLog.Info($"Class: RemoteNode Type: Message Count: {RemoteNode.countMessage}");
-                AkkaLog.Info($"Class: RemoteNode Type: IInventory Count: {RemoteNode.countIInventory}");
-                AkkaLog.Info($"Class: RemoteNode Type: Relay Count: {RemoteNode.countRelay}");
-                AkkaLog.Info($"Class: RemoteNode Type: VersionPayload Count: {RemoteNode.countVersionPayload}");
-                AkkaLog.Info($"Class: RemoteNode Type: Verack Count: {RemoteNode.countVerack}");
-                AkkaLog.Info($"Class: RemoteNode Type: SetFilter Count: {RemoteNode.countSetFilter}");
-                AkkaLog.Info($"Class: RemoteNode Type: PingPayload Count: {RemoteNode.countPingPayload}");
+                AkkaLog.Info($"Class: RemoteNode Type: Message Count: {RemoteNode.countMessage} averageTimespan: {RemoteNode.totalTimeMessage / RemoteNode.countMessage}");
+                AkkaLog.Info($"Class: RemoteNode Type: IInventory Count: {RemoteNode.countIInventory} averageTimespan: {RemoteNode.totalTimeIInventory / RemoteNode.countIInventory}");
+                AkkaLog.Info($"Class: RemoteNode Type: Relay Count: {RemoteNode.countRelay} averageTimespan: {RemoteNode.totalTimeRelay / RemoteNode.countRelay}");
+                AkkaLog.Info($"Class: RemoteNode Type: VersionPayload Count: {RemoteNode.countVersionPayload} averageTimespan: {RemoteNode.totalTimeVersionPayload / RemoteNode.countVersionPayload}");
+                AkkaLog.Info($"Class: RemoteNode Type: Verack Count: {RemoteNode.countVerack} averageTimespan: {RemoteNode.totalTimeVerack / RemoteNode.countVerack}");
+                AkkaLog.Info($"Class: RemoteNode Type: SetFilter Count: {RemoteNode.countSetFilter} averageTimespan: {RemoteNode.totalTimeSetFilter / RemoteNode.countSetFilter}");
+                AkkaLog.Info($"Class: RemoteNode Type: PingPayload Count: {RemoteNode.countPingPayload} averageTimespan: {RemoteNode.totalTimePingPayload / RemoteNode.countPingPayload}");
                 RemoteNode.countMessage = 0;
                 RemoteNode.countIInventory = 0;
                 RemoteNode.countRelay = 0;
@@ -200,6 +200,14 @@ namespace Neo.Consensus
                 RemoteNode.countVerack = 0;
                 RemoteNode.countSetFilter = 0;
                 RemoteNode.countPingPayload = 0;
+
+                RemoteNode.totalTimeMessage = 0;
+                RemoteNode.totalTimeIInventory = 0;
+                RemoteNode.totalTimeRelay = 0;
+                RemoteNode.totalTimeVersionPayload = 0;
+                RemoteNode.totalTimeVerack = 0;
+                RemoteNode.totalTimeSetFilter = 0;
+                RemoteNode.totalTimePingPayload = 0;
             }
 
             //ConsensusService
