@@ -146,6 +146,7 @@ namespace Neo.Network.P2P
         public static long countRelay = 0;
         public static long countRelayDirectly = 0;
         public static long countSendDirectly = 0;
+        public static double totalMsgSpentTime = 0;
         protected override void OnReceive(object message)
         {
             base.OnReceive(message);
@@ -162,7 +163,6 @@ namespace Neo.Network.P2P
                         stopwatchMessage.Stop();
                         Log.Info($"Class:LocalNode Type: Message TimeSpan:{stopwatchMessage.Elapsed.TotalSeconds}");
                         stopwatchMessage.Reset();
-                        countMessage++;
                     }
                     if (countSwitchLocalNode) countMessage++;
                     break;
@@ -177,7 +177,6 @@ namespace Neo.Network.P2P
                         stopwatchRelay.Stop();
                         Log.Info($"Class:LocalNode Type: Relay TimeSpan:{stopwatchRelay.Elapsed.TotalSeconds}");
                         stopwatchRelay.Reset();
-                        countRelay++;
                     }
                     if (countSwitchLocalNode) countRelay++;
                     break;
@@ -192,7 +191,6 @@ namespace Neo.Network.P2P
                         stopwatchRelayDirectly.Stop();
                         Log.Info($"Class:LocalNode Type: RelayDirectly TimeSpan:{stopwatchRelayDirectly.Elapsed.TotalSeconds}");
                         stopwatchRelayDirectly.Reset();
-                        countRelayDirectly++;
                     }
                     if (countSwitchLocalNode) countRelayDirectly++;
                     break;
@@ -207,7 +205,6 @@ namespace Neo.Network.P2P
                         stopwatchSendDirectly.Stop();
                         Log.Info($"Class:LocalNode Type: SendDirectly TimeSpan:{stopwatchSendDirectly.Elapsed.TotalSeconds}");
                         stopwatchSendDirectly.Reset();
-                        countSendDirectly++;
                     }
                     if (countSwitchLocalNode) countSendDirectly++;
                     break;
