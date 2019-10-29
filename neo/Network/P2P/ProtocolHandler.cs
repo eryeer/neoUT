@@ -14,6 +14,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 
 namespace Neo.Network.P2P
 {
@@ -107,7 +108,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: Addr TimeSpan:{stopwatchAddr.Elapsed.TotalSeconds}");
                         stopwatchAddr.Reset();
                     }
-                    if (countSwitch) countAddr++;
+                    if (countSwitch) Interlocked.Add(ref countAddr,1);
                     break;
                 case MessageCommand.Block:
                     if (watchSwitch)
@@ -121,7 +122,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: Block TimeSpan:{stopwatchBlock.Elapsed.TotalSeconds}");
                         stopwatchBlock.Reset();
                     }
-                    if (countSwitch) countBlock++;
+                    if (countSwitch) Interlocked.Add(ref countBlock, 1);
                     break;
                 case MessageCommand.Consensus:
                     if (watchSwitch)
@@ -135,7 +136,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: Consensus TimeSpan:{stopwatchConsensus.Elapsed.TotalSeconds}");
                         stopwatchConsensus.Reset();
                     }
-                    if (countSwitch) countConsensus++;
+                    if (countSwitch) Interlocked.Add(ref countConsensus, 1);
                     break;
                 case MessageCommand.FilterAdd:
                     if (watchSwitch)
@@ -149,7 +150,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: FilterAdd TimeSpan:{stopwatchFilterAdd.Elapsed.TotalSeconds}");
                         stopwatchFilterAdd.Reset();
                     }
-                    if (countSwitch) countFilterAdd++;
+                    if (countSwitch) Interlocked.Add(ref countFilterAdd, 1); 
                     break;
                 case MessageCommand.FilterClear:
                     if (watchSwitch)
@@ -163,7 +164,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: FilterClear TimeSpan:{stopwatchFilterClear.Elapsed.TotalSeconds}");
                         stopwatchFilterClear.Reset();
                     }
-                    if (countSwitch) countFilterClear++;
+                    if (countSwitch) Interlocked.Add(ref countFilterClear, 1); 
                     break;
                 case MessageCommand.FilterLoad:
                     if (watchSwitch)
@@ -177,7 +178,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: FilterLoad TimeSpan:{stopwatchFilterLoad.Elapsed.TotalSeconds}");
                         stopwatchFilterLoad.Reset();
                     }
-                    if (countSwitch) countFilterLoad++;
+                    if (countSwitch) Interlocked.Add(ref countFilterLoad, 1);
                     break;
                 case MessageCommand.GetAddr:
                     if (watchSwitch)
@@ -191,7 +192,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: GetAddr TimeSpan:{stopwatchGetAddr.Elapsed.TotalSeconds}");
                         stopwatchGetAddr.Reset();
                     }
-                    if (countSwitch) countGetAddr++;
+                    if (countSwitch) Interlocked.Add(ref countGetAddr, 1); 
                     break;
                 case MessageCommand.GetBlocks:
                     if (watchSwitch)
@@ -205,7 +206,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: GetBlocks TimeSpan:{stopwatchGetBlocks.Elapsed.TotalSeconds}");
                         stopwatchGetBlocks.Reset();
                     }
-                    if (countSwitch) countGetBlocks++;
+                    if (countSwitch) Interlocked.Add(ref countGetBlocks, 1);
                     break;
                 case MessageCommand.GetData:
                     if (watchSwitch)
@@ -219,7 +220,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: GetData TimeSpan:{stopwatchGetData.Elapsed.TotalSeconds}");
                         stopwatchGetData.Reset();
                     }
-                    if (countSwitch) countGetData++;
+                    if (countSwitch) Interlocked.Add(ref countGetData, 1); 
                     break;
                 case MessageCommand.GetHeaders:
                     if (watchSwitch)
@@ -233,7 +234,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: GetHeaders TimeSpan:{stopwatchGetHeaders.Elapsed.TotalSeconds}");
                         stopwatchGetHeaders.Reset();
                     }
-                    if (countSwitch) countGetHeaders++;
+                    if (countSwitch) Interlocked.Add(ref countGetHeaders, 1); 
                     break;
                 case MessageCommand.Headers:
                     if (watchSwitch)
@@ -247,7 +248,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: Headers TimeSpan:{stopwatchHeaders.Elapsed.TotalSeconds}");
                         stopwatchHeaders.Reset();
                     }
-                    if (countSwitch) countHeaders++;
+                    if (countSwitch) Interlocked.Add(ref countHeaders, 1);
                     break;
                 case MessageCommand.Inv:
                     if (watchSwitch)
@@ -261,7 +262,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: Inv TimeSpan:{stopwatchInv.Elapsed.TotalSeconds}");
                         stopwatchInv.Reset();
                     }
-                    if (countSwitch) countInv++;
+                    if (countSwitch) Interlocked.Add(ref countInv, 1); 
                     break;
                 case MessageCommand.Mempool:
                     if (watchSwitch)
@@ -275,7 +276,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: Mempool TimeSpan:{stopwatchMempool.Elapsed.TotalSeconds}");
                         stopwatchMempool.Reset();
                     }
-                    if (countSwitch) countMempool++;
+                    if (countSwitch) Interlocked.Add(ref countMempool, 1); 
                     break;
                 case MessageCommand.Ping:
                     if (watchSwitch)
@@ -289,7 +290,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: Ping TimeSpan:{stopwatchPing.Elapsed.TotalSeconds}");
                         stopwatchPing.Reset();
                     }
-                    if (countSwitch) countPing++;
+                    if (countSwitch) Interlocked.Add(ref countPing, 1);
                     break;
                 case MessageCommand.Pong:
                     if (watchSwitch)
@@ -303,7 +304,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: Pong TimeSpan:{stopwatchPong.Elapsed.TotalSeconds}");
                         stopwatchPong.Reset();
                     }
-                    if (countSwitch) countPong++;
+                    if (countSwitch) Interlocked.Add(ref countPong, 1); 
                     break;
                 case MessageCommand.Transaction:
                     if (watchSwitch)
@@ -318,7 +319,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:ProtocolHandler Type: Transaction TimeSpan:{stopwatchTransaction.Elapsed.TotalSeconds}");
                         stopwatchTransaction.Reset();
                     }
-                    if (countSwitch) countTransaction++;
+                    if (countSwitch) Interlocked.Add(ref countTransaction, 1); 
                     break;
                 case MessageCommand.Verack:
                 case MessageCommand.Version:

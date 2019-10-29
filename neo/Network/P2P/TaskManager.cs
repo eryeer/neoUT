@@ -117,7 +117,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:TaskManager Type: Register TimeSpan:{stopwatchRegister.Elapsed.TotalSeconds}");
                         stopwatchRegister.Reset();
                     }
-                    if (countSwitch) Interlocked.Add(ref countRegister, 1); 
+                    if (countSwitch) countRegister++; 
                     break;
                 case NewTasks tasks:
                     if (watchSwitch)
@@ -131,7 +131,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:TaskManager Type: NewTasks TimeSpan:{stopwatchNewTasks.Elapsed.TotalSeconds}");
                         stopwatchNewTasks.Reset();
                     }
-                    if (countSwitch) Interlocked.Add(ref countNewTasks, 1);
+                    if (countSwitch) countNewTasks++;
                     break;
                 case TaskCompleted completed:
                     if (watchSwitch)
@@ -145,7 +145,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:TaskManager Type: TaskCompleted TimeSpan:{stopwatchTaskCompleted.Elapsed.TotalSeconds}");
                         stopwatchTaskCompleted.Reset();
                     }
-                    if (countSwitch) Interlocked.Add(ref countTaskCompleted, 1);
+                    if (countSwitch) countTaskCompleted++;
                     break;
                 case HeaderTaskCompleted _:
                     if (watchSwitch)
@@ -159,7 +159,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:TaskManager Type: HeaderTaskCompleted TimeSpan:{stopwatchHeaderTaskCompleted.Elapsed.TotalSeconds}");
                         stopwatchHeaderTaskCompleted.Reset();
                     }
-                    if (countSwitch) Interlocked.Add(ref countHeaderTaskCompleted, 1);
+                    if (countSwitch) countHeaderTaskCompleted++;
                     break;
                 case RestartTasks restart:
                     if (watchSwitch)
@@ -173,7 +173,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:TaskManager Type: RestartTasks TimeSpan:{stopwatchRestartTasks.Elapsed.TotalSeconds}");
                         stopwatchRestartTasks.Reset();
                     }
-                    if (countSwitch) Interlocked.Add(ref countRestartTasks, 1); 
+                    if (countSwitch) countRestartTasks++; 
                     break;
                 case Timer _:
                     if (watchSwitch)
@@ -187,7 +187,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:TaskManager Type: Timer TimeSpan:{stopwatchTimer.Elapsed.TotalSeconds}");
                         stopwatchTimer.Reset();
                     }
-                    if (countSwitch) Interlocked.Add(ref countTimer, 1); 
+                    if (countSwitch) countTimer++; 
                     break;
                 case Terminated terminated:
                     if (watchSwitch)
@@ -201,7 +201,7 @@ namespace Neo.Network.P2P
                         AkkaLog.Info($"Class:TaskManager Type: Terminated TimeSpan:{stopwatchTerminated.Elapsed.TotalSeconds}");
                         stopwatchTerminated.Reset();
                     }
-                    if (countSwitch) Interlocked.Add(ref countTerminated, 1);
+                    if (countSwitch) countTerminated++;
                     break;
             }
         }
