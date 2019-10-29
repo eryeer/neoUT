@@ -102,15 +102,15 @@ namespace Neo.Network.P2P
 
         protected abstract void NeedMorePeers(int count);
 
-        public static System.Diagnostics.Stopwatch stopwatchChannelsConfig = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchPeers = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchConnect = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchWsConnected = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTcpConnected = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTcpBound = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTcpCommandFailed = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTerminated = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchChannelsConfig = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPeers = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchConnect = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchWsConnected = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTcpConnected = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTcpBound = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTcpCommandFailed = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTerminated = new System.Diagnostics.Stopwatch();
 
         public static long countChannelsConfig = 0;
         public static long countTimer = 0;

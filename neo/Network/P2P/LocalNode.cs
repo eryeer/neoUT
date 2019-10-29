@@ -137,10 +137,10 @@ namespace Neo.Network.P2P
                 AddPeers(GetIPEndPointsFromSeedList(count));
             }
         }
-        public static System.Diagnostics.Stopwatch stopwatchMessage = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchRelay = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchRelayDirectly = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchSendDirectly = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchMessage = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchRelay = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchRelayDirectly = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchSendDirectly = new System.Diagnostics.Stopwatch();
 
         public static long countMessage = 0;
         public static long countRelay = 0;

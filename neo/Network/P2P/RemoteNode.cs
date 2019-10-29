@@ -21,13 +21,13 @@ namespace Neo.Network.P2P
         public static bool watchSwitchRemoteNode = false;
         public static bool countSwitchRemoteNode = false;
 
-        public static System.Diagnostics.Stopwatch stopwatchMessage = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchIInventory = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchRelay = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchVersionPayload = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchVerack = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchSetFilter = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchPingPayload = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchMessage = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchIInventory = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchRelay = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchVersionPayload = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchVerack = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchSetFilter = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPingPayload = new System.Diagnostics.Stopwatch();
 
         public static long countMessage = 0;
         public static long countIInventory = 0;

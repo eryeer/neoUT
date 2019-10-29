@@ -19,13 +19,13 @@ namespace Neo.Network.P2P
         public static bool countSwitch = false;
         public Akka.Event.ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
 
-        public static System.Diagnostics.Stopwatch stopwatchRegister = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchNewTasks = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTaskCompleted = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchHeaderTaskCompleted = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchRestartTasks = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTerminated = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchRegister = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchNewTasks = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTaskCompleted = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchHeaderTaskCompleted = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchRestartTasks = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTerminated = new System.Diagnostics.Stopwatch();
 
         public static long countRegister = 0;
         public static long countNewTasks = 0;

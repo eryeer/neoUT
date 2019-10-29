@@ -393,14 +393,14 @@ namespace Neo.Ledger
             Context.System.EventStream.Publish(new PersistCompleted { Block = block });
         }
 
-        public static System.Diagnostics.Stopwatch stopwatchImport = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchFillMemoryPool = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchHeaderArray = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchBlock = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTransactionArray = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTransaction = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchConsensusPayload = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchIdle = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchImport = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchFillMemoryPool = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchHeaderArray = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchBlock = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTransactionArray = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTransaction = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchConsensusPayload = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchIdle = new System.Diagnostics.Stopwatch();
 
         public static long countImport = 0;
         public static long countFillMemoryPool = 0;

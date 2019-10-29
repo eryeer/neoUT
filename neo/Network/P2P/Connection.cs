@@ -14,11 +14,11 @@ namespace Neo.Network.P2P
         public static bool countSwitch = false;
         public ILoggingAdapter Log { get; } = Context.GetLogger();
 
-        public static System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchAck = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchReceived = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchConnectionClosed = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTPSTimer = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchAck = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchReceived = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchConnectionClosed = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTPSTimer = new System.Diagnostics.Stopwatch();
 
         public static long countTimer = 0;
         public static long countAck = 0;

@@ -26,17 +26,17 @@ namespace Neo.Consensus
         public Akka.Event.ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
         private DateTime lasttime = DateTime.Now;
 
-        public static System.Diagnostics.Stopwatch stopwatchSetViewNumber = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchConsensusPayloadCommon = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchChangeView = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchPrepareRequest = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchPrepareResponse = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchCommit = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchRecoveryRequest = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchRecoveryMessage = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTransaction = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchPersistCompleted = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchSetViewNumber = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchConsensusPayloadCommon = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchChangeView = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPrepareRequest = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPrepareResponse = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchCommit = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchRecoveryRequest = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchRecoveryMessage = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTransaction = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistCompleted = new System.Diagnostics.Stopwatch();
 
         public static long countSetViewNumber = 0;
         public static long countTimer = 0;
