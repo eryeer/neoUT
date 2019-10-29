@@ -1,4 +1,5 @@
 using Akka.Actor;
+using Akka.Event;
 using Neo.IO;
 using Neo.Ledger;
 using Neo.Network.P2P.Payloads;
@@ -15,6 +16,9 @@ namespace Neo.Network.P2P
 {
     public class LocalNode : Peer
     {
+        public static bool watchSwitchLocalNode = false;
+        public static bool countSwitchLocalNode = false;
+        public ILoggingAdapter Log { get; } = Context.GetLogger();
         public class Relay { public IInventory Inventory; }
         internal class RelayDirectly { public IInventory Inventory; }
         internal class SendDirectly { public IInventory Inventory; }
@@ -133,23 +137,79 @@ namespace Neo.Network.P2P
                 AddPeers(GetIPEndPointsFromSeedList(count));
             }
         }
+        public static System.Diagnostics.Stopwatch stopwatchMessage = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchRelay = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchRelayDirectly = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchSendDirectly = new System.Diagnostics.Stopwatch();
 
+        public static long countMessage = 0;
+        public static long countRelay = 0;
+        public static long countRelayDirectly = 0;
+        public static long countSendDirectly = 0;
         protected override void OnReceive(object message)
         {
             base.OnReceive(message);
             switch (message)
             {
                 case Message msg:
+                    if (watchSwitchLocalNode)
+                    {
+                        stopwatchMessage.Start();
+                    }
                     BroadcastMessage(msg);
+                    if (watchSwitchLocalNode)
+                    {
+                        stopwatchMessage.Stop();
+                        Log.Info($"Class:LocalNode Type: Message TimeSpan:{stopwatchMessage.Elapsed.TotalSeconds}");
+                        stopwatchMessage.Reset();
+                        countMessage++;
+                    }
+                    if (countSwitchLocalNode) countMessage++;
                     break;
                 case Relay relay:
+                    if (watchSwitchLocalNode)
+                    {
+                        stopwatchRelay.Start();
+                    }
                     OnRelay(relay.Inventory);
+                    if (watchSwitchLocalNode)
+                    {
+                        stopwatchRelay.Stop();
+                        Log.Info($"Class:LocalNode Type: Relay TimeSpan:{stopwatchRelay.Elapsed.TotalSeconds}");
+                        stopwatchRelay.Reset();
+                        countRelay++;
+                    }
+                    if (countSwitchLocalNode) countRelay++;
                     break;
                 case RelayDirectly relay:
+                    if (watchSwitchLocalNode)
+                    {
+                        stopwatchRelayDirectly.Start();
+                    }
                     OnRelayDirectly(relay.Inventory);
+                    if (watchSwitchLocalNode)
+                    {
+                        stopwatchRelayDirectly.Stop();
+                        Log.Info($"Class:LocalNode Type: RelayDirectly TimeSpan:{stopwatchRelayDirectly.Elapsed.TotalSeconds}");
+                        stopwatchRelayDirectly.Reset();
+                        countRelayDirectly++;
+                    }
+                    if (countSwitchLocalNode) countRelayDirectly++;
                     break;
                 case SendDirectly send:
+                    if (watchSwitchLocalNode)
+                    {
+                        stopwatchSendDirectly.Start();
+                    }
                     OnSendDirectly(send.Inventory);
+                    if (watchSwitchLocalNode)
+                    {
+                        stopwatchSendDirectly.Stop();
+                        Log.Info($"Class:LocalNode Type: SendDirectly TimeSpan:{stopwatchSendDirectly.Elapsed.TotalSeconds}");
+                        stopwatchSendDirectly.Reset();
+                        countSendDirectly++;
+                    }
+                    if (countSwitchLocalNode) countSendDirectly++;
                     break;
                 case RelayResultReason _:
                     break;
