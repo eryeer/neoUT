@@ -136,7 +136,6 @@ namespace Neo.Network.P2P
                         stopwatchChannelsConfig.Stop();
                         Log.Info($"Class:Peer Type: Message TimeSpan:{stopwatchChannelsConfig.Elapsed.TotalSeconds}");
                         stopwatchChannelsConfig.Reset();
-                        countChannelsConfig++;
                     }
                     if (countSwitchPeer) countChannelsConfig++;
                     break;
@@ -151,7 +150,6 @@ namespace Neo.Network.P2P
                         stopwatchTimer.Stop();
                         Log.Info($"Class:Peer Type: Timer TimeSpan:{stopwatchTimer.Elapsed.TotalSeconds}");
                         stopwatchTimer.Reset();
-                        countTimer++;
                     }
                     if (countSwitchPeer) countTimer++;
                     break;
@@ -166,7 +164,6 @@ namespace Neo.Network.P2P
                         stopwatchPeers.Stop();
                         Log.Info($"Class:Peer Type: Peers TimeSpan:{stopwatchPeers.Elapsed.TotalSeconds}");
                         stopwatchPeers.Reset();
-                        countPeers++;
                     }
                     if (countSwitchPeer) countPeers++;
                     break;
@@ -181,7 +178,6 @@ namespace Neo.Network.P2P
                         stopwatchConnect.Stop();
                         Log.Info($"Class:Peer Type: Connect TimeSpan:{stopwatchConnect.Elapsed.TotalSeconds}");
                         stopwatchConnect.Reset();
-                        countConnect++;
                     }
                     if (countSwitchPeer) countConnect++;
                     break;
@@ -196,7 +192,6 @@ namespace Neo.Network.P2P
                         stopwatchWsConnected.Stop();
                         Log.Info($"Class:Peer Type: WsConnected TimeSpan:{stopwatchWsConnected.Elapsed.TotalSeconds}");
                         stopwatchWsConnected.Reset();
-                        countWsConnected++;
                     }
                     if (countSwitchPeer) countWsConnected++;
                     break;
@@ -211,7 +206,6 @@ namespace Neo.Network.P2P
                         stopwatchTcpConnected.Stop();
                         Log.Info($"Class:Peer Type: TcpConnected TimeSpan:{stopwatchTcpConnected.Elapsed.TotalSeconds}");
                         stopwatchTcpConnected.Reset();
-                        countTcpConnected++;
                     }
                     if (countSwitchPeer) countTcpConnected++;
                     break;
@@ -226,7 +220,6 @@ namespace Neo.Network.P2P
                         stopwatchTcpBound.Stop();
                         Log.Info($"Class:Peer Type: TcpBound TimeSpan:{stopwatchTcpBound.Elapsed.TotalSeconds}");
                         stopwatchTcpBound.Reset();
-                        countTcpBound++;
                     }
                     if (countSwitchPeer) countTcpBound++;
                     break;
@@ -241,7 +234,6 @@ namespace Neo.Network.P2P
                         stopwatchTcpCommandFailed.Stop();
                         Log.Info($"Class:Peer Type: TcpCommandFailed TimeSpan:{stopwatchTcpCommandFailed.Elapsed.TotalSeconds}");
                         stopwatchTcpCommandFailed.Reset();
-                        countTcpCommandFailed++;
                     }
                     if (countSwitchPeer) countTcpCommandFailed++;
                     break;
@@ -256,7 +248,6 @@ namespace Neo.Network.P2P
                         stopwatchTerminated.Stop();
                         Log.Info($"Class:Peer Type: Terminated TimeSpan:{stopwatchTerminated.Elapsed.TotalSeconds}");
                         stopwatchTerminated.Reset();
-                        countTerminated++;
                     }
                     if (countSwitchPeer) countTerminated++;
                     break;

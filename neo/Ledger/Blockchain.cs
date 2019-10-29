@@ -426,7 +426,6 @@ namespace Neo.Ledger
                         stopwatchImport.Stop();
                         Log.Info($"Class:Blockchain Type: Import TimeSpan:{stopwatchImport.Elapsed.TotalSeconds}");
                         stopwatchImport.Reset();
-                        countImport++;
                     }
                     if (countSwitchBlockchain) countImport++;
                     break;
@@ -441,7 +440,6 @@ namespace Neo.Ledger
                         stopwatchFillMemoryPool.Stop();
                         Log.Info($"Class:Blockchain Type: FillMemoryPool TimeSpan:{stopwatchFillMemoryPool.Elapsed.TotalSeconds}");
                         stopwatchFillMemoryPool.Reset();
-                        countFillMemoryPool++;
                     }
                     if (countSwitchBlockchain) countFillMemoryPool++;
                     break;
@@ -456,7 +454,6 @@ namespace Neo.Ledger
                         stopwatchHeaderArray.Stop();
                         Log.Info($"Class:Blockchain Type: Header TimeSpan:{stopwatchHeaderArray.Elapsed.TotalSeconds}");
                         stopwatchHeaderArray.Reset();
-                        countHeaderArray++;
                     }
                     if (countSwitchBlockchain) countHeaderArray++;
                     break;
@@ -471,7 +468,6 @@ namespace Neo.Ledger
                         stopwatchBlock.Stop();
                         Log.Info($"Class:Blockchain Type: Block TimeSpan:{stopwatchBlock.Elapsed.TotalSeconds}");
                         stopwatchBlock.Reset();
-                        countBlock++;
                     }
                     if (countSwitchBlockchain) countBlock++;
                     break;
@@ -488,7 +484,6 @@ namespace Neo.Ledger
                             stopwatchTransactionArray.Stop();
                             Log.Info($"Class:Blockchain Type: TransactionArray TimeSpan:{stopwatchTransactionArray.Elapsed.TotalSeconds}");
                             stopwatchTransactionArray.Reset();
-                            countTransactionArray++;
                         }
                         if (countSwitchBlockchain) countTransactionArray++;
                         break;
@@ -504,7 +499,6 @@ namespace Neo.Ledger
                         stopwatchTransaction.Stop();
                         Log.Info($"Class:Blockchain Type: Transaction TimeSpan:{stopwatchTransaction.Elapsed.TotalSeconds}");
                         stopwatchTransaction.Reset();
-                        countTransaction++;
                     }
                     if (countSwitchBlockchain) countTransaction++;
                     break;
@@ -519,7 +513,6 @@ namespace Neo.Ledger
                         stopwatchConsensusPayload.Stop();
                         Log.Info($"Class:Blockchain Type: ConsensusPayload TimeSpan:{stopwatchConsensusPayload.Elapsed.TotalSeconds}");
                         stopwatchConsensusPayload.Reset();
-                        countConsensusPayload++;
                     }
                     if (countSwitchBlockchain) countConsensusPayload++;
                     break;
@@ -535,7 +528,6 @@ namespace Neo.Ledger
                         stopwatchIdle.Stop();
                         Log.Info($"Class:Blockchain Type: Idle TimeSpan:{stopwatchIdle.Elapsed.TotalSeconds}");
                         stopwatchIdle.Reset();
-                        countIdle++;
                     }
                     if (countSwitchBlockchain) countIdle++;
                     break;
