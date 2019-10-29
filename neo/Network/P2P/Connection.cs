@@ -120,7 +120,7 @@ namespace Neo.Network.P2P
                         Log.Info($"Class: Connection Type: Timer TimeSpan:{stopwatchTimer.Elapsed.TotalSeconds}");
                         stopwatchTimer.Reset();
                     }
-                    if (countSwitch) countTimer++;
+                    if (countSwitch) Interlocked.Add(ref countTimer, 1); 
                     break;
                 case Ack _:
                     if (watchSwitch)
@@ -134,7 +134,7 @@ namespace Neo.Network.P2P
                         Log.Info($"Class: Connection Type: Ack TimeSpan:{stopwatchAck.Elapsed.TotalSeconds}");
                         stopwatchAck.Reset();
                     }
-                    if (countSwitch) countAck++;
+                    if (countSwitch) Interlocked.Add(ref countAck, 1);
                     break;
                 case Tcp.Received received:
                     if (watchSwitch)
@@ -148,7 +148,7 @@ namespace Neo.Network.P2P
                         Log.Info($"Class: Connection Type: Received TimeSpan:{stopwatchReceived.Elapsed.TotalSeconds}");
                         stopwatchReceived.Reset();
                     }
-                    if (countSwitch) countReceived++;
+                    if (countSwitch) Interlocked.Add(ref countReceived, 1); 
                     break;
                 case Tcp.ConnectionClosed _:
                     if (watchSwitch)
@@ -162,7 +162,7 @@ namespace Neo.Network.P2P
                         Log.Info($"Class: Connection Type: ConnectionClosed TimeSpan:{stopwatchConnectionClosed.Elapsed.TotalSeconds}");
                         stopwatchConnectionClosed.Reset();
                     }
-                    if (countSwitch) countConnectionClosed++;
+                    if (countSwitch) Interlocked.Add(ref countConnectionClosed, 1); 
                     break;
             }
         }
