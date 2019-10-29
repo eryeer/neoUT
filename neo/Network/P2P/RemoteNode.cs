@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 
 namespace Neo.Network.P2P
 {
@@ -155,7 +156,7 @@ namespace Neo.Network.P2P
                         Log.Info($"Class:RemoteNode Type: Message TimeSpan:{stopwatchMessage.Elapsed.TotalSeconds}");
                         stopwatchMessage.Reset();
                     }
-                    if (countSwitchRemoteNode) countMessage++;
+                    if (countSwitchRemoteNode) Interlocked.Add(ref countMessage, 1);
                     break;
                 case IInventory inventory:
                     if (watchSwitchRemoteNode)
@@ -169,7 +170,7 @@ namespace Neo.Network.P2P
                         Log.Info($"Class:RemoteNode Type: IInventory TimeSpan:{stopwatchIInventory.Elapsed.TotalSeconds}");
                         stopwatchIInventory.Reset();
                     }
-                    if (countSwitchRemoteNode) countIInventory++;
+                    if (countSwitchRemoteNode) Interlocked.Add(ref countIInventory, 1);
                     break;
                 case Relay relay:
                     if (watchSwitchRemoteNode)
@@ -183,7 +184,7 @@ namespace Neo.Network.P2P
                         Log.Info($"Class:RemoteNode Type: Relay TimeSpan:{stopwatchRelay.Elapsed.TotalSeconds}");
                         stopwatchRelay.Reset();
                     }
-                    if (countSwitchRemoteNode) countRelay++;
+                    if (countSwitchRemoteNode) Interlocked.Add(ref countRelay, 1);
                     break;
                 case VersionPayload payload:
                     if (watchSwitchRemoteNode)
@@ -196,9 +197,8 @@ namespace Neo.Network.P2P
                         stopwatchVersionPayload.Stop();
                         Log.Info($"Class:RemoteNode Type: VersionPayload TimeSpan:{stopwatchVersionPayload.Elapsed.TotalSeconds}");
                         stopwatchVersionPayload.Reset();
-                        countVersionPayload++;
                     }
-                    if (countSwitchRemoteNode) countVersionPayload++;
+                    if (countSwitchRemoteNode) Interlocked.Add(ref countVersionPayload, 1);
                     break;
                 case MessageCommand.Verack:
                     if (watchSwitchRemoteNode)
@@ -212,7 +212,7 @@ namespace Neo.Network.P2P
                         Log.Info($"Class:RemoteNode Type: Verack TimeSpan:{stopwatchVerack.Elapsed.TotalSeconds}");
                         stopwatchVerack.Reset();
                     }
-                    if (countSwitchRemoteNode) countVerack++;
+                    if (countSwitchRemoteNode) Interlocked.Add(ref countVerack, 1); 
                     break;
                 case ProtocolHandler.SetFilter setFilter:
                     if (watchSwitchRemoteNode)
@@ -226,7 +226,7 @@ namespace Neo.Network.P2P
                         Log.Info($"Class:RemoteNode Type: SetFilter TimeSpan:{stopwatchSetFilter.Elapsed.TotalSeconds}");
                         stopwatchVerack.Reset();
                     }
-                    if (countSwitchRemoteNode) countSetFilter++;
+                    if (countSwitchRemoteNode) Interlocked.Add(ref countSetFilter, 1);
                     break;
                 case PingPayload payload:
                     if (watchSwitchRemoteNode)
@@ -240,7 +240,7 @@ namespace Neo.Network.P2P
                         Log.Info($"Class:RemoteNode Type: SetFilter TimeSpan:{stopwatchPingPayload.Elapsed.TotalSeconds}");
                         stopwatchPingPayload.Reset();
                     }
-                    if (countSwitchRemoteNode) countPingPayload++;
+                    if (countSwitchRemoteNode) Interlocked.Add(ref countPingPayload, 1);
                     break;
             }
         }
