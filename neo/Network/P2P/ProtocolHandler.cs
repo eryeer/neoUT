@@ -58,6 +58,23 @@ namespace Neo.Network.P2P
         public static long countPong = 0;
         public static long countTransaction = 0;
 
+        public static double totalTimeAddr = 0;
+        public static double totalTimeBlock = 0;
+        public static double totalTimeConsensus = 0;
+        public static double totalTimeFilterAdd = 0;
+        public static double totalTimeFilterClear = 0;
+        public static double totalTimeFilterLoad = 0;
+        public static double totalTimeGetAddr = 0;
+        public static double totalTimeGetBlocks = 0;
+        public static double totalTimeGetData = 0;
+        public static double totalTimeGetHeaders = 0;
+        public static double totalTimeHeaders = 0;
+        public static double totalTimeInv = 0;
+        public static double totalTimeMempool = 0;
+        public static double totalTimePing = 0;
+        public static double totalTimePong = 0;
+        public static double totalTimeTransaction = 0;
+
         public class SetFilter { public BloomFilter Filter; }
 
         private readonly NeoSystem system;
@@ -94,232 +111,347 @@ namespace Neo.Network.P2P
                 OnVerackMessageReceived();
                 return;
             }
+
+            double timespan = 0;
+            double initialValue, computedValue;
             switch (msg.Command)
             {
                 case MessageCommand.Addr:
-                    if (watchSwitch)
-                    {
-                        stopwatchAddr.Start();
-                    }
+                    stopwatchAddr.Start();
                     OnAddrMessageReceived((AddrPayload)msg.Payload);
+                    stopwatchAddr.Stop();
+                    timespan = stopwatchAddr.Elapsed.TotalSeconds;
+                    stopwatchAddr.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchAddr.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: Addr TimeSpan:{stopwatchAddr.Elapsed.TotalSeconds}");
-                        stopwatchAddr.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Addr TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countAddr,1);
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countAddr, 1);
+                        do
+                        {
+                            initialValue = totalTimeAddr;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeAddr, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.Block:
-                    if (watchSwitch)
-                    {
-                        stopwatchBlock.Start();
-                    }
+                    stopwatchBlock.Start();
                     OnInventoryReceived((Block)msg.Payload);
+                    stopwatchBlock.Stop();
+                    timespan = stopwatchBlock.Elapsed.TotalSeconds;
+                    stopwatchBlock.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchBlock.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: Block TimeSpan:{stopwatchBlock.Elapsed.TotalSeconds}");
-                        stopwatchBlock.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Block TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countBlock, 1);
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countBlock, 1);
+                        do
+                        {
+                            initialValue = totalTimeBlock;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeBlock, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.Consensus:
-                    if (watchSwitch)
-                    {
-                        stopwatchConsensus.Start();
-                    }
+                    stopwatchConsensus.Start();
                     OnInventoryReceived((ConsensusPayload)msg.Payload);
+                    stopwatchConsensus.Stop();
+                    timespan = stopwatchConsensus.Elapsed.TotalSeconds;
+                    stopwatchConsensus.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchConsensus.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: Consensus TimeSpan:{stopwatchConsensus.Elapsed.TotalSeconds}");
-                        stopwatchConsensus.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Consensus TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countConsensus, 1);
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countConsensus, 1);
+                        do
+                        {
+                            initialValue = totalTimeConsensus;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeConsensus, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.FilterAdd:
-                    if (watchSwitch)
-                    {
-                        stopwatchFilterAdd.Start();
-                    }
+                    stopwatchFilterAdd.Start();
                     OnFilterAddMessageReceived((FilterAddPayload)msg.Payload);
+                    stopwatchFilterAdd.Stop();
+                    timespan = stopwatchFilterAdd.Elapsed.TotalSeconds;
+                    stopwatchFilterAdd.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchFilterAdd.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: FilterAdd TimeSpan:{stopwatchFilterAdd.Elapsed.TotalSeconds}");
-                        stopwatchFilterAdd.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: FilterAdd TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countFilterAdd, 1); 
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countFilterAdd, 1);
+                        do
+                        {
+                            initialValue = totalTimeFilterAdd;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeFilterAdd, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.FilterClear:
-                    if (watchSwitch)
-                    {
-                        stopwatchFilterClear.Start();
-                    }
+                    stopwatchFilterClear.Start();
                     OnFilterClearMessageReceived();
+                    stopwatchFilterClear.Stop();
+                    timespan = stopwatchFilterClear.Elapsed.TotalSeconds;
+                    stopwatchFilterClear.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchFilterClear.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: FilterClear TimeSpan:{stopwatchFilterClear.Elapsed.TotalSeconds}");
-                        stopwatchFilterClear.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: FilterClear TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countFilterClear, 1); 
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countFilterClear, 1);
+                        do
+                        {
+                            initialValue = totalTimeFilterClear;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeFilterClear, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.FilterLoad:
-                    if (watchSwitch)
-                    {
-                        stopwatchFilterLoad.Start();
-                    }
+                    stopwatchFilterLoad.Start();
                     OnFilterLoadMessageReceived((FilterLoadPayload)msg.Payload);
+                    stopwatchFilterLoad.Stop();
+                    timespan = stopwatchFilterLoad.Elapsed.TotalSeconds;
+                    stopwatchFilterLoad.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchFilterLoad.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: FilterLoad TimeSpan:{stopwatchFilterLoad.Elapsed.TotalSeconds}");
-                        stopwatchFilterLoad.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: FilterLoad TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countFilterLoad, 1);
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countFilterLoad, 1);
+                        do
+                        {
+                            initialValue = totalTimeFilterLoad;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeFilterLoad, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.GetAddr:
-                    if (watchSwitch)
-                    {
-                        stopwatchGetAddr.Start();
-                    }
+                    stopwatchGetAddr.Start();
                     OnGetAddrMessageReceived();
+                    stopwatchGetAddr.Stop();
+                    timespan = stopwatchGetAddr.Elapsed.TotalSeconds;
+                    stopwatchGetAddr.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchGetAddr.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: GetAddr TimeSpan:{stopwatchGetAddr.Elapsed.TotalSeconds}");
-                        stopwatchGetAddr.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: GetAddr TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countGetAddr, 1); 
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countGetAddr, 1);
+                        do
+                        {
+                            initialValue = totalTimeGetAddr;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeGetAddr, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.GetBlocks:
-                    if (watchSwitch)
-                    {
-                        stopwatchGetBlocks.Start();
-                    }
+                    stopwatchGetBlocks.Start();
                     OnGetBlocksMessageReceived((GetBlocksPayload)msg.Payload);
+                    stopwatchGetBlocks.Stop();
+                    timespan = stopwatchGetBlocks.Elapsed.TotalSeconds;
+                    stopwatchGetBlocks.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchGetBlocks.Stop();
                         AkkaLog.Info($"Class:ProtocolHandler Type: GetBlocks TimeSpan:{stopwatchGetBlocks.Elapsed.TotalSeconds}");
-                        stopwatchGetBlocks.Reset();
                     }
-                    if (countSwitch) Interlocked.Add(ref countGetBlocks, 1);
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countGetBlocks, 1);
+                        do
+                        {
+                            initialValue = totalTimeGetBlocks;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeGetBlocks, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.GetData:
-                    if (watchSwitch)
-                    {
-                        stopwatchGetData.Start();
-                    }
+                    stopwatchGetData.Start();
                     OnGetDataMessageReceived((InvPayload)msg.Payload);
+                    stopwatchGetData.Stop();
+                    timespan = stopwatchGetData.Elapsed.TotalSeconds;
+                    stopwatchGetData.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchGetData.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: GetData TimeSpan:{stopwatchGetData.Elapsed.TotalSeconds}");
-                        stopwatchGetData.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: GetData TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countGetData, 1); 
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countGetData, 1);
+                        do
+                        {
+                            initialValue = totalTimeGetData;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeGetData, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.GetHeaders:
-                    if (watchSwitch)
-                    {
-                        stopwatchGetHeaders.Start();
-                    }
+                    stopwatchGetHeaders.Start();
                     OnGetHeadersMessageReceived((GetBlocksPayload)msg.Payload);
+                    stopwatchGetHeaders.Stop();
+                    timespan = stopwatchGetHeaders.Elapsed.TotalSeconds;
+                    stopwatchGetHeaders.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchGetHeaders.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: GetHeaders TimeSpan:{stopwatchGetHeaders.Elapsed.TotalSeconds}");
-                        stopwatchGetHeaders.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: GetHeaders TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countGetHeaders, 1); 
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countGetHeaders, 1);
+                        do
+                        {
+                            initialValue = totalTimeGetHeaders;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeGetHeaders, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.Headers:
-                    if (watchSwitch)
-                    {
-                        stopwatchHeaders.Start();
-                    }
+                    stopwatchHeaders.Start();
                     OnHeadersMessageReceived((HeadersPayload)msg.Payload);
+                    stopwatchHeaders.Stop();
+                    timespan = stopwatchHeaders.Elapsed.TotalSeconds;
+                    stopwatchHeaders.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchHeaders.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: Headers TimeSpan:{stopwatchHeaders.Elapsed.TotalSeconds}");
-                        stopwatchHeaders.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Headers TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countHeaders, 1);
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countHeaders, 1);
+                        do
+                        {
+                            initialValue = totalTimeHeaders;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeHeaders, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.Inv:
-                    if (watchSwitch)
-                    {
-                        stopwatchInv.Start();
-                    }
+                    stopwatchInv.Start();
                     OnInvMessageReceived((InvPayload)msg.Payload);
+                    stopwatchInv.Stop();
+                    timespan = stopwatchInv.Elapsed.TotalSeconds;
+                    stopwatchInv.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchInv.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: Inv TimeSpan:{stopwatchInv.Elapsed.TotalSeconds}");
-                        stopwatchInv.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Inv TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countInv, 1); 
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countInv, 1);
+                        do
+                        {
+                            initialValue = totalTimeInv;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeInv, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.Mempool:
-                    if (watchSwitch)
-                    {
-                        stopwatchMempool.Start();
-                    }
+                    stopwatchMempool.Start();
                     OnMemPoolMessageReceived();
+                    stopwatchMempool.Stop();
+                    timespan = stopwatchMempool.Elapsed.TotalSeconds;
+                    stopwatchMempool.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchMempool.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: Mempool TimeSpan:{stopwatchMempool.Elapsed.TotalSeconds}");
-                        stopwatchMempool.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Mempool TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countMempool, 1); 
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countMempool, 1);
+                        do
+                        {
+                            initialValue = totalTimeMempool;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeMempool, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.Ping:
-                    if (watchSwitch)
-                    {
-                        stopwatchPing.Start();
-                    }
+                    stopwatchPing.Start();
                     OnPingMessageReceived((PingPayload)msg.Payload);
+                    stopwatchPing.Stop();
+                    timespan = stopwatchPing.Elapsed.TotalSeconds;
+                    stopwatchPing.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchPing.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: Ping TimeSpan:{stopwatchPing.Elapsed.TotalSeconds}");
-                        stopwatchPing.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Ping TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countPing, 1);
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countPing, 1);
+                        do
+                        {
+                            initialValue = totalTimePing;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimePing, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.Pong:
-                    if (watchSwitch)
-                    {
-                        stopwatchPong.Start();
-                    }
+                    stopwatchPong.Start();
                     OnPongMessageReceived((PingPayload)msg.Payload);
+                    stopwatchPong.Stop();
+                    timespan = stopwatchPong.Elapsed.TotalSeconds;
+                    stopwatchPong.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchPong.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: Pong TimeSpan:{stopwatchPong.Elapsed.TotalSeconds}");
-                        stopwatchPong.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Pong TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countPong, 1); 
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countPong, 1);
+                        do
+                        {
+                            initialValue = totalTimePong;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimePong, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.Transaction:
-                    if (watchSwitch)
-                    {
-                        stopwatchTransaction.Start();
-                    }
+                    stopwatchTransaction.Start();
                     if (msg.Payload.Size <= Transaction.MaxTransactionSize)
                         OnInventoryReceived((Transaction)msg.Payload);
+                    stopwatchTransaction.Stop();
+                    timespan = stopwatchTransaction.Elapsed.TotalSeconds;
+                    stopwatchTransaction.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchTransaction.Stop();
-                        AkkaLog.Info($"Class:ProtocolHandler Type: Transaction TimeSpan:{stopwatchTransaction.Elapsed.TotalSeconds}");
-                        stopwatchTransaction.Reset();
+                        AkkaLog.Info($"Class:ProtocolHandler Type: Transaction TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countTransaction, 1); 
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countTransaction, 1);
+                        do
+                        {
+                            initialValue = totalTimeTransaction;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeTransaction, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.Verack:
                 case MessageCommand.Version:

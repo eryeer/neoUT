@@ -26,6 +26,12 @@ namespace Neo.Network.P2P
         public static long countConnectionClosed = 0;
         public static long countTPSTimer = 0;
 
+        public static double totalTimeTimer = 0;
+        public static double totalTimeAck = 0;
+        public static double totalTimeReceived = 0;
+        public static double totalTimeConnectionClosed = 0;
+        public static double totalTimeTPSTimer = 0;
+
 
         internal class Timer { public static Timer Instance = new Timer(); }
         internal class Ack : Tcp.Event { public static Ack Instance = new Ack(); }
@@ -106,63 +112,93 @@ namespace Neo.Network.P2P
 
         protected override void OnReceive(object message)
         {
+            double timespan;
+            double initialValue, computedValue;
             switch (message)
             {
                 case Timer _:
-                    if (watchSwitch)
-                    {
-                        stopwatchTimer.Start();
-                    }
+                    stopwatchTimer.Start();
                     Disconnect(true);
+                    stopwatchTimer.Stop();
+                    timespan = stopwatchTimer.Elapsed.TotalSeconds;
+                    stopwatchTimer.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchTimer.Stop();
-                        Log.Info($"Class: Connection Type: Timer TimeSpan:{stopwatchTimer.Elapsed.TotalSeconds}");
-                        stopwatchTimer.Reset();
+                        Log.Info($"Class: Connection Type: Timer TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countTimer, 1); 
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countTimer, 1);
+                        do
+                        {
+                            initialValue = totalTimeTimer;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeTimer, computedValue, initialValue));
+                    }
                     break;
                 case Ack _:
-                    if (watchSwitch)
-                    {
-                        stopwatchAck.Start();
-                    }
+                    stopwatchAck.Start();
                     OnAck();
+                    stopwatchAck.Stop();
+                    timespan = stopwatchAck.Elapsed.TotalSeconds;
+                    stopwatchAck.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchAck.Stop();
-                        Log.Info($"Class: Connection Type: Ack TimeSpan:{stopwatchAck.Elapsed.TotalSeconds}");
-                        stopwatchAck.Reset();
+                        Log.Info($"Class: Connection Type: Ack TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countAck, 1);
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countAck, 1);
+                        do
+                        {
+                            initialValue = totalTimeAck;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeAck, computedValue, initialValue));
+                    }
                     break;
                 case Tcp.Received received:
-                    if (watchSwitch)
-                    {
-                        stopwatchReceived.Start();
-                    }
+                    stopwatchReceived.Start();
                     OnReceived(received.Data);
+                    stopwatchReceived.Stop();
+                    timespan = stopwatchReceived.Elapsed.TotalSeconds;
+                    stopwatchReceived.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchReceived.Stop();
-                        Log.Info($"Class: Connection Type: Received TimeSpan:{stopwatchReceived.Elapsed.TotalSeconds}");
-                        stopwatchReceived.Reset();
+                        Log.Info($"Class: Connection Type: Received TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countReceived, 1); 
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countReceived, 1);
+                        do
+                        {
+                            initialValue = totalTimeReceived;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeReceived, computedValue, initialValue));
+                    }
                     break;
                 case Tcp.ConnectionClosed _:
-                    if (watchSwitch)
-                    {
-                        stopwatchConnectionClosed.Start();
-                    }
+                    stopwatchConnectionClosed.Start();
                     Context.Stop(Self);
+                    stopwatchConnectionClosed.Stop();
+                    timespan = stopwatchConnectionClosed.Elapsed.TotalSeconds;
+                    stopwatchConnectionClosed.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchConnectionClosed.Stop();
-                        Log.Info($"Class: Connection Type: ConnectionClosed TimeSpan:{stopwatchConnectionClosed.Elapsed.TotalSeconds}");
-                        stopwatchConnectionClosed.Reset();
+                        Log.Info($"Class: Connection Type: ConnectionClosed TimeSpan:{timespan}");
                     }
-                    if (countSwitch) Interlocked.Add(ref countConnectionClosed, 1); 
+                    if (countSwitch)
+                    {
+                        Interlocked.Add(ref countConnectionClosed, 1);
+                        do
+                        {
+                            initialValue = totalTimeConnectionClosed;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeConnectionClosed, computedValue, initialValue));
+                    }
                     break;
             }
         }
