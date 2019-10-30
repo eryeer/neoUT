@@ -349,14 +349,14 @@ namespace Neo.Consensus
             }
 
             if (Blockchain.countSwitchBlockchain) {
-                AkkaLog.Info($"Class: Blockchain Type: Import Count: {Blockchain.countImport}");
-                AkkaLog.Info($"Class: Blockchain Type: FillMemoryPool Count: {Blockchain.countFillMemoryPool}");
-                AkkaLog.Info($"Class: Blockchain Type: HeaderArray Count: {Blockchain.countHeaderArray}");
-                AkkaLog.Info($"Class: Blockchain Type: Block Count: {Blockchain.countBlock}");
-                AkkaLog.Info($"Class: Blockchain Type: TransactionArray Count: {Blockchain.countTransactionArray}");
-                AkkaLog.Info($"Class: Blockchain Type: Transaction Count: {Blockchain.countTransaction}");
-                AkkaLog.Info($"Class: Blockchain Type: ConsensusPayload Count: {Blockchain.countConsensusPayload}");
-                AkkaLog.Info($"Class: Blockchain Type: Idle Count: {Blockchain.countIdle}");
+                AkkaLog.Info($"Class: Blockchain Type: Import Count: {Blockchain.countImport} averageTimespan: {Blockchain.totalTimeImport / Blockchain.countImport}");
+                AkkaLog.Info($"Class: Blockchain Type: FillMemoryPool Count: {Blockchain.countFillMemoryPool} averageTimespan: {Blockchain.totalTimeFillMemoryPool / Blockchain.countFillMemoryPool}");
+                AkkaLog.Info($"Class: Blockchain Type: HeaderArray Count: {Blockchain.countHeaderArray} averageTimespan: {Blockchain.totalTimeHeaderArray / Blockchain.countHeaderArray}");
+                AkkaLog.Info($"Class: Blockchain Type: Block Count: {Blockchain.countBlock} averageTimespan: {Blockchain.totalTimeBlock / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: TransactionArray Count: {Blockchain.countTransactionArray} averageTimespan: {Blockchain.totalTimeTransactionArray / Blockchain.countTransactionArray}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Count: {Blockchain.countTransaction} averageTimespan: {Blockchain.totalTimeTransaction / Blockchain.countTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: ConsensusPayload Count: {Blockchain.countConsensusPayload} averageTimespan: {Blockchain.totalTimeConsensusPayload / Blockchain.countConsensusPayload}");
+                AkkaLog.Info($"Class: Blockchain Type: Idle Count: {Blockchain.countIdle} averageTimespan: {Blockchain.totalTimeIdle / Blockchain.countIdle}");
                 Blockchain.countImport = 0;
                 Blockchain.countFillMemoryPool = 0;
                 Blockchain.countHeaderArray = 0;
@@ -365,18 +365,27 @@ namespace Neo.Consensus
                 Blockchain.countTransaction = 0;
                 Blockchain.countConsensusPayload = 0;
                 Blockchain.countIdle = 0;
+
+                Blockchain.totalTimeImport = 0;
+                Blockchain.totalTimeFillMemoryPool = 0;
+                Blockchain.totalTimeHeaderArray = 0;
+                Blockchain.totalTimeBlock = 0;
+                Blockchain.totalTimeTransactionArray = 0;
+                Blockchain.totalTimeTransaction = 0;
+                Blockchain.totalTimeConsensusPayload = 0;
+                Blockchain.totalTimeIdle = 0;
             }
             if (Peer.countSwitchPeer)
             {
-                AkkaLog.Info($"Class: Peer Type: ChannelsConfig Count: {Peer.countChannelsConfig}");
-                AkkaLog.Info($"Class: Peer Type: Timer Count: {Peer.countTimer}");
-                AkkaLog.Info($"Class: Peer Type: Peers Count: {Peer.countPeers}");
-                AkkaLog.Info($"Class: Peer Type: Connect Count: {Peer.countConnect}");
-                AkkaLog.Info($"Class: Peer Type: WsConnected Count: {Peer.countWsConnected}");
-                AkkaLog.Info($"Class: Peer Type: TcpConnected Count: {Peer.countTcpConnected}");
-                AkkaLog.Info($"Class: Peer Type: TcpBound Count: {Peer.countTcpBound}");
-                AkkaLog.Info($"Class: Peer Type: TcpCommandFailed Count: {Peer.countTcpCommandFailed}");
-                AkkaLog.Info($"Class: Peer Type: Terminated Count: {Peer.countTerminated}");
+                AkkaLog.Info($"Class: Peer Type: ChannelsConfig Count: {Peer.countChannelsConfig} averageTimespan: {Peer.totalTimeChannelsConfig / Peer.countChannelsConfig}");
+                AkkaLog.Info($"Class: Peer Type: Timer Count: {Peer.countTimer} averageTimespan: {Peer.totalTimeTimer / Peer.countTimer}");
+                AkkaLog.Info($"Class: Peer Type: Peers Count: {Peer.countPeers} averageTimespan: {Peer.totalTimePeers / Peer.countPeers}");
+                AkkaLog.Info($"Class: Peer Type: Connect Count: {Peer.countConnect} averageTimespan: {Peer.totalTimeConnect / Peer.countConnect}");
+                AkkaLog.Info($"Class: Peer Type: WsConnected Count: {Peer.countWsConnected} averageTimespan: {Peer.totalTimeWsConnected / Peer.countWsConnected}");
+                AkkaLog.Info($"Class: Peer Type: TcpConnected Count: {Peer.countTcpConnected} averageTimespan: {Peer.totalTimeTcpConnected / Peer.countTcpConnected}");
+                AkkaLog.Info($"Class: Peer Type: TcpBound Count: {Peer.countTcpBound} averageTimespan: {Peer.totalTimeTcpBound / Peer.countTcpBound}");
+                AkkaLog.Info($"Class: Peer Type: TcpCommandFailed Count: {Peer.countTcpCommandFailed} averageTimespan: {Peer.totalTimeTcpCommandFailed / Peer.countTcpCommandFailed}");
+                AkkaLog.Info($"Class: Peer Type: Terminated Count: {Peer.countTerminated} averageTimespan: {Peer.totalTimeTerminated / Peer.countTerminated}");
                 Peer.countChannelsConfig = 0;
                 Peer.countTimer = 0;
                 Peer.countPeers = 0;
@@ -386,17 +395,32 @@ namespace Neo.Consensus
                 Peer.countTcpBound = 0;
                 Peer.countTcpCommandFailed = 0;
                 Peer.countTerminated = 0;
+
+                Peer.totalTimeChannelsConfig = 0;
+                Peer.totalTimeTimer = 0;
+                Peer.totalTimePeers = 0;
+                Peer.totalTimeConnect = 0;
+                Peer.totalTimeWsConnected = 0;
+                Peer.totalTimeTcpConnected = 0;
+                Peer.totalTimeTcpBound = 0;
+                Peer.totalTimeTcpCommandFailed = 0;
+                Peer.totalTimeTerminated = 0;
             }
             if (LocalNode.countSwitchLocalNode)
             {
-                AkkaLog.Info($"Class: LocalNode Type: Message Count: {LocalNode.countMessage}");
-                AkkaLog.Info($"Class: LocalNode Type: Relay Count: {LocalNode.countRelay}");
-                AkkaLog.Info($"Class: LocalNode Type: RelayDirectly Count: {LocalNode.countRelayDirectly}");
-                AkkaLog.Info($"Class: LocalNode Type: SendDirectly Count: {LocalNode.countSendDirectly}");
+                AkkaLog.Info($"Class: LocalNode Type: Message Count: {LocalNode.countMessage} averageTimespan: {LocalNode.totalTimeMessage / LocalNode.countMessage}");
+                AkkaLog.Info($"Class: LocalNode Type: Relay Count: {LocalNode.countRelay} averageTimespan: {LocalNode.totalTimeRelay / LocalNode.countRelay}");
+                AkkaLog.Info($"Class: LocalNode Type: RelayDirectly Count: {LocalNode.countRelayDirectly} averageTimespan: {LocalNode.totalTimeRelayDirectly / LocalNode.countRelayDirectly}");
+                AkkaLog.Info($"Class: LocalNode Type: SendDirectly Count: {LocalNode.countSendDirectly} averageTimespan: {LocalNode.totalTimeSendDirectly / LocalNode.countSendDirectly}");
                 LocalNode.countMessage = 0;
                 LocalNode.countRelay = 0;
                 LocalNode.countRelayDirectly = 0;
                 LocalNode.countSendDirectly = 0;
+
+                LocalNode.totalTimeMessage = 0;
+                LocalNode.totalTimeRelay = 0;
+                LocalNode.totalTimeRelayDirectly = 0;
+                LocalNode.totalTimeSendDirectly = 0;
             }
 
 
