@@ -450,7 +450,7 @@ namespace Neo.Network.P2P
                             initialValue = totalTimeTransaction;
                             computedValue = initialValue + timespan;
                         }
-                        while (initialValue != Interlocked.CompareExchange(ref totalTimeTransactiontotalTimeTransaction, computedValue, initialValue));
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeTransaction, computedValue, initialValue));
                     }
                     break;
                 case MessageCommand.Verack:
