@@ -145,7 +145,7 @@ namespace Neo.Network.P2P
                     stopwatchChannelsConfig.Reset();
                     if (watchSwitchPeer)
                     {
-                        Log.Info($"Class:Peer Type: Message TimeSpan:{stopwatchChannelsConfig.Elapsed.TotalSeconds}");
+                        Log.Info($"Class:Peer Type: Message TimeSpan:{timespan}");
                     }
                     if (countSwitchPeer) {
                         countChannelsConfig++;
@@ -160,7 +160,7 @@ namespace Neo.Network.P2P
                     stopwatchTimer.Reset();
                     if (watchSwitchPeer)
                     {
-                        Log.Info($"Class:Peer Type: Timer TimeSpan:{stopwatchTimer.Elapsed.TotalSeconds}");
+                        Log.Info($"Class:Peer Type: Timer TimeSpan:{timespan}");
                     }
                     if (countSwitchPeer) {
                         countTimer++;
@@ -175,7 +175,7 @@ namespace Neo.Network.P2P
                     stopwatchPeers.Reset();
                     if (watchSwitchPeer)
                     {
-                        Log.Info($"Class:Peer Type: Peers TimeSpan:{stopwatchPeers.Elapsed.TotalSeconds}");
+                        Log.Info($"Class:Peer Type: Peers TimeSpan:{timespan}");
                     }
                     if (countSwitchPeer) {
                         countPeers++;
@@ -190,7 +190,7 @@ namespace Neo.Network.P2P
                     stopwatchConnect.Reset();
                     if (watchSwitchPeer)
                     {
-                        Log.Info($"Class:Peer Type: Connect TimeSpan:{stopwatchConnect.Elapsed.TotalSeconds}");
+                        Log.Info($"Class:Peer Type: Connect TimeSpan:{timespan}");
                     }
                     if (countSwitchPeer) {
                         countConnect++;
@@ -205,7 +205,7 @@ namespace Neo.Network.P2P
                     stopwatchWsConnected.Reset();
                     if (watchSwitchPeer)
                     {
-                        Log.Info($"Class:Peer Type: WsConnected TimeSpan:{stopwatchWsConnected.Elapsed.TotalSeconds}");
+                        Log.Info($"Class:Peer Type: WsConnected TimeSpan:{timespan}");
                     }
                     if (countSwitchPeer) {
                         countWsConnected++;
@@ -220,7 +220,7 @@ namespace Neo.Network.P2P
                     stopwatchTcpConnected.Reset();
                     if (watchSwitchPeer)
                     {
-                        Log.Info($"Class:Peer Type: TcpConnected TimeSpan:{stopwatchTcpConnected.Elapsed.TotalSeconds}");
+                        Log.Info($"Class:Peer Type: TcpConnected TimeSpan:{timespan}");
                     }
                     if (countSwitchPeer) {
                         countTcpConnected++;
@@ -235,7 +235,7 @@ namespace Neo.Network.P2P
                     stopwatchTcpBound.Reset();
                     if (watchSwitchPeer)
                     {
-                        Log.Info($"Class:Peer Type: TcpBound TimeSpan:{stopwatchTcpBound.Elapsed.TotalSeconds}");
+                        Log.Info($"Class:Peer Type: TcpBound TimeSpan:{timespan}");
                     }
                     if (countSwitchPeer) {
                         countTcpBound++;
@@ -250,7 +250,7 @@ namespace Neo.Network.P2P
                     stopwatchTcpCommandFailed.Reset();
                     if (watchSwitchPeer)
                     {
-                        Log.Info($"Class:Peer Type: TcpCommandFailed TimeSpan:{stopwatchTcpCommandFailed.Elapsed.TotalSeconds}");
+                        Log.Info($"Class:Peer Type: TcpCommandFailed TimeSpan:{timespan}");
                     }
                     if (countSwitchPeer) {
                         countTcpCommandFailed++;
@@ -265,7 +265,7 @@ namespace Neo.Network.P2P
                     stopwatchTerminated.Reset();
                     if (watchSwitchPeer)
                     {
-                        Log.Info($"Class:Peer Type: Terminated TimeSpan:{stopwatchTerminated.Elapsed.TotalSeconds}");
+                        Log.Info($"Class:Peer Type: Terminated TimeSpan:{timespan}");
                     }
                     if (countSwitchPeer) {
                         countTerminated++;

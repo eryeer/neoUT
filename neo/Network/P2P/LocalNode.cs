@@ -162,9 +162,10 @@ namespace Neo.Network.P2P
                     BroadcastMessage(msg);
                     stopwatchMessage.Stop();
                     timespan= stopwatchMessage.Elapsed.TotalSeconds;
+                    stopwatchMessage.Reset();
                     if (watchSwitchLocalNode)
                     {
-                        Log.Info($"Class:LocalNode Type: Message TimeSpan:{stopwatchMessage.Elapsed.TotalSeconds}");
+                        Log.Info($"Class:LocalNode Type: Message TimeSpan:{timespan}");
                     }
                     if (countSwitchLocalNode)
                     {
@@ -180,7 +181,7 @@ namespace Neo.Network.P2P
                     stopwatchRelay.Reset();
                     if (watchSwitchLocalNode)
                     {
-                        Log.Info($"Class:LocalNode Type: Relay TimeSpan:{stopwatchRelay.Elapsed.TotalSeconds}");
+                        Log.Info($"Class:LocalNode Type: Relay TimeSpan:{timespan}");
                     }
                     if (countSwitchLocalNode) {
                         countRelay++;
@@ -195,7 +196,7 @@ namespace Neo.Network.P2P
                     stopwatchRelayDirectly.Reset();
                     if (watchSwitchLocalNode)
                     {
-                        Log.Info($"Class:LocalNode Type: RelayDirectly TimeSpan:{stopwatchRelayDirectly.Elapsed.TotalSeconds}");
+                        Log.Info($"Class:LocalNode Type: RelayDirectly TimeSpan:{timespan}");
                     }
                     if (countSwitchLocalNode) {
                         countRelayDirectly++;
@@ -210,7 +211,7 @@ namespace Neo.Network.P2P
                     stopwatchSendDirectly.Reset();
                     if (watchSwitchLocalNode)
                     {
-                        Log.Info($"Class:LocalNode Type: SendDirectly TimeSpan:{stopwatchSendDirectly.Elapsed.TotalSeconds}");
+                        Log.Info($"Class:LocalNode Type: SendDirectly TimeSpan:{timespan}");
                     }
                     if (countSwitchLocalNode) {
                         countSendDirectly++;
