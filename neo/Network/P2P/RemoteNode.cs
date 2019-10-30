@@ -37,6 +37,14 @@ namespace Neo.Network.P2P
         public static long countSetFilter = 0;
         public static long countPingPayload = 0;
 
+        public static double totalTimeMessage = 0;
+        public static double totalTimeIInventory = 0;
+        public static double totalTimeRelay = 0;
+        public static double totalTimeVersionPayload = 0;
+        public static double totalTimeVerack = 0;
+        public static double totalTimeSetFilter = 0;
+        public static double totalTimePingPayload = 0;
+
         internal class Relay { public IInventory Inventory; }
 
         private readonly NeoSystem system;
@@ -141,106 +149,157 @@ namespace Neo.Network.P2P
 
         protected override void OnReceive(object message)
         {
+            double timespan = 0;
+            double initialValue, computedValue;
             base.OnReceive(message);
             switch (message)
             {
                 case Message msg:
-                    if (watchSwitchRemoteNode)
-                    {
-                        stopwatchMessage.Start();
-                    }
+                    stopwatchMessage.Start();
                     EnqueueMessage(msg);
+                    stopwatchMessage.Stop();
+                    timespan = stopwatchMessage.Elapsed.TotalSeconds;
+                    stopwatchMessage.Reset();
                     if (watchSwitchRemoteNode)
                     {
-                        stopwatchMessage.Stop();
-                        Log.Info($"Class:RemoteNode Type: Message TimeSpan:{stopwatchMessage.Elapsed.TotalSeconds}");
-                        stopwatchMessage.Reset();
+                        Log.Info($"Class:RemoteNode Type: Message TimeSpan:{timespan}");
                     }
-                    if (countSwitchRemoteNode) Interlocked.Add(ref countMessage, 1);
+                    if (countSwitchRemoteNode)
+                    {
+                        Interlocked.Add(ref countMessage, 1);
+                        do
+                        {
+                            initialValue = totalTimeMessage;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeMessage, computedValue, initialValue));
+                    }
                     break;
                 case IInventory inventory:
-                    if (watchSwitchRemoteNode)
-                    {
-                        stopwatchIInventory.Start();
-                    }
+                    stopwatchIInventory.Start();
                     OnSend(inventory);
+                    stopwatchIInventory.Stop();
+                    timespan = stopwatchIInventory.Elapsed.TotalSeconds;
+                    stopwatchIInventory.Reset();
                     if (watchSwitchRemoteNode)
                     {
-                        stopwatchIInventory.Stop();
-                        Log.Info($"Class:RemoteNode Type: IInventory TimeSpan:{stopwatchIInventory.Elapsed.TotalSeconds}");
-                        stopwatchIInventory.Reset();
+                        Log.Info($"Class:RemoteNode Type: IInventory TimeSpan:{timespan}");
                     }
-                    if (countSwitchRemoteNode) Interlocked.Add(ref countIInventory, 1);
+                    if (countSwitchRemoteNode)
+                    {
+                        Interlocked.Add(ref countIInventory, 1);
+                        do
+                        {
+                            initialValue = totalTimeIInventory;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeIInventory, computedValue, initialValue));
+                    }
                     break;
                 case Relay relay:
-                    if (watchSwitchRemoteNode)
-                    {
-                        stopwatchRelay.Start();
-                    }
+                    stopwatchRelay.Start();
                     OnRelay(relay.Inventory);
+                    stopwatchRelay.Stop();
+                    timespan = stopwatchRelay.Elapsed.TotalSeconds;
+                    stopwatchRelay.Reset();
                     if (watchSwitchRemoteNode)
                     {
-                        stopwatchRelay.Stop();
-                        Log.Info($"Class:RemoteNode Type: Relay TimeSpan:{stopwatchRelay.Elapsed.TotalSeconds}");
-                        stopwatchRelay.Reset();
+                        Log.Info($"Class:RemoteNode Type: Relay TimeSpan:{timespan}");
                     }
-                    if (countSwitchRemoteNode) Interlocked.Add(ref countRelay, 1);
+                    if (countSwitchRemoteNode)
+                    {
+                        Interlocked.Add(ref countRelay, 1);
+                        do
+                        {
+                            initialValue = totalTimeRelay;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeRelay, computedValue, initialValue));
+                    }
                     break;
                 case VersionPayload payload:
-                    if (watchSwitchRemoteNode)
-                    {
-                        stopwatchVersionPayload.Start();
-                    }
+                    stopwatchVersionPayload.Start();
                     OnVersionPayload(payload);
+                    stopwatchVersionPayload.Stop();
+                    timespan = stopwatchVersionPayload.Elapsed.TotalSeconds;
+                    stopwatchVersionPayload.Reset();
                     if (watchSwitchRemoteNode)
                     {
-                        stopwatchVersionPayload.Stop();
-                        Log.Info($"Class:RemoteNode Type: VersionPayload TimeSpan:{stopwatchVersionPayload.Elapsed.TotalSeconds}");
-                        stopwatchVersionPayload.Reset();
+                        Log.Info($"Class:RemoteNode Type: VersionPayload TimeSpan:{timespan}");
                     }
-                    if (countSwitchRemoteNode) Interlocked.Add(ref countVersionPayload, 1);
+                    if (countSwitchRemoteNode)
+                    {
+                        Interlocked.Add(ref countVersionPayload, 1);
+                        do
+                        {
+                            initialValue = totalTimeVersionPayload;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeVersionPayload, computedValue, initialValue));
+                    }
                     break;
                 case MessageCommand.Verack:
-                    if (watchSwitchRemoteNode)
-                    {
-                        stopwatchVerack.Start();
-                    }
+                    stopwatchVerack.Start();
                     OnVerack();
+                    stopwatchVerack.Stop();
+                    timespan = stopwatchVerack.Elapsed.TotalSeconds;
+                    stopwatchVerack.Reset();
                     if (watchSwitchRemoteNode)
                     {
-                        stopwatchVerack.Stop();
-                        Log.Info($"Class:RemoteNode Type: Verack TimeSpan:{stopwatchVerack.Elapsed.TotalSeconds}");
-                        stopwatchVerack.Reset();
+                        Log.Info($"Class:RemoteNode Type: Verack TimeSpan:{timespan}");
                     }
-                    if (countSwitchRemoteNode) Interlocked.Add(ref countVerack, 1); 
+                    if (countSwitchRemoteNode)
+                    {
+                        Interlocked.Add(ref countVerack, 1);
+                        do
+                        {
+                            initialValue = totalTimeVerack;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeVerack, computedValue, initialValue));
+                    }
                     break;
                 case ProtocolHandler.SetFilter setFilter:
-                    if (watchSwitchRemoteNode)
-                    {
-                        stopwatchSetFilter.Start();
-                    }
+                    stopwatchSetFilter.Start();
                     OnSetFilter(setFilter.Filter);
+                    stopwatchSetFilter.Stop();
+                    timespan = stopwatchSetFilter.Elapsed.TotalSeconds;
+                    stopwatchSetFilter.Reset();
                     if (watchSwitchRemoteNode)
                     {
-                        stopwatchSetFilter.Stop();
-                        Log.Info($"Class:RemoteNode Type: SetFilter TimeSpan:{stopwatchSetFilter.Elapsed.TotalSeconds}");
-                        stopwatchVerack.Reset();
+                        Log.Info($"Class:RemoteNode Type: SetFilter TimeSpan:{timespan}");
                     }
-                    if (countSwitchRemoteNode) Interlocked.Add(ref countSetFilter, 1);
+                    if (countSwitchRemoteNode)
+                    {
+                        Interlocked.Add(ref countSetFilter, 1);
+                        do
+                        {
+                            initialValue = totalTimeSetFilter;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeSetFilter, computedValue, initialValue));
+                    }
                     break;
                 case PingPayload payload:
-                    if (watchSwitchRemoteNode)
-                    {
-                        stopwatchPingPayload.Start();
-                    }
+                    stopwatchPingPayload.Start();
                     OnPingPayload(payload);
+                    stopwatchPingPayload.Stop();
+                    timespan = stopwatchPingPayload.Elapsed.TotalSeconds;
+                    stopwatchPingPayload.Reset();
                     if (watchSwitchRemoteNode)
                     {
-                        stopwatchPingPayload.Stop();
-                        Log.Info($"Class:RemoteNode Type: SetFilter TimeSpan:{stopwatchPingPayload.Elapsed.TotalSeconds}");
-                        stopwatchPingPayload.Reset();
+                        Log.Info($"Class:RemoteNode Type: PingPayload TimeSpan:{timespan}");
                     }
-                    if (countSwitchRemoteNode) Interlocked.Add(ref countPingPayload, 1);
+                    if (countSwitchRemoteNode)
+                    {
+                        Interlocked.Add(ref countPingPayload, 1);
+                        do
+                        {
+                            initialValue = totalTimePingPayload;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimePingPayload, computedValue, initialValue));
+                    }
                     break;
             }
         }

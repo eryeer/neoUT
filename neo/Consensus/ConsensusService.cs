@@ -50,6 +50,18 @@ namespace Neo.Consensus
         public static long countTransaction = 0;
         public static long countPersistCompleted = 0;
 
+        public static double totalTimeSetViewNumber = 0;
+        public static double totalTimeTimer = 0;
+        public static double totalTimeConsensusPayloadCommon = 0;
+        public static double totalTimeChangeView = 0;
+        public static double totalTimePrepareRequest = 0;
+        public static double totalTimePrepareResponse = 0;
+        public static double totalTimeCommit = 0;
+        public static double totalTimeRecoveryRequest = 0;
+        public static double totalTimeRecoveryMessage = 0;
+        public static double totalTimeTransaction = 0;
+        public static double totalTimePersistCompleted = 0;
+
 
 
         public class Start { public bool IgnoreRecoveryLogs; }
@@ -171,28 +183,34 @@ namespace Neo.Consensus
             //Connection
             if (Connection.countSwitch)
             {
-                AkkaLog.Info($"Class: Connection Type: Timer Count: {Connection.countTimer}");
-                AkkaLog.Info($"Class: Connection Type: Ack Count: {Connection.countAck}");
-                AkkaLog.Info($"Class: Connection Type: Received Count: {Connection.countReceived}");
-                AkkaLog.Info($"Class: Connection Type: ConnectionClosed Count: {Connection.countConnectionClosed}");
-                AkkaLog.Info($"Class: Connection Type: TPSTimer Count: {Connection.countTPSTimer}");
+                AkkaLog.Info($"Class: Connection Type: Timer Count: {Connection.countTimer} averageTimespan: {Connection.totalTimeTimer / Connection.countTimer}");
+                AkkaLog.Info($"Class: Connection Type: Ack Count: {Connection.countAck} averageTimespan: {Connection.totalTimeAck / Connection.countAck}");
+                AkkaLog.Info($"Class: Connection Type: Received Count: {Connection.countReceived} averageTimespan: {Connection.totalTimeReceived / Connection.countReceived}");
+                AkkaLog.Info($"Class: Connection Type: ConnectionClosed Count: {Connection.countConnectionClosed} averageTimespan: {Connection.totalTimeConnectionClosed / Connection.countConnectionClosed}");
+                AkkaLog.Info($"Class: Connection Type: TPSTimer Count: {Connection.countTPSTimer} averageTimespan: {Connection.totalTimeTPSTimer / Connection.countTPSTimer}");
                 Connection.countTimer = 0;
                 Connection.countAck = 0;
                 Connection.countReceived = 0;
                 Connection.countConnectionClosed = 0;
                 Connection.countTPSTimer = 0;
+
+                Connection.totalTimeTimer = 0;
+                Connection.totalTimeAck = 0;
+                Connection.totalTimeReceived = 0;
+                Connection.totalTimeConnectionClosed = 0;
+                Connection.totalTimeTPSTimer = 0;
             }
 
             //RemoteNode
             if (RemoteNode.countSwitchRemoteNode)
             {
-                AkkaLog.Info($"Class: RemoteNode Type: Message Count: {RemoteNode.countMessage}");
-                AkkaLog.Info($"Class: RemoteNode Type: IInventory Count: {RemoteNode.countIInventory}");
-                AkkaLog.Info($"Class: RemoteNode Type: Relay Count: {RemoteNode.countRelay}");
-                AkkaLog.Info($"Class: RemoteNode Type: VersionPayload Count: {RemoteNode.countVersionPayload}");
-                AkkaLog.Info($"Class: RemoteNode Type: Verack Count: {RemoteNode.countVerack}");
-                AkkaLog.Info($"Class: RemoteNode Type: SetFilter Count: {RemoteNode.countSetFilter}");
-                AkkaLog.Info($"Class: RemoteNode Type: PingPayload Count: {RemoteNode.countPingPayload}");
+                AkkaLog.Info($"Class: RemoteNode Type: Message Count: {RemoteNode.countMessage} averageTimespan: {RemoteNode.totalTimeMessage / RemoteNode.countMessage}");
+                AkkaLog.Info($"Class: RemoteNode Type: IInventory Count: {RemoteNode.countIInventory} averageTimespan: {RemoteNode.totalTimeIInventory / RemoteNode.countIInventory}");
+                AkkaLog.Info($"Class: RemoteNode Type: Relay Count: {RemoteNode.countRelay} averageTimespan: {RemoteNode.totalTimeRelay / RemoteNode.countRelay}");
+                AkkaLog.Info($"Class: RemoteNode Type: VersionPayload Count: {RemoteNode.countVersionPayload} averageTimespan: {RemoteNode.totalTimeVersionPayload / RemoteNode.countVersionPayload}");
+                AkkaLog.Info($"Class: RemoteNode Type: Verack Count: {RemoteNode.countVerack} averageTimespan: {RemoteNode.totalTimeVerack / RemoteNode.countVerack}");
+                AkkaLog.Info($"Class: RemoteNode Type: SetFilter Count: {RemoteNode.countSetFilter} averageTimespan: {RemoteNode.totalTimeSetFilter / RemoteNode.countSetFilter}");
+                AkkaLog.Info($"Class: RemoteNode Type: PingPayload Count: {RemoteNode.countPingPayload} averageTimespan: {RemoteNode.totalTimePingPayload / RemoteNode.countPingPayload}");
                 RemoteNode.countMessage = 0;
                 RemoteNode.countIInventory = 0;
                 RemoteNode.countRelay = 0;
@@ -200,22 +218,30 @@ namespace Neo.Consensus
                 RemoteNode.countVerack = 0;
                 RemoteNode.countSetFilter = 0;
                 RemoteNode.countPingPayload = 0;
+
+                RemoteNode.totalTimeMessage = 0;
+                RemoteNode.totalTimeIInventory = 0;
+                RemoteNode.totalTimeRelay = 0;
+                RemoteNode.totalTimeVersionPayload = 0;
+                RemoteNode.totalTimeVerack = 0;
+                RemoteNode.totalTimeSetFilter = 0;
+                RemoteNode.totalTimePingPayload = 0;
             }
 
             //ConsensusService
             if (ConsensusService.countSwitch)
             {
-                AkkaLog.Info($"Class: ConsensusService Type: SetViewNumber Count: {ConsensusService.countSetViewNumber}");
-                AkkaLog.Info($"Class: ConsensusService Type: Timer Count: {ConsensusService.countTimer}");
-                AkkaLog.Info($"Class: ConsensusService Type: ConsensusPayloadCommon Count: {ConsensusService.countConsensusPayloadCommon}");
-                AkkaLog.Info($"Class: ConsensusService Type: ChangeView Count: {ConsensusService.countChangeView}");
-                AkkaLog.Info($"Class: ConsensusService Type: PrepareRequest Count: {ConsensusService.countPrepareRequest}");
-                AkkaLog.Info($"Class: ConsensusService Type: PrepareResponse Count: {ConsensusService.countPrepareResponse}");
-                AkkaLog.Info($"Class: ConsensusService Type: Commit Count: {ConsensusService.countCommit}");
-                AkkaLog.Info($"Class: ConsensusService Type: RecoveryRequest Count: {ConsensusService.countRecoveryRequest}");
-                AkkaLog.Info($"Class: ConsensusService Type: RecoveryMessage Count: {ConsensusService.countRecoveryMessage}");
-                AkkaLog.Info($"Class: ConsensusService Type: Transaction Count: {ConsensusService.countTransaction}");
-                AkkaLog.Info($"Class: ConsensusService Type: PersistCompleted Count: {ConsensusService.countPersistCompleted}");
+                AkkaLog.Info($"Class: ConsensusService Type: SetViewNumber Count: {ConsensusService.countSetViewNumber} averageTimespan: {ConsensusService.totalTimeSetViewNumber / ConsensusService.countSetViewNumber}");
+                AkkaLog.Info($"Class: ConsensusService Type: Timer Count: {ConsensusService.countTimer} averageTimespan: {ConsensusService.totalTimeTimer / ConsensusService.countTimer}");
+                AkkaLog.Info($"Class: ConsensusService Type: ConsensusPayloadCommon Count: {ConsensusService.countConsensusPayloadCommon} averageTimespan: {ConsensusService.totalTimeConsensusPayloadCommon / ConsensusService.countConsensusPayloadCommon}");
+                AkkaLog.Info($"Class: ConsensusService Type: ChangeView Count: {ConsensusService.countChangeView} averageTimespan: {ConsensusService.totalTimeChangeView / ConsensusService.countChangeView}");
+                AkkaLog.Info($"Class: ConsensusService Type: PrepareRequest Count: {ConsensusService.countPrepareRequest} averageTimespan: {ConsensusService.totalTimePrepareRequest / ConsensusService.countPrepareRequest}");
+                AkkaLog.Info($"Class: ConsensusService Type: PrepareResponse Count: {ConsensusService.countPrepareResponse} averageTimespan: {ConsensusService.totalTimePrepareResponse / ConsensusService.countPrepareResponse}");
+                AkkaLog.Info($"Class: ConsensusService Type: Commit Count: {ConsensusService.countCommit} averageTimespan: {ConsensusService.totalTimeCommit / ConsensusService.countCommit}");
+                AkkaLog.Info($"Class: ConsensusService Type: RecoveryRequest Count: {ConsensusService.countRecoveryRequest} averageTimespan: {ConsensusService.totalTimeRecoveryRequest / ConsensusService.countRecoveryRequest}");
+                AkkaLog.Info($"Class: ConsensusService Type: RecoveryMessage Count: {ConsensusService.countRecoveryMessage} averageTimespan: {ConsensusService.totalTimeRecoveryMessage / ConsensusService.countRecoveryMessage}");
+                AkkaLog.Info($"Class: ConsensusService Type: Transaction Count: {ConsensusService.countTransaction} averageTimespan: {ConsensusService.totalTimeTransaction / ConsensusService.countTransaction}");
+                AkkaLog.Info($"Class: ConsensusService Type: PersistCompleted Count: {ConsensusService.countPersistCompleted} averageTimespan: {ConsensusService.totalTimePersistCompleted / ConsensusService.countPersistCompleted}");
                 ConsensusService.countSetViewNumber = 0;
                 ConsensusService.countTimer = 0;
                 ConsensusService.countConsensusPayloadCommon = 0;
@@ -227,27 +253,39 @@ namespace Neo.Consensus
                 ConsensusService.countRecoveryMessage = 0;
                 ConsensusService.countTransaction = 0;
                 ConsensusService.countPersistCompleted = 0;
+
+                totalTimeSetViewNumber = 0;
+                totalTimeTimer = 0;
+                totalTimeConsensusPayloadCommon = 0;
+                totalTimeChangeView = 0;
+                totalTimePrepareRequest = 0;
+                totalTimePrepareResponse = 0;
+                totalTimeCommit = 0;
+                totalTimeRecoveryRequest = 0;
+                totalTimeRecoveryMessage = 0;
+                totalTimeTransaction = 0;
+                totalTimePersistCompleted = 0;
             }
 
             //ProtocolHandler
             if (ProtocolHandler.countSwitch)
             {
-                AkkaLog.Info($"Class: ProtocolHandler Type: Addr Count: {ProtocolHandler.countAddr}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: Block Count: {ProtocolHandler.countBlock}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: Consensus Count: {ProtocolHandler.countConsensus}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: FilterAdd Count: {ProtocolHandler.countFilterAdd}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: FilterClear Count: {ProtocolHandler.countFilterClear}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: FilterLoad Count: {ProtocolHandler.countFilterLoad}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: GetAddr Count: {ProtocolHandler.countGetAddr}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: GetBlocks Count: {ProtocolHandler.countGetBlocks}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: GetData Count: {ProtocolHandler.countGetData}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: GetHeaders Count: {ProtocolHandler.countGetHeaders}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: Headers Count: {ProtocolHandler.countHeaders}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: Inv Count: {ProtocolHandler.countInv}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: Mempool Count: {ProtocolHandler.countMempool}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: Ping Count: {ProtocolHandler.countPing}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: Pong Count: {ProtocolHandler.countPong}");
-                AkkaLog.Info($"Class: ProtocolHandler Type: Transaction Count: {ProtocolHandler.countTransaction}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Addr Count: {ProtocolHandler.countAddr} averageTimespan: {ProtocolHandler.totalTimeAddr / ProtocolHandler.countAddr}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Block Count: {ProtocolHandler.countBlock} averageTimespan: {ProtocolHandler.totalTimeBlock / ProtocolHandler.countBlock}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Consensus Count: {ProtocolHandler.countConsensus} averageTimespan: {ProtocolHandler.totalTimeConsensus / ProtocolHandler.countConsensus}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: FilterAdd Count: {ProtocolHandler.countFilterAdd} averageTimespan: {ProtocolHandler.totalTimeFilterAdd / ProtocolHandler.countFilterAdd}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: FilterClear Count: {ProtocolHandler.countFilterClear} averageTimespan: {ProtocolHandler.totalTimeFilterClear / ProtocolHandler.countFilterClear}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: FilterLoad Count: {ProtocolHandler.countFilterLoad} averageTimespan: {ProtocolHandler.totalTimeFilterLoad / ProtocolHandler.countFilterLoad}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: GetAddr Count: {ProtocolHandler.countGetAddr} averageTimespan: {ProtocolHandler.totalTimeGetAddr / ProtocolHandler.countGetAddr}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: GetBlocks Count: {ProtocolHandler.countGetBlocks} averageTimespan: {ProtocolHandler.totalTimeGetBlocks / ProtocolHandler.countGetBlocks}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: GetData Count: {ProtocolHandler.countGetData} averageTimespan: {ProtocolHandler.totalTimeGetData / ProtocolHandler.countGetData}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: GetHeaders Count: {ProtocolHandler.countGetHeaders} averageTimespan: {ProtocolHandler.totalTimeGetHeaders / ProtocolHandler.countGetHeaders}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Headers Count: {ProtocolHandler.countHeaders} averageTimespan: {ProtocolHandler.totalTimeHeaders / ProtocolHandler.countHeaders}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Inv Count: {ProtocolHandler.countInv} averageTimespan: {ProtocolHandler.totalTimeInv / ProtocolHandler.countInv}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Mempool Count: {ProtocolHandler.countMempool} averageTimespan: {ProtocolHandler.totalTimeMempool / ProtocolHandler.countMempool}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Ping Count: {ProtocolHandler.countPing} averageTimespan: {ProtocolHandler.totalTimePing / ProtocolHandler.countPing}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Pong Count: {ProtocolHandler.countPong} averageTimespan: {ProtocolHandler.totalTimePong / ProtocolHandler.countPong}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Transaction Count: {ProtocolHandler.countTransaction} averageTimespan: {ProtocolHandler.totalTimeTransaction / ProtocolHandler.countTransaction}");
                 ProtocolHandler.countAddr = 0;
                 ProtocolHandler.countBlock = 0;
                 ProtocolHandler.countConsensus = 0;
@@ -264,7 +302,24 @@ namespace Neo.Consensus
                 ProtocolHandler.countPing = 0;
                 ProtocolHandler.countPong = 0;
                 ProtocolHandler.countTransaction = 0;
-            }
+
+                ProtocolHandler.totalTimeAddr = 0;
+                ProtocolHandler.totalTimeBlock = 0;
+                ProtocolHandler.totalTimeConsensus = 0;
+                ProtocolHandler.totalTimeFilterAdd = 0;
+                ProtocolHandler.totalTimeFilterClear = 0;
+                ProtocolHandler.totalTimeFilterLoad = 0;
+                ProtocolHandler.totalTimeGetAddr = 0;
+                ProtocolHandler.totalTimeGetBlocks = 0;
+                ProtocolHandler.totalTimeGetData = 0;
+                ProtocolHandler.totalTimeGetHeaders = 0;
+                ProtocolHandler.totalTimeHeaders = 0;
+                ProtocolHandler.totalTimeInv = 0;
+                ProtocolHandler.totalTimeMempool = 0;
+                ProtocolHandler.totalTimePing = 0;
+                ProtocolHandler.totalTimePong = 0;
+                ProtocolHandler.totalTimeTransaction = 0;
+    }
 
             //TaskManager
             if (TaskManager.countSwitch)
