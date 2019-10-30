@@ -21,7 +21,7 @@ namespace Neo.Consensus
     public sealed class ConsensusService : UntypedActor
     {
 
-        public static bool watchSwitch = true;
+        public static bool watchSwitch = false;
         public static bool countSwitch = false;
         public Akka.Event.ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
         private DateTime lasttime = DateTime.Now;
