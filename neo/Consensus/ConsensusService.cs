@@ -387,6 +387,7 @@ namespace Neo.Consensus
                 Peer.countTcpCommandFailed = 0;
                 Peer.countTerminated = 0;
             }
+
             if (LocalNode.countSwitchLocalNode)
             {
                 AkkaLog.Info($"Class: LocalNode Type: Message Count: {LocalNode.countMessage}");
@@ -529,10 +530,9 @@ namespace Neo.Consensus
 
         private void OnConsensusPayload(ConsensusPayload payload)
         {
-            if (watchSwitch)
-            {
-                stopwatchConsensusPayloadCommon.Start();
-            }
+            double timespan = 0;
+            stopwatchConsensusPayloadCommon.Start();
+
             if (context.BlockSent) return;
             if (payload.Version != context.Block.Version) return;
             if (payload.PrevHash != context.Block.PrevHash || payload.BlockIndex != context.Block.Index)
@@ -562,98 +562,116 @@ namespace Neo.Consensus
                 if (!plugin.OnConsensusMessage(payload))
                     return;
 
+            stopwatchConsensusPayloadCommon.Stop();
+            timespan = stopwatchConsensusPayloadCommon.Elapsed.TotalSeconds;
+            stopwatchConsensusPayloadCommon.Reset();
+
             if (watchSwitch)
             {
-                stopwatchConsensusPayloadCommon.Stop();
                 AkkaLog.Info($"Class: ConsensusService Type: ConsensusPayloadCommon TimeSpan:{stopwatchConsensusPayloadCommon.Elapsed.TotalSeconds}");
-                stopwatchConsensusPayloadCommon.Reset();
             }
-            if (countSwitch) countConsensusPayloadCommon++;
+            if (countSwitch)
+            {
+                countConsensusPayloadCommon++;
+                totalTimeConsensusPayloadCommon += timespan;
+            }
             switch (message)
             {
                 case ChangeView view:
-                    if (watchSwitch)
-                    {
-                        stopwatchChangeView.Start();
-                    }
+                    stopwatchChangeView.Start();
                     OnChangeViewReceived(payload, view);
+                    stopwatchChangeView.Stop();
+                    timespan = stopwatchChangeView.Elapsed.TotalSeconds;
+                    stopwatchChangeView.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchChangeView.Stop();
-                        AkkaLog.Info($"Class: ConsensusService Type: ChangeView TimeSpan:{stopwatchChangeView.Elapsed.TotalSeconds}");
-                        stopwatchChangeView.Reset();
+                        AkkaLog.Info($"Class: ConsensusService Type: ChangeView TimeSpan:{timespan}");
                     }
-                    if (countSwitch) countChangeView++;
+                    if (countSwitch)
+                    {
+                        countChangeView++;
+                        totalTimeChangeView += timespan;
+                    }
                     break;
                 case PrepareRequest request:
-                    if (watchSwitch)
-                    {
-                        stopwatchPrepareRequest.Start();
-                    }
+                    stopwatchPrepareRequest.Start();
                     OnPrepareRequestReceived(payload, request);
+                    stopwatchPrepareRequest.Stop();
+                    timespan = stopwatchPrepareRequest.Elapsed.TotalSeconds;
+                    stopwatchPrepareRequest.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchPrepareRequest.Stop();
-                        AkkaLog.Info($"Class: ConsensusService Type: PrepareRequest TimeSpan:{stopwatchPrepareRequest.Elapsed.TotalSeconds}");
-                        stopwatchPrepareRequest.Reset();
+                        AkkaLog.Info($"Class: ConsensusService Type: PrepareRequest TimeSpan:{timespan}");
                     }
-                    if (countSwitch) countPrepareRequest++;
+                    if (countSwitch)
+                    {
+                        countPrepareRequest++;
+                        totalTimePrepareRequest += timespan;
+                    }
                     break;
                 case PrepareResponse response:
-                    if (watchSwitch)
-                    {
-                        stopwatchPrepareResponse.Start();
-                    }
+                    stopwatchPrepareResponse.Start();
                     OnPrepareResponseReceived(payload, response);
+                    stopwatchPrepareResponse.Stop();
+                    timespan = stopwatchPrepareResponse.Elapsed.TotalSeconds;
+                    stopwatchPrepareResponse.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchPrepareResponse.Stop();
-                        AkkaLog.Info($"Class: ConsensusService Type: PrepareResponse TimeSpan:{stopwatchPrepareResponse.Elapsed.TotalSeconds}");
-                        stopwatchPrepareResponse.Reset();
+                        AkkaLog.Info($"Class: ConsensusService Type: PrepareResponse TimeSpan:{timespan}");
                     }
-                    if (countSwitch) countPrepareResponse++;
+                    if (countSwitch)
+                    {
+                        countPrepareResponse++;
+                        totalTimePrepareResponse += timespan;
+                    }
                     break;
                 case Commit commit:
-                    if (watchSwitch)
-                    {
-                        stopwatchCommit.Start();
-                    }
+                    stopwatchCommit.Start();
                     OnCommitReceived(payload, commit);
+                    stopwatchCommit.Stop();
+                    timespan = stopwatchCommit.Elapsed.TotalSeconds;
+                    stopwatchCommit.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchCommit.Stop();
-                        AkkaLog.Info($"Class: ConsensusService Type: Commit TimeSpan:{stopwatchCommit.Elapsed.TotalSeconds}");
-                        stopwatchCommit.Reset();
+                        AkkaLog.Info($"Class: ConsensusService Type: Commit TimeSpan:{timespan}");
                     }
-                    if (countSwitch) countCommit++;
+                    if (countSwitch)
+                    {
+                        countCommit++;
+                        totalTimeCommit += timespan;
+                    }
                     break;
                 case RecoveryRequest _:
-                    if (watchSwitch)
-                    {
-                        stopwatchRecoveryRequest.Start();
-                    }
+                    stopwatchRecoveryRequest.Start();
                     OnRecoveryRequestReceived(payload);
+                    stopwatchRecoveryRequest.Stop();
+                    timespan = stopwatchRecoveryRequest.Elapsed.TotalSeconds;
+                    stopwatchRecoveryRequest.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchRecoveryRequest.Stop();
-                        AkkaLog.Info($"Class: ConsensusService Type: RecoveryRequest TimeSpan:{stopwatchRecoveryRequest.Elapsed.TotalSeconds}");
-                        stopwatchRecoveryRequest.Reset();
+                        AkkaLog.Info($"Class: ConsensusService Type: RecoveryRequest TimeSpan:{timespan}");
                     }
-                    if (countSwitch) countRecoveryRequest++;
+                    if (countSwitch)
+                    {
+                        countRecoveryRequest++;
+                        totalTimeRecoveryRequest += timespan;
+                    }
                     break;
                 case RecoveryMessage recovery:
-                    if (watchSwitch)
-                    {
-                        stopwatchRecoveryMessage.Start();
-                    }
+                    stopwatchRecoveryMessage.Start();
                     OnRecoveryMessageReceived(payload, recovery);
+                    stopwatchRecoveryMessage.Stop();
+                    timespan = stopwatchRecoveryMessage.Elapsed.TotalSeconds;
+                    stopwatchRecoveryMessage.Reset();
                     if (watchSwitch)
                     {
-                        stopwatchRecoveryMessage.Stop();
-                        AkkaLog.Info($"Class: ConsensusService Type: RecoveryMessage TimeSpan:{stopwatchRecoveryMessage.Elapsed.TotalSeconds}");
-                        stopwatchRecoveryMessage.Reset();
+                        AkkaLog.Info($"Class: ConsensusService Type: RecoveryMessage TimeSpan:{timespan}");
                     }
-                    if (countSwitch) countRecoveryMessage++;
+                    if (countSwitch)
+                    {
+                        countRecoveryMessage++;
+                        totalTimeRecoveryMessage += timespan;
+                    }
                     break;
             }
         }
@@ -851,66 +869,75 @@ namespace Neo.Consensus
             else
             {
                 if (!started) return;
+                double timespan = 0;
                 switch (message)
                 {
                     case SetViewNumber setView:
-                        if (watchSwitch)
-                        {
-                            stopwatchSetViewNumber.Start();
-                        }
+                        stopwatchSetViewNumber.Start();
                         InitializeConsensus(setView.ViewNumber);
+                        stopwatchSetViewNumber.Stop();
+                        timespan = stopwatchSetViewNumber.Elapsed.TotalSeconds;
+                        stopwatchSetViewNumber.Reset();
                         if (watchSwitch)
                         {
-                            stopwatchSetViewNumber.Stop();
-                            AkkaLog.Info($"Class: ConsensusService Type: SetViewNumber TimeSpan:{stopwatchSetViewNumber.Elapsed.TotalSeconds}");
-                            stopwatchSetViewNumber.Reset();
+                            AkkaLog.Info($"Class: ConsensusService Type: SetViewNumber TimeSpan:{timespan}");
                         }
-                        if (countSwitch) countSetViewNumber++;
+                        if (countSwitch)
+                        {
+                            countSetViewNumber++;
+                            totalTimeSetViewNumber += timespan;
+                        }
                         break;
                     case Timer timer:
-                        if (watchSwitch)
-                        {
-                            stopwatchTimer.Start();
-                        }
+                        stopwatchTimer.Start();
                         OnTimer(timer);
+                        stopwatchTimer.Stop();
+                        timespan = stopwatchTimer.Elapsed.TotalSeconds;
+                        stopwatchTimer.Reset();
                         if (watchSwitch)
                         {
-                            stopwatchTimer.Stop();
-                            AkkaLog.Info($"Class: ConsensusService Type: Timer TimeSpan:{stopwatchTimer.Elapsed.TotalSeconds}");
-                            stopwatchTimer.Reset();
+                            AkkaLog.Info($"Class: ConsensusService Type: Timer TimeSpan:{timespan}");
                         }
-                        if (countSwitch) countTimer++;
+                        if (countSwitch)
+                        {
+                            countTimer++;
+                            totalTimeTimer += timespan;
+                        }
                         break;
                     case ConsensusPayload payload:
                         OnConsensusPayload(payload);
                         break;
                     case Transaction transaction:
-                        if (watchSwitch)
-                        {
-                            stopwatchTransaction.Start();
-                        }
+                        stopwatchTransaction.Start();
                         OnTransaction(transaction);
+                        stopwatchTransaction.Stop();
+                        timespan = stopwatchTransaction.Elapsed.TotalSeconds;
+                        stopwatchTransaction.Reset();
                         if (watchSwitch)
                         {
-                            stopwatchTransaction.Stop();
-                            AkkaLog.Info($"Class: ConsensusService Type: Transaction TimeSpan:{stopwatchTransaction.Elapsed.TotalSeconds}");
-                            stopwatchTransaction.Reset();
+                            AkkaLog.Info($"Class: ConsensusService Type: Transaction TimeSpan:{timespan}");
                         }
-                        if (countSwitch) countTransaction++;
+                        if (countSwitch)
+                        {
+                            countTransaction++;
+                            totalTimeTransaction += timespan;
+                        }
                         break;
                     case Blockchain.PersistCompleted completed:
-                        if (watchSwitch)
-                        {
-                            stopwatchPersistCompleted.Start();
-                        }
+                        stopwatchPersistCompleted.Start();
                         OnPersistCompleted(completed.Block);
+                        stopwatchPersistCompleted.Stop();
+                        timespan = stopwatchPersistCompleted.Elapsed.TotalSeconds;
+                        stopwatchPersistCompleted.Reset();
                         if (watchSwitch)
                         {
-                            stopwatchPersistCompleted.Stop();
-                            AkkaLog.Info($"Class: ConsensusService Type: PersistCompleted TimeSpan:{stopwatchPersistCompleted.Elapsed.TotalSeconds}");
-                            stopwatchPersistCompleted.Reset();
+                            AkkaLog.Info($"Class: ConsensusService Type: PersistCompleted TimeSpan:{timespan}");
                         }
-                        if (countSwitch) countPersistCompleted++;
+                        if (countSwitch)
+                        {
+                            countPersistCompleted++;
+                            totalTimePersistCompleted += timespan;
+                        }
                         break;
                 }
             }
