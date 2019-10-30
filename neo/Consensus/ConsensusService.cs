@@ -592,7 +592,7 @@ namespace Neo.Consensus
 
             if (watchSwitch)
             {
-                AkkaLog.Info($"Class: ConsensusService Type: ConsensusPayloadCommon TimeSpan:{stopwatchConsensusPayloadCommon.Elapsed.TotalSeconds}");
+                AkkaLog.Info($"Class: ConsensusService Type: ConsensusPayloadCommon TimeSpan:{timespan}");
             }
             if (countSwitch)
             {
