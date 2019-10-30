@@ -411,125 +411,141 @@ namespace Neo.Ledger
         public static long countConsensusPayload = 0;
         public static long countIdle = 0;
 
+        public static double totalTimeImport = 0;
+        public static double totalTimeFillMemoryPool = 0;
+        public static double totalTimeHeaderArray = 0;
+        public static double totalTimeBlock = 0;
+        public static double totalTimeTransactionArray = 0;
+        public static double totalTimeTransaction = 0;
+        public static double totalTimeConsensusPayload = 0;
+        public static double totalTimeIdle = 0;
         protected override void OnReceive(object message)
         {
+            double timespan = 0;
             switch (message)
             {
                 case Import import:
-                    if (watchSwitchBlockchain)
-                    {
-                        stopwatchImport.Start();
-                    }
+                    stopwatchImport.Start();
                     OnImport(import.Blocks);
+                    stopwatchImport.Stop();
+                    timespan=stopwatchImport.Elapsed.TotalSeconds;
+                    stopwatchImport.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        stopwatchImport.Stop();
                         Log.Info($"Class:Blockchain Type: Import TimeSpan:{stopwatchImport.Elapsed.TotalSeconds}");
-                        stopwatchImport.Reset();
                     }
-                    if (countSwitchBlockchain) countImport++;
+                    if (countSwitchBlockchain) {
+                        countImport++;
+                        totalTimeImport+= timespan;
+                    }
                     break;
                 case FillMemoryPool fill:
-                    if (watchSwitchBlockchain)
-                    {
-                        stopwatchFillMemoryPool.Start();
-                    }
+                    stopwatchFillMemoryPool.Start();
                     OnFillMemoryPool(fill.Transactions);
+                    stopwatchFillMemoryPool.Stop();
+                    timespan= stopwatchFillMemoryPool.Elapsed.TotalSeconds;
+                    stopwatchFillMemoryPool.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        stopwatchFillMemoryPool.Stop();
                         Log.Info($"Class:Blockchain Type: FillMemoryPool TimeSpan:{stopwatchFillMemoryPool.Elapsed.TotalSeconds}");
-                        stopwatchFillMemoryPool.Reset();
                     }
-                    if (countSwitchBlockchain) countFillMemoryPool++;
+                    if (countSwitchBlockchain) {
+                        countFillMemoryPool++;
+                        totalTimeFillMemoryPool += timespan;
+                    }
                     break;
                 case Header[] headers:
-                    if (watchSwitchBlockchain)
-                    {
-                        stopwatchHeaderArray.Start();
-                    }
+                    stopwatchHeaderArray.Start();
                     OnNewHeaders(headers);
+                    stopwatchHeaderArray.Stop();
+                    timespan = stopwatchHeaderArray.Elapsed.TotalSeconds;
+                    stopwatchHeaderArray.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        stopwatchHeaderArray.Stop();
                         Log.Info($"Class:Blockchain Type: Header TimeSpan:{stopwatchHeaderArray.Elapsed.TotalSeconds}");
-                        stopwatchHeaderArray.Reset();
                     }
-                    if (countSwitchBlockchain) countHeaderArray++;
+                    if (countSwitchBlockchain) {
+                        countHeaderArray++;
+                        totalTimeHeaderArray += timespan;
+                    }
                     break;
                 case Block block:
-                    if (watchSwitchBlockchain)
-                    {
-                        stopwatchBlock.Start();
-                    }
+                    stopwatchBlock.Start();
                     Sender.Tell(OnNewBlock(block));
+                    stopwatchBlock.Stop();
+                    timespan = stopwatchBlock.Elapsed.TotalSeconds;
+                    stopwatchBlock.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        stopwatchBlock.Stop();
                         Log.Info($"Class:Blockchain Type: Block TimeSpan:{stopwatchBlock.Elapsed.TotalSeconds}");
-                        stopwatchBlock.Reset();
                     }
-                    if (countSwitchBlockchain) countBlock++;
+                    if (countSwitchBlockchain) {
+                        countBlock++;
+                        totalTimeBlock += timespan;
+                    }
                     break;
                 case Transaction[] transactions:
                     {
-                        if (watchSwitchBlockchain)
-                        {
-                            stopwatchTransactionArray.Start();
-                        }
-                        // This message comes from a mempool's revalidation, already relayed
+                        stopwatchTransactionArray.Start();
                         foreach (var tx in transactions) OnNewTransaction(tx, false);
+                        stopwatchTransactionArray.Stop();
+                        timespan= stopwatchTransactionArray.Elapsed.TotalSeconds;
+                        stopwatchTransactionArray.Reset();
                         if (watchSwitchBlockchain)
                         {
-                            stopwatchTransactionArray.Stop();
                             Log.Info($"Class:Blockchain Type: TransactionArray TimeSpan:{stopwatchTransactionArray.Elapsed.TotalSeconds}");
-                            stopwatchTransactionArray.Reset();
                         }
-                        if (countSwitchBlockchain) countTransactionArray++;
+                        if (countSwitchBlockchain) {
+                            countTransactionArray++;
+                            totalTimeTransactionArray += timespan;
+                        }
                         break;
                     }
                 case Transaction transaction:
-                    if (watchSwitchBlockchain)
-                    {
-                        stopwatchTransaction.Start();
-                    }
+                    stopwatchTransaction.Start();
                     Sender.Tell(OnNewTransaction(transaction, true));
+                    stopwatchTransaction.Stop();
+                    timespan= stopwatchTransaction.Elapsed.TotalSeconds;
+                    stopwatchTransaction.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        stopwatchTransaction.Stop();
                         Log.Info($"Class:Blockchain Type: Transaction TimeSpan:{stopwatchTransaction.Elapsed.TotalSeconds}");
-                        stopwatchTransaction.Reset();
                     }
-                    if (countSwitchBlockchain) countTransaction++;
+                    if (countSwitchBlockchain) {
+                        countTransaction++;
+                        totalTimeTransaction += timespan;
+                    }
                     break;
                 case ConsensusPayload payload:
-                    if (watchSwitchBlockchain)
-                    {
-                        stopwatchConsensusPayload.Start();
-                    }
+                    stopwatchConsensusPayload.Start();
                     Sender.Tell(OnNewConsensus(payload));
+                    stopwatchConsensusPayload.Stop();
+                    timespan= stopwatchConsensusPayload.Elapsed.TotalSeconds;
+                    stopwatchConsensusPayload.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        stopwatchConsensusPayload.Stop();
                         Log.Info($"Class:Blockchain Type: ConsensusPayload TimeSpan:{stopwatchConsensusPayload.Elapsed.TotalSeconds}");
-                        stopwatchConsensusPayload.Reset();
                     }
-                    if (countSwitchBlockchain) countConsensusPayload++;
+                    if (countSwitchBlockchain) {
+                        countConsensusPayload++;
+                        totalTimeConsensusPayload += timespan;
+                    }
                     break;
                 case Idle _:
-                    if (watchSwitchBlockchain)
-                    {
-                        stopwatchIdle.Start();
-                    }
+                    stopwatchIdle.Start();
                     if (MemPool.ReVerifyTopUnverifiedTransactionsIfNeeded(MaxTxToReverifyPerIdle, currentSnapshot))
                         Self.Tell(Idle.Instance, ActorRefs.NoSender);
+                    stopwatchIdle.Stop();
+                    timespan= stopwatchIdle.Elapsed.TotalSeconds;
+                    stopwatchIdle.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        stopwatchIdle.Stop();
                         Log.Info($"Class:Blockchain Type: Idle TimeSpan:{stopwatchIdle.Elapsed.TotalSeconds}");
-                        stopwatchIdle.Reset();
                     }
-                    if (countSwitchBlockchain) countIdle++;
+                    if (countSwitchBlockchain) {
+                        countIdle++;
+                        totalTimeIdle += timespan;
+                    }
                     break;
             }
         }

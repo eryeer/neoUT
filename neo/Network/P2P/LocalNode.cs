@@ -146,67 +146,76 @@ namespace Neo.Network.P2P
         public static long countRelay = 0;
         public static long countRelayDirectly = 0;
         public static long countSendDirectly = 0;
-        public static double totalMsgSpentTime = 0;
+
+        public static double totalTimeMessage = 0;
+        public static double totalTimeRelay = 0;
+        public static double totalTimeRelayDirectly = 0;
+        public static double totalTimeSendDirectly = 0;
         protected override void OnReceive(object message)
         {
             base.OnReceive(message);
+            double timespan = 0;
             switch (message)
             {
                 case Message msg:
-                    if (watchSwitchLocalNode)
-                    {
-                        stopwatchMessage.Start();
-                    }
+                    stopwatchMessage.Start();
                     BroadcastMessage(msg);
+                    stopwatchMessage.Stop();
+                    timespan= stopwatchMessage.Elapsed.TotalSeconds;
                     if (watchSwitchLocalNode)
                     {
-                        stopwatchMessage.Stop();
                         Log.Info($"Class:LocalNode Type: Message TimeSpan:{stopwatchMessage.Elapsed.TotalSeconds}");
-                        stopwatchMessage.Reset();
                     }
-                    if (countSwitchLocalNode) countMessage++;
+                    if (countSwitchLocalNode)
+                    {
+                        countMessage++;
+                        totalTimeMessage += timespan;
+                    }
                     break;
                 case Relay relay:
-                    if (watchSwitchLocalNode)
-                    {
-                        stopwatchRelay.Start();
-                    }
+                    stopwatchRelay.Start();
                     OnRelay(relay.Inventory);
+                    stopwatchRelay.Stop();
+                    timespan = stopwatchRelay.Elapsed.TotalSeconds;
+                    stopwatchRelay.Reset();
                     if (watchSwitchLocalNode)
                     {
-                        stopwatchRelay.Stop();
                         Log.Info($"Class:LocalNode Type: Relay TimeSpan:{stopwatchRelay.Elapsed.TotalSeconds}");
-                        stopwatchRelay.Reset();
                     }
-                    if (countSwitchLocalNode) countRelay++;
+                    if (countSwitchLocalNode) {
+                        countRelay++;
+                        totalTimeRelay += timespan;
+                    } 
                     break;
                 case RelayDirectly relay:
-                    if (watchSwitchLocalNode)
-                    {
-                        stopwatchRelayDirectly.Start();
-                    }
+                    stopwatchRelayDirectly.Start();
                     OnRelayDirectly(relay.Inventory);
+                    stopwatchRelayDirectly.Stop();
+                    timespan = stopwatchRelayDirectly.Elapsed.TotalSeconds;
+                    stopwatchRelayDirectly.Reset();
                     if (watchSwitchLocalNode)
                     {
-                        stopwatchRelayDirectly.Stop();
                         Log.Info($"Class:LocalNode Type: RelayDirectly TimeSpan:{stopwatchRelayDirectly.Elapsed.TotalSeconds}");
-                        stopwatchRelayDirectly.Reset();
                     }
-                    if (countSwitchLocalNode) countRelayDirectly++;
+                    if (countSwitchLocalNode) {
+                        countRelayDirectly++;
+                        totalTimeRelayDirectly += timespan;
+                    }
                     break;
                 case SendDirectly send:
-                    if (watchSwitchLocalNode)
-                    {
-                        stopwatchSendDirectly.Start();
-                    }
+                    stopwatchSendDirectly.Start();
                     OnSendDirectly(send.Inventory);
+                    stopwatchSendDirectly.Stop();
+                    timespan = stopwatchSendDirectly.Elapsed.TotalSeconds;
+                    stopwatchSendDirectly.Reset();
                     if (watchSwitchLocalNode)
                     {
-                        stopwatchSendDirectly.Stop();
                         Log.Info($"Class:LocalNode Type: SendDirectly TimeSpan:{stopwatchSendDirectly.Elapsed.TotalSeconds}");
-                        stopwatchSendDirectly.Reset();
                     }
-                    if (countSwitchLocalNode) countSendDirectly++;
+                    if (countSwitchLocalNode) {
+                        countSendDirectly++;
+                        totalTimeSendDirectly += timespan;
+                    } 
                     break;
                 case RelayResultReason _:
                     break;
