@@ -271,7 +271,7 @@ namespace Neo.Network.P2P
                     stopwatchGetBlocks.Reset();
                     if (watchSwitch)
                     {
-                        AkkaLog.Info($"Class:ProtocolHandler Type: GetBlocks TimeSpan:{stopwatchGetBlocks.Elapsed.TotalSeconds}");
+                        AkkaLog.Info($"Class:ProtocolHandler Type: GetBlocks TimeSpan:{timespan}");
                     }
                     if (countSwitch)
                     {
@@ -450,7 +450,7 @@ namespace Neo.Network.P2P
                             initialValue = totalTimeTransaction;
                             computedValue = initialValue + timespan;
                         }
-                        while (initialValue != Interlocked.CompareExchange(ref totalTimeTransaction, computedValue, initialValue));
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeTransactiontotalTimeTransaction, computedValue, initialValue));
                     }
                     break;
                 case MessageCommand.Verack:
