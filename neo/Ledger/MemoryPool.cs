@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Akka.Util.Internal;
+using Neo.Consensus;
 using Neo.Network.P2P;
 using Neo.Network.P2P.Payloads;
 using Neo.Persistence;
@@ -105,6 +106,7 @@ namespace Neo.Ledger
         {
             _system = system;
             Capacity = capacity;
+            ConsensusService.mempool = this;
         }
 
         internal bool LoadPolicy(Snapshot snapshot)

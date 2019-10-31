@@ -178,6 +178,9 @@ namespace Neo.Consensus
         }
 
         public static List<RemoteNode> remoteNodes = new List<RemoteNode>();
+
+        public static MemoryPool mempool;
+
         public void CheckCount(Block block)
         {
             //print block timespan and TPS
@@ -189,6 +192,9 @@ namespace Neo.Consensus
                 Console.WriteLine($"High Message Queue count: {remoteNode.message_queue_high.Count}");
                 Console.WriteLine($"Low Message Queue count: {remoteNode.message_queue_low.Count}");
             }
+
+            Console.WriteLine($"Verified transaction count in mempool: {mempool.VerifiedCount}");
+            Console.WriteLine($"Unverified transaction count in mempool: {mempool.UnVerifiedCount}");
 
             //Connection
             if (Connection.countSwitch)
