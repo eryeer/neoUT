@@ -22,7 +22,7 @@ namespace Neo.Consensus
     {
 
         public static bool watchSwitch = false;
-        public static bool countSwitch = false;
+        public static bool countSwitch = true;
         public Akka.Event.ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
         private DateTime lasttime = DateTime.Now;
 
@@ -333,6 +333,10 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: TaskManager Type: RestartTasks Count: {TaskManager.countRestartTasks} averageTimespan: {TaskManager.totalTimeRestartTasks / TaskManager.countRestartTasks}");
                 AkkaLog.Info($"Class: TaskManager Type: Timer Count: {TaskManager.countTimer} averageTimespan: {TaskManager.totalTimeTimer / TaskManager.countTimer}");
                 AkkaLog.Info($"Class: TaskManager Type: Terminated Count: {TaskManager.countTerminated} averageTimespan: {TaskManager.totalTimeTerminated / TaskManager.countTerminated}");
+
+
+                AkkaLog.Info($"Class: TaskManager : InvGetData Count: {TaskManager.countInvGetData}");
+
                 TaskManager.countRegister = 0;
                 TaskManager.countNewTasks = 0;
                 TaskManager.countTaskCompleted = 0;
@@ -340,6 +344,8 @@ namespace Neo.Consensus
                 TaskManager.countRestartTasks = 0;
                 TaskManager.countTimer = 0;
                 TaskManager.countTerminated = 0;
+
+                TaskManager.countInvGetData = 0;
 
                 TaskManager.totalTimeRegister = 0;
                 TaskManager.totalTimeNewTasks = 0;
