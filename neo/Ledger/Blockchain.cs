@@ -83,7 +83,7 @@ namespace Neo.Ledger
             //print block timespan and TPS
             double timespan = (DateTime.Now - lasttime).TotalSeconds;
             lasttime = DateTime.Now;
-            Console.WriteLine("Time spent since last relay = " + timespan + ", TPS = " + block.Transactions.Length / timespan);
+            Console.WriteLine($"Block Height: {block.Index} Time spent since last relay = " + timespan + ", TPS = " + block.Transactions.Length / timespan);
 
             //Connection
             if (Connection.countSwitch)
