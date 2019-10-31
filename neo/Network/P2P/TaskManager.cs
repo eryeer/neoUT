@@ -16,7 +16,7 @@ namespace Neo.Network.P2P
     internal class TaskManager : UntypedActor
     {
         public static bool watchSwitch = false;
-        public static bool countSwitch = false;
+        public static bool countSwitch = true;
         public Akka.Event.ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
 
         public System.Diagnostics.Stopwatch stopwatchRegister = new System.Diagnostics.Stopwatch();
@@ -34,6 +34,9 @@ namespace Neo.Network.P2P
         public static long countRestartTasks = 0;
         public static long countTimer = 0;
         public static long countTerminated = 0;
+
+
+        public static long countInvGetData = 0;
 
         public static double totalTimeRegister = 0;
         public static double totalTimeNewTasks = 0;
@@ -107,8 +110,10 @@ namespace Neo.Network.P2P
                 session.Tasks[hash] = DateTime.UtcNow;
             }
 
-            foreach (InvPayload group in InvPayload.CreateGroup(payload.Type, hashes.ToArray()))
+            foreach (InvPayload group in InvPayload.CreateGroup(payload.Type, hashes.ToArray())) {
                 Sender.Tell(Message.Create(MessageCommand.GetData, group));
+                countInvGetData++;
+            }
         }
 
         protected override void OnReceive(object message)
