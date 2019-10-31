@@ -175,7 +175,7 @@ namespace Neo.Consensus
             }
         }
 
-        private void CheckCount(Block block)
+        public void CheckCount(Block block)
         {
             //print block timespan and TPS
             double timespan = (DateTime.Now - lasttime).TotalSeconds;
