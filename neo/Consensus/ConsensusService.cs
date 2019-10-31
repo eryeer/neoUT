@@ -124,6 +124,8 @@ namespace Neo.Consensus
             return CheckPrepareResponse();
         }
 
+       
+
         private bool CheckPrepareResponse()
         {
             if (context.TransactionHashes.Length == context.Transactions.Count)
@@ -175,12 +177,18 @@ namespace Neo.Consensus
             }
         }
 
+        public static List<RemoteNode> remoteNodes = new List<RemoteNode>();
         public void CheckCount(Block block)
         {
             //print block timespan and TPS
             double timespan = (DateTime.Now - lasttime).TotalSeconds;
             lasttime = DateTime.Now;
             Console.WriteLine("Time spent since last relay = " + timespan + ", TPS = " + block.Transactions.Length / timespan);
+
+            foreach (var remoteNode in remoteNodes) {
+                Console.WriteLine($"High Message Queue count: {remoteNode.message_queue_high.Count}");
+                Console.WriteLine($"Low Message Queue count: {remoteNode.message_queue_low.Count}");
+            }
 
             //Connection
             if (Connection.countSwitch)
