@@ -2,6 +2,7 @@ using Akka.Actor;
 using Akka.Configuration;
 using Akka.Event;
 using Akka.IO;
+using Neo.Consensus;
 using Neo.Cryptography;
 using Neo.IO;
 using Neo.IO.Actors;
@@ -49,8 +50,8 @@ namespace Neo.Network.P2P
 
         private readonly NeoSystem system;
         private readonly IActorRef protocol;
-        private readonly Queue<Message> message_queue_high = new Queue<Message>();
-        private readonly Queue<Message> message_queue_low = new Queue<Message>();
+        public readonly Queue<Message> message_queue_high = new Queue<Message>();
+        public readonly Queue<Message> message_queue_low = new Queue<Message>();
         private ByteString msg_buffer = ByteString.Empty;
         private BloomFilter bloom_filter;
         private bool ack = true;
@@ -78,6 +79,9 @@ namespace Neo.Network.P2P
             if (LocalNode.Singleton.ListenerWsPort > 0) capabilities.Add(new ServerCapability(NodeCapabilityType.WsServer, (ushort)LocalNode.Singleton.ListenerWsPort));
 
             SendMessage(Message.Create(MessageCommand.Version, VersionPayload.Create(LocalNode.Nonce, LocalNode.UserAgent, capabilities.ToArray())));
+
+            ConsensusService.remoteNodes.Add(this);
+            Blockchain.remoteNodes.Add(this);
         }
 
         private void CheckMessageQueue()

@@ -77,13 +77,20 @@ namespace Neo.Ledger
 
         private DateTime lasttime = DateTime.Now;
         private bool isNormalNode = false;
+        public static List<RemoteNode> remoteNodes = new List<RemoteNode>();
 
         public void CheckCount(Block block)
         {
             //print block timespan and TPS
             double timespan = (DateTime.Now - lasttime).TotalSeconds;
             lasttime = DateTime.Now;
-            Console.WriteLine("Time spent since last relay = " + timespan + ", TPS = " + block.Transactions.Length / timespan);
+            Console.WriteLine($"Block Height: {block.Index} Time spent since last relay = " + timespan + ", TPS = " + block.Transactions.Length / timespan);
+
+            foreach (var remoteNode in remoteNodes)
+            {
+                Console.WriteLine($"High Message Queue count: {remoteNode.message_queue_high.Count}");
+                Console.WriteLine($"Low Message Queue count: {remoteNode.message_queue_low.Count}");
+            }
 
             //Connection
             if (Connection.countSwitch)
