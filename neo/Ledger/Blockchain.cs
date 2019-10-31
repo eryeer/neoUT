@@ -23,7 +23,7 @@ namespace Neo.Ledger
     {
         public static bool watchSwitchBlockchain = false;
         public static bool countSwitchBlockchain = false;
-        public ILoggingAdapter Log { get; } = Context.GetLogger();
+        public ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
         public partial class ApplicationExecuted { }
         public class PersistCompleted { public Block Block; }
         public class Import { public IEnumerable<Block> Blocks; }
@@ -74,6 +74,225 @@ namespace Neo.Ledger
         public uint HeaderHeight => currentSnapshot.HeaderHeight;
         public UInt256 CurrentBlockHash => currentSnapshot.CurrentBlockHash;
         public UInt256 CurrentHeaderHash => currentSnapshot.CurrentHeaderHash;
+
+        private DateTime lasttime = DateTime.Now;
+        private bool isNormalNode = false;
+
+        public void CheckCount(Block block)
+        {
+            //print block timespan and TPS
+            double timespan = (DateTime.Now - lasttime).TotalSeconds;
+            lasttime = DateTime.Now;
+            Console.WriteLine("Time spent since last relay = " + timespan + ", TPS = " + block.Transactions.Length / timespan);
+
+            //Connection
+            if (Connection.countSwitch)
+            {
+                AkkaLog.Info($"Class: Connection Type: Timer Count: {Connection.countTimer} averageTimespan: {Connection.totalTimeTimer / Connection.countTimer}");
+                AkkaLog.Info($"Class: Connection Type: Ack Count: {Connection.countAck} averageTimespan: {Connection.totalTimeAck / Connection.countAck}");
+                AkkaLog.Info($"Class: Connection Type: Received Count: {Connection.countReceived} averageTimespan: {Connection.totalTimeReceived / Connection.countReceived}");
+                AkkaLog.Info($"Class: Connection Type: ConnectionClosed Count: {Connection.countConnectionClosed} averageTimespan: {Connection.totalTimeConnectionClosed / Connection.countConnectionClosed}");
+                AkkaLog.Info($"Class: Connection Type: TPSTimer Count: {Connection.countTPSTimer} averageTimespan: {Connection.totalTimeTPSTimer / Connection.countTPSTimer}");
+                Connection.countTimer = 0;
+                Connection.countAck = 0;
+                Connection.countReceived = 0;
+                Connection.countConnectionClosed = 0;
+                Connection.countTPSTimer = 0;
+
+                Connection.totalTimeTimer = 0;
+                Connection.totalTimeAck = 0;
+                Connection.totalTimeReceived = 0;
+                Connection.totalTimeConnectionClosed = 0;
+                Connection.totalTimeTPSTimer = 0;
+            }
+
+            //RemoteNode
+            if (RemoteNode.countSwitchRemoteNode)
+            {
+                AkkaLog.Info($"Class: RemoteNode Type: Message Count: {RemoteNode.countMessage} averageTimespan: {RemoteNode.totalTimeMessage / RemoteNode.countMessage}");
+                AkkaLog.Info($"Class: RemoteNode Type: IInventory Count: {RemoteNode.countIInventory} averageTimespan: {RemoteNode.totalTimeIInventory / RemoteNode.countIInventory}");
+                AkkaLog.Info($"Class: RemoteNode Type: Relay Count: {RemoteNode.countRelay} averageTimespan: {RemoteNode.totalTimeRelay / RemoteNode.countRelay}");
+                AkkaLog.Info($"Class: RemoteNode Type: VersionPayload Count: {RemoteNode.countVersionPayload} averageTimespan: {RemoteNode.totalTimeVersionPayload / RemoteNode.countVersionPayload}");
+                AkkaLog.Info($"Class: RemoteNode Type: Verack Count: {RemoteNode.countVerack} averageTimespan: {RemoteNode.totalTimeVerack / RemoteNode.countVerack}");
+                AkkaLog.Info($"Class: RemoteNode Type: SetFilter Count: {RemoteNode.countSetFilter} averageTimespan: {RemoteNode.totalTimeSetFilter / RemoteNode.countSetFilter}");
+                AkkaLog.Info($"Class: RemoteNode Type: PingPayload Count: {RemoteNode.countPingPayload} averageTimespan: {RemoteNode.totalTimePingPayload / RemoteNode.countPingPayload}");
+                RemoteNode.countMessage = 0;
+                RemoteNode.countIInventory = 0;
+                RemoteNode.countRelay = 0;
+                RemoteNode.countVersionPayload = 0;
+                RemoteNode.countVerack = 0;
+                RemoteNode.countSetFilter = 0;
+                RemoteNode.countPingPayload = 0;
+
+                RemoteNode.totalTimeMessage = 0;
+                RemoteNode.totalTimeIInventory = 0;
+                RemoteNode.totalTimeRelay = 0;
+                RemoteNode.totalTimeVersionPayload = 0;
+                RemoteNode.totalTimeVerack = 0;
+                RemoteNode.totalTimeSetFilter = 0;
+                RemoteNode.totalTimePingPayload = 0;
+            }
+
+            //ProtocolHandler
+            if (ProtocolHandler.countSwitch)
+            {
+                AkkaLog.Info($"Class: ProtocolHandler Type: Addr Count: {ProtocolHandler.countAddr} averageTimespan: {ProtocolHandler.totalTimeAddr / ProtocolHandler.countAddr}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Block Count: {ProtocolHandler.countBlock} averageTimespan: {ProtocolHandler.totalTimeBlock / ProtocolHandler.countBlock}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Consensus Count: {ProtocolHandler.countConsensus} averageTimespan: {ProtocolHandler.totalTimeConsensus / ProtocolHandler.countConsensus}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: FilterAdd Count: {ProtocolHandler.countFilterAdd} averageTimespan: {ProtocolHandler.totalTimeFilterAdd / ProtocolHandler.countFilterAdd}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: FilterClear Count: {ProtocolHandler.countFilterClear} averageTimespan: {ProtocolHandler.totalTimeFilterClear / ProtocolHandler.countFilterClear}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: FilterLoad Count: {ProtocolHandler.countFilterLoad} averageTimespan: {ProtocolHandler.totalTimeFilterLoad / ProtocolHandler.countFilterLoad}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: GetAddr Count: {ProtocolHandler.countGetAddr} averageTimespan: {ProtocolHandler.totalTimeGetAddr / ProtocolHandler.countGetAddr}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: GetBlocks Count: {ProtocolHandler.countGetBlocks} averageTimespan: {ProtocolHandler.totalTimeGetBlocks / ProtocolHandler.countGetBlocks}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: GetData Count: {ProtocolHandler.countGetData} averageTimespan: {ProtocolHandler.totalTimeGetData / ProtocolHandler.countGetData}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: GetHeaders Count: {ProtocolHandler.countGetHeaders} averageTimespan: {ProtocolHandler.totalTimeGetHeaders / ProtocolHandler.countGetHeaders}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Headers Count: {ProtocolHandler.countHeaders} averageTimespan: {ProtocolHandler.totalTimeHeaders / ProtocolHandler.countHeaders}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Inv Count: {ProtocolHandler.countInv} averageTimespan: {ProtocolHandler.totalTimeInv / ProtocolHandler.countInv}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Mempool Count: {ProtocolHandler.countMempool} averageTimespan: {ProtocolHandler.totalTimeMempool / ProtocolHandler.countMempool}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Ping Count: {ProtocolHandler.countPing} averageTimespan: {ProtocolHandler.totalTimePing / ProtocolHandler.countPing}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Pong Count: {ProtocolHandler.countPong} averageTimespan: {ProtocolHandler.totalTimePong / ProtocolHandler.countPong}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: Transaction Count: {ProtocolHandler.countTransaction} averageTimespan: {ProtocolHandler.totalTimeTransaction / ProtocolHandler.countTransaction}");
+                ProtocolHandler.countAddr = 0;
+                ProtocolHandler.countBlock = 0;
+                ProtocolHandler.countConsensus = 0;
+                ProtocolHandler.countFilterAdd = 0;
+                ProtocolHandler.countFilterClear = 0;
+                ProtocolHandler.countFilterLoad = 0;
+                ProtocolHandler.countGetAddr = 0;
+                ProtocolHandler.countGetBlocks = 0;
+                ProtocolHandler.countGetData = 0;
+                ProtocolHandler.countGetHeaders = 0;
+                ProtocolHandler.countHeaders = 0;
+                ProtocolHandler.countInv = 0;
+                ProtocolHandler.countMempool = 0;
+                ProtocolHandler.countPing = 0;
+                ProtocolHandler.countPong = 0;
+                ProtocolHandler.countTransaction = 0;
+
+                ProtocolHandler.totalTimeAddr = 0;
+                ProtocolHandler.totalTimeBlock = 0;
+                ProtocolHandler.totalTimeConsensus = 0;
+                ProtocolHandler.totalTimeFilterAdd = 0;
+                ProtocolHandler.totalTimeFilterClear = 0;
+                ProtocolHandler.totalTimeFilterLoad = 0;
+                ProtocolHandler.totalTimeGetAddr = 0;
+                ProtocolHandler.totalTimeGetBlocks = 0;
+                ProtocolHandler.totalTimeGetData = 0;
+                ProtocolHandler.totalTimeGetHeaders = 0;
+                ProtocolHandler.totalTimeHeaders = 0;
+                ProtocolHandler.totalTimeInv = 0;
+                ProtocolHandler.totalTimeMempool = 0;
+                ProtocolHandler.totalTimePing = 0;
+                ProtocolHandler.totalTimePong = 0;
+                ProtocolHandler.totalTimeTransaction = 0;
+            }
+
+            //TaskManager
+            if (TaskManager.countSwitch)
+            {
+                AkkaLog.Info($"Class: TaskManager Type: Register Count: {TaskManager.countRegister} averageTimespan: {TaskManager.totalTimeRegister / TaskManager.countRegister}");
+                AkkaLog.Info($"Class: TaskManager Type: NewTasks Count: {TaskManager.countNewTasks} averageTimespan: {TaskManager.totalTimeNewTasks / TaskManager.countNewTasks}");
+                AkkaLog.Info($"Class: TaskManager Type: TaskCompleted Count: {TaskManager.countTaskCompleted} averageTimespan: {TaskManager.totalTimeTaskCompleted / TaskManager.countTaskCompleted}");
+                AkkaLog.Info($"Class: TaskManager Type: HeaderTaskCompleted Count: {TaskManager.countHeaderTaskCompleted} averageTimespan: {TaskManager.totalTimeHeaderTaskCompleted / TaskManager.countHeaderTaskCompleted}");
+                AkkaLog.Info($"Class: TaskManager Type: RestartTasks Count: {TaskManager.countRestartTasks} averageTimespan: {TaskManager.totalTimeRestartTasks / TaskManager.countRestartTasks}");
+                AkkaLog.Info($"Class: TaskManager Type: Timer Count: {TaskManager.countTimer} averageTimespan: {TaskManager.totalTimeTimer / TaskManager.countTimer}");
+                AkkaLog.Info($"Class: TaskManager Type: Terminated Count: {TaskManager.countTerminated} averageTimespan: {TaskManager.totalTimeTerminated / TaskManager.countTerminated}");
+                TaskManager.countRegister = 0;
+                TaskManager.countNewTasks = 0;
+                TaskManager.countTaskCompleted = 0;
+                TaskManager.countHeaderTaskCompleted = 0;
+                TaskManager.countRestartTasks = 0;
+                TaskManager.countTimer = 0;
+                TaskManager.countTerminated = 0;
+
+                TaskManager.totalTimeRegister = 0;
+                TaskManager.totalTimeNewTasks = 0;
+                TaskManager.totalTimeTaskCompleted = 0;
+                TaskManager.totalTimeHeaderTaskCompleted = 0;
+                TaskManager.totalTimeRestartTasks = 0;
+                TaskManager.totalTimeTimer = 0;
+                TaskManager.totalTimeTerminated = 0;
+            }
+
+            if (Blockchain.countSwitchBlockchain)
+            {
+                AkkaLog.Info($"Class: Blockchain Type: Import Count: {Blockchain.countImport} averageTimespan: {Blockchain.totalTimeImport / Blockchain.countImport}");
+                AkkaLog.Info($"Class: Blockchain Type: FillMemoryPool Count: {Blockchain.countFillMemoryPool} averageTimespan: {Blockchain.totalTimeFillMemoryPool / Blockchain.countFillMemoryPool}");
+                AkkaLog.Info($"Class: Blockchain Type: HeaderArray Count: {Blockchain.countHeaderArray} averageTimespan: {Blockchain.totalTimeHeaderArray / Blockchain.countHeaderArray}");
+                AkkaLog.Info($"Class: Blockchain Type: Block Count: {Blockchain.countBlock} averageTimespan: {Blockchain.totalTimeBlock / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: TransactionArray Count: {Blockchain.countTransactionArray} averageTimespan: {Blockchain.totalTimeTransactionArray / Blockchain.countTransactionArray}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Count: {Blockchain.countTransaction} averageTimespan: {Blockchain.totalTimeTransaction / Blockchain.countTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: ConsensusPayload Count: {Blockchain.countConsensusPayload} averageTimespan: {Blockchain.totalTimeConsensusPayload / Blockchain.countConsensusPayload}");
+                AkkaLog.Info($"Class: Blockchain Type: Idle Count: {Blockchain.countIdle} averageTimespan: {Blockchain.totalTimeIdle / Blockchain.countIdle}");
+                Blockchain.countImport = 0;
+                Blockchain.countFillMemoryPool = 0;
+                Blockchain.countHeaderArray = 0;
+                Blockchain.countBlock = 0;
+                Blockchain.countTransactionArray = 0;
+                Blockchain.countTransaction = 0;
+                Blockchain.countConsensusPayload = 0;
+                Blockchain.countIdle = 0;
+
+                Blockchain.totalTimeImport = 0;
+                Blockchain.totalTimeFillMemoryPool = 0;
+                Blockchain.totalTimeHeaderArray = 0;
+                Blockchain.totalTimeBlock = 0;
+                Blockchain.totalTimeTransactionArray = 0;
+                Blockchain.totalTimeTransaction = 0;
+                Blockchain.totalTimeConsensusPayload = 0;
+                Blockchain.totalTimeIdle = 0;
+            }
+            if (Peer.countSwitchPeer)
+            {
+                AkkaLog.Info($"Class: Peer Type: ChannelsConfig Count: {Peer.countChannelsConfig} averageTimespan: {Peer.totalTimeChannelsConfig / Peer.countChannelsConfig}");
+                AkkaLog.Info($"Class: Peer Type: Timer Count: {Peer.countTimer} averageTimespan: {Peer.totalTimeTimer / Peer.countTimer}");
+                AkkaLog.Info($"Class: Peer Type: Peers Count: {Peer.countPeers} averageTimespan: {Peer.totalTimePeers / Peer.countPeers}");
+                AkkaLog.Info($"Class: Peer Type: Connect Count: {Peer.countConnect} averageTimespan: {Peer.totalTimeConnect / Peer.countConnect}");
+                AkkaLog.Info($"Class: Peer Type: WsConnected Count: {Peer.countWsConnected} averageTimespan: {Peer.totalTimeWsConnected / Peer.countWsConnected}");
+                AkkaLog.Info($"Class: Peer Type: TcpConnected Count: {Peer.countTcpConnected} averageTimespan: {Peer.totalTimeTcpConnected / Peer.countTcpConnected}");
+                AkkaLog.Info($"Class: Peer Type: TcpBound Count: {Peer.countTcpBound} averageTimespan: {Peer.totalTimeTcpBound / Peer.countTcpBound}");
+                AkkaLog.Info($"Class: Peer Type: TcpCommandFailed Count: {Peer.countTcpCommandFailed} averageTimespan: {Peer.totalTimeTcpCommandFailed / Peer.countTcpCommandFailed}");
+                AkkaLog.Info($"Class: Peer Type: Terminated Count: {Peer.countTerminated} averageTimespan: {Peer.totalTimeTerminated / Peer.countTerminated}");
+                Peer.countChannelsConfig = 0;
+                Peer.countTimer = 0;
+                Peer.countPeers = 0;
+                Peer.countConnect = 0;
+                Peer.countWsConnected = 0;
+                Peer.countTcpConnected = 0;
+                Peer.countTcpBound = 0;
+                Peer.countTcpCommandFailed = 0;
+                Peer.countTerminated = 0;
+
+                Peer.totalTimeChannelsConfig = 0;
+                Peer.totalTimeTimer = 0;
+                Peer.totalTimePeers = 0;
+                Peer.totalTimeConnect = 0;
+                Peer.totalTimeWsConnected = 0;
+                Peer.totalTimeTcpConnected = 0;
+                Peer.totalTimeTcpBound = 0;
+                Peer.totalTimeTcpCommandFailed = 0;
+                Peer.totalTimeTerminated = 0;
+            }
+
+            if (LocalNode.countSwitchLocalNode)
+            {
+                AkkaLog.Info($"Class: LocalNode Type: Message Count: {LocalNode.countMessage} averageTimespan: {LocalNode.totalTimeMessage / LocalNode.countMessage}");
+                AkkaLog.Info($"Class: LocalNode Type: Relay Count: {LocalNode.countRelay} averageTimespan: {LocalNode.totalTimeRelay / LocalNode.countRelay}");
+                AkkaLog.Info($"Class: LocalNode Type: RelayDirectly Count: {LocalNode.countRelayDirectly} averageTimespan: {LocalNode.totalTimeRelayDirectly / LocalNode.countRelayDirectly}");
+                AkkaLog.Info($"Class: LocalNode Type: SendDirectly Count: {LocalNode.countSendDirectly} averageTimespan: {LocalNode.totalTimeSendDirectly / LocalNode.countSendDirectly}");
+                LocalNode.countMessage = 0;
+                LocalNode.countRelay = 0;
+                LocalNode.countRelayDirectly = 0;
+                LocalNode.countSendDirectly = 0;
+
+                LocalNode.totalTimeMessage = 0;
+                LocalNode.totalTimeRelay = 0;
+                LocalNode.totalTimeRelayDirectly = 0;
+                LocalNode.totalTimeSendDirectly = 0;
+            }
+
+
+        }
 
         private static Blockchain singleton;
         public static Blockchain Singleton
@@ -432,7 +651,7 @@ namespace Neo.Ledger
                     stopwatchImport.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        Log.Info($"Class:Blockchain Type: Import TimeSpan:{timespan}");
+                        AkkaLog.Info($"Class:Blockchain Type: Import TimeSpan:{timespan}");
                     }
                     if (countSwitchBlockchain) {
                         countImport++;
@@ -447,7 +666,7 @@ namespace Neo.Ledger
                     stopwatchFillMemoryPool.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        Log.Info($"Class:Blockchain Type: FillMemoryPool TimeSpan:{timespan}");
+                        AkkaLog.Info($"Class:Blockchain Type: FillMemoryPool TimeSpan:{timespan}");
                     }
                     if (countSwitchBlockchain) {
                         countFillMemoryPool++;
@@ -462,7 +681,7 @@ namespace Neo.Ledger
                     stopwatchHeaderArray.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        Log.Info($"Class:Blockchain Type: Header TimeSpan:{timespan}");
+                        AkkaLog.Info($"Class:Blockchain Type: Header TimeSpan:{timespan}");
                     }
                     if (countSwitchBlockchain) {
                         countHeaderArray++;
@@ -471,13 +690,14 @@ namespace Neo.Ledger
                     break;
                 case Block block:
                     stopwatchBlock.Start();
+                    if(isNormalNode) CheckCount(block);
                     Sender.Tell(OnNewBlock(block));
                     stopwatchBlock.Stop();
                     timespan = stopwatchBlock.Elapsed.TotalSeconds;
                     stopwatchBlock.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        Log.Info($"Class:Blockchain Type: Block TimeSpan:{timespan}");
+                        AkkaLog.Info($"Class:Blockchain Type: Block TimeSpan:{timespan}");
                     }
                     if (countSwitchBlockchain) {
                         countBlock++;
@@ -493,7 +713,7 @@ namespace Neo.Ledger
                         stopwatchTransactionArray.Reset();
                         if (watchSwitchBlockchain)
                         {
-                            Log.Info($"Class:Blockchain Type: TransactionArray TimeSpan:{timespan}");
+                            AkkaLog.Info($"Class:Blockchain Type: TransactionArray TimeSpan:{timespan}");
                         }
                         if (countSwitchBlockchain) {
                             countTransactionArray++;
@@ -509,7 +729,7 @@ namespace Neo.Ledger
                     stopwatchTransaction.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        Log.Info($"Class:Blockchain Type: Transaction TimeSpan:{timespan}");
+                        AkkaLog.Info($"Class:Blockchain Type: Transaction TimeSpan:{timespan}");
                     }
                     if (countSwitchBlockchain) {
                         countTransaction++;
@@ -524,7 +744,7 @@ namespace Neo.Ledger
                     stopwatchConsensusPayload.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        Log.Info($"Class:Blockchain Type: ConsensusPayload TimeSpan:{timespan}");
+                        AkkaLog.Info($"Class:Blockchain Type: ConsensusPayload TimeSpan:{timespan}");
                     }
                     if (countSwitchBlockchain) {
                         countConsensusPayload++;
@@ -540,7 +760,7 @@ namespace Neo.Ledger
                     stopwatchIdle.Reset();
                     if (watchSwitchBlockchain)
                     {
-                        Log.Info($"Class:Blockchain Type: Idle TimeSpan:{timespan}");
+                        AkkaLog.Info($"Class:Blockchain Type: Idle TimeSpan:{timespan}");
                     }
                     if (countSwitchBlockchain) {
                         countIdle++;
