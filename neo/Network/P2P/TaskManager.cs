@@ -148,7 +148,7 @@ namespace Neo.Network.P2P
             knownHashes.Add(hash);
             //全局task中删除hash
             globalTasks.Remove(hash);
-            //遍历所有的session如果有相同的task，则删除（已经要过了就不用再要了）
+            //遍历所有的session的可执行session，删除该task
             foreach (TaskSession ms in sessions.Values)
                 ms.AvailableTasks.Remove(hash);
             //删除发送消息对应会话中的正在执行的该hash记录，并重新处理该会话中的其他task
