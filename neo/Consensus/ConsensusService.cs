@@ -227,6 +227,11 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: RemoteNode Type: Verack Count: {RemoteNode.countVerack} averageTimespan: {RemoteNode.totalTimeVerack / RemoteNode.countVerack}");
                 AkkaLog.Info($"Class: RemoteNode Type: SetFilter Count: {RemoteNode.countSetFilter} averageTimespan: {RemoteNode.totalTimeSetFilter / RemoteNode.countSetFilter}");
                 AkkaLog.Info($"Class: RemoteNode Type: PingPayload Count: {RemoteNode.countPingPayload} averageTimespan: {RemoteNode.totalTimePingPayload / RemoteNode.countPingPayload}");
+                foreach (var remote in remoteNodes)
+                {
+                    AkkaLog.Info($"Class: RemoteNode Count of GetDataMessage: {remote.getDataMessageCount}");
+                    remote.getDataMessageCount = 0;
+                }
                 RemoteNode.countMessage = 0;
                 RemoteNode.countIInventory = 0;
                 RemoteNode.countRelay = 0;

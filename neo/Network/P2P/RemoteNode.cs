@@ -84,6 +84,7 @@ namespace Neo.Network.P2P
             Blockchain.remoteNodes.Add(this);
         }
 
+        public long getDataMessageCount = 0;
         private void CheckMessageQueue()
         {
             if (!verack || !ack) return;
@@ -93,7 +94,11 @@ namespace Neo.Network.P2P
                 queue = message_queue_low;
                 if (queue.Count == 0) return;
             }
-            SendMessage(queue.Dequeue());
+            var msg = queue.Dequeue();
+            Console.WriteLine($"Dequeue Message Type: {msg.Command}");
+            SendMessage(msg);
+            if(msg.Command == MessageCommand.GetData) getDataMessageCount++;
+
         }
 
         private void EnqueueMessage(MessageCommand command, ISerializable payload = null)
