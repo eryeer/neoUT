@@ -58,6 +58,8 @@ namespace Neo.Network.P2P
         public static long countPong = 0;
         public static long countTransaction = 0;
 
+        public static long countDuplicateTX = 0;
+
         public static double totalTimeAddr = 0;
         public static double totalTimeBlock = 0;
         public static double totalTimeConsensus = 0;
@@ -591,11 +593,13 @@ namespace Neo.Network.P2P
             system.LocalNode.Tell(new LocalNode.Relay { Inventory = inventory });
         }
 
+
         private void OnInvMessageReceived(InvPayload payload)
         {
             UInt256[] temphashes2=payload.Hashes.Where(p => knownHashes.Contains(p)).ToArray();
             if (temphashes2.Length > 0) {
-                AkkaLog.Info($"Class:ProtocolHandler Type: Inv ：重复消息个数" + temphashes2.Length);
+                countDuplicateTX++;
+                //AkkaLog.Info($"Class:ProtocolHandler Type: Inv ：重复消息个数" + temphashes2.Length);
             }
             UInt256[] hashes = payload.Hashes.Where(p => knownHashes.Add(p) && !sentHashes.Contains(p)).ToArray();
             if (hashes.Length == 0) return;
@@ -609,7 +613,8 @@ namespace Neo.Network.P2P
                     using (Snapshot snapshot = Blockchain.Singleton.GetSnapshot()) {
                         UInt256[] temphashes = hashes.Where(p => !snapshot.ContainsTransaction(p)).ToArray();
                         if (temphashes.Length < hashes.Length) {
-                            AkkaLog.Info($"Class:ProtocolHandler Type: Inv :重复消息已经被过滤,重复个数"+ (hashes.Length- temphashes.Length));
+                            countDuplicateTX = countDuplicateTX + (hashes.Length - temphashes.Length);
+                            //AkkaLog.Info($"Class:ProtocolHandler Type: Inv :重复消息已经被过滤,重复个数"+ (hashes.Length- temphashes.Length));
                         }
                     }
                     break;

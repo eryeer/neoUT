@@ -288,6 +288,9 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: ProtocolHandler Type: Ping Count: {ProtocolHandler.countPing} averageTimespan: {ProtocolHandler.totalTimePing / ProtocolHandler.countPing}");
                 AkkaLog.Info($"Class: ProtocolHandler Type: Pong Count: {ProtocolHandler.countPong} averageTimespan: {ProtocolHandler.totalTimePong / ProtocolHandler.countPong}");
                 AkkaLog.Info($"Class: ProtocolHandler Type: Transaction Count: {ProtocolHandler.countTransaction} averageTimespan: {ProtocolHandler.totalTimeTransaction / ProtocolHandler.countTransaction}");
+
+                AkkaLog.Warning($"Class: ProtocolHandler : duplicateTransaction Count: {ProtocolHandler.countDuplicateTX}");
+
                 ProtocolHandler.countAddr = 0;
                 ProtocolHandler.countBlock = 0;
                 ProtocolHandler.countConsensus = 0;
@@ -304,6 +307,8 @@ namespace Neo.Consensus
                 ProtocolHandler.countPing = 0;
                 ProtocolHandler.countPong = 0;
                 ProtocolHandler.countTransaction = 0;
+
+                ProtocolHandler.countDuplicateTX = 0;
 
                 ProtocolHandler.totalTimeAddr = 0;
                 ProtocolHandler.totalTimeBlock = 0;
