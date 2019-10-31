@@ -106,7 +106,8 @@ namespace Neo.Consensus
 
         private bool AddTransaction(Transaction tx, bool verify)
         {
-            if (verify && !tx.Verify(context.Snapshot, context.Transactions.Values))
+
+            if (verify && !tx.Verify(context.Snapshot, context.GetSenderFee(tx.Sender)))
             {
                 Log($"Invalid transaction: {tx.Hash}{Environment.NewLine}{tx.ToArray().ToHexString()}", Plugins.LogLevel.Warning);
                 RequestChangeView(ChangeViewReason.TxInvalid);
@@ -119,6 +120,7 @@ namespace Neo.Consensus
                 return false;
             }
             context.Transactions[tx.Hash] = tx;
+            context.AddSenderFee(tx);
             return CheckPrepareResponse();
         }
 
@@ -819,6 +821,7 @@ namespace Neo.Consensus
             context.Block.ConsensusData.Nonce = message.Nonce;
             context.TransactionHashes = message.TransactionHashes;
             context.Transactions = new Dictionary<UInt256, Transaction>();
+            context.SenderFee = new Dictionary<UInt160, System.Numerics.BigInteger>();
             for (int i = 0; i < context.PreparationPayloads.Length; i++)
                 if (context.PreparationPayloads[i] != null)
                     if (!context.PreparationPayloads[i].GetDeserializedMessage<PrepareResponse>().PreparationHash.Equals(payload.Hash))
