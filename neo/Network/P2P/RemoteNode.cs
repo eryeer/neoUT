@@ -97,7 +97,6 @@ namespace Neo.Network.P2P
                 if (queue.Count == 0) return;
             }
             var msg = queue.Dequeue();
-            Console.WriteLine($"Dequeue Message Type: {msg.Command}");
             SendMessage(msg);
             if(msg.Command == MessageCommand.GetData) sendGetDataMessageCount++;
 
