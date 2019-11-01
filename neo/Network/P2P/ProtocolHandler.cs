@@ -298,13 +298,16 @@ namespace Neo.Network.P2P
                     }
                     if (countSwitch)
                     {
-                        Interlocked.Add(ref countGetData, 1);
-                        do
-                        {
-                            initialValue = totalTimeGetData;
-                            computedValue = initialValue + timespan;
-                        }
-                        while (initialValue != Interlocked.CompareExchange(ref totalTimeGetData, computedValue, initialValue));
+                        //Interlocked.Add(ref countGetData, 1);
+                        countGetData++;
+                        //do
+                        //{
+                        //    initialValue = totalTimeGetData;
+                        //    computedValue = initialValue + timespan;
+                        //}
+                        //while (initialValue != Interlocked.CompareExchange(ref totalTimeGetData, computedValue, initialValue));
+
+                        totalTimeGetData += timespan;
                     }
                     break;
                 case MessageCommand.GetHeaders:
@@ -361,13 +364,15 @@ namespace Neo.Network.P2P
                     }
                     if (countSwitch)
                     {
-                        Interlocked.Add(ref countInv, 1);
-                        do
-                        {
-                            initialValue = totalTimeInv;
-                            computedValue = initialValue + timespan;
-                        }
-                        while (initialValue != Interlocked.CompareExchange(ref totalTimeInv, computedValue, initialValue));
+                        countInv++;
+                        //Interlocked.Add(ref countInv, 1);
+                        //do
+                        //{
+                        //    initialValue = totalTimeInv;
+                        //    computedValue = initialValue + timespan;
+                        //}
+                        //while (initialValue != Interlocked.CompareExchange(ref totalTimeInv, computedValue, initialValue));
+                        totalTimeInv += countInv;
                     }
                     break;
                 case MessageCommand.Mempool:
@@ -599,7 +604,7 @@ namespace Neo.Network.P2P
             UInt256[] temphashes2=payload.Hashes.Where(p => knownHashes.Contains(p)).ToArray();
             if (temphashes2.Length > 0) {
                 countDuplicateTX++;
-                //AkkaLog.Info($"Class:ProtocolHandler Type: Inv £ºÖØ¸´ÏûÏ¢¸öÊý" + temphashes2.Length);
+                //AkkaLog.Info($"Class:ProtocolHandler Type: Inv ï¼šé‡å¤æ¶ˆæ¯ä¸ªæ•°" + temphashes2.Length);
             }
             UInt256[] hashes = payload.Hashes.Where(p => knownHashes.Add(p) && !sentHashes.Contains(p)).ToArray();
             if (hashes.Length == 0) return;
@@ -614,7 +619,7 @@ namespace Neo.Network.P2P
                         UInt256[] temphashes = hashes.Where(p => !snapshot.ContainsTransaction(p)).ToArray();
                         if (temphashes.Length < hashes.Length) {
                             countDuplicateTX = countDuplicateTX + (hashes.Length - temphashes.Length);
-                            //AkkaLog.Info($"Class:ProtocolHandler Type: Inv :ÖØ¸´ÏûÏ¢ÒÑ¾­±»¹ýÂË,ÖØ¸´¸öÊý"+ (hashes.Length- temphashes.Length));
+                            //AkkaLog.Info($"Class:ProtocolHandler Type: Inv :é‡å¤æ¶ˆæ¯å·²ç»è¢«è¿‡æ»¤,é‡å¤ä¸ªæ•°"+ (hashes.Length- temphashes.Length));
                         }
                     }
                     break;

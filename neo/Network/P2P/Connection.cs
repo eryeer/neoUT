@@ -170,13 +170,15 @@ namespace Neo.Network.P2P
                     }
                     if (countSwitch)
                     {
-                        Interlocked.Add(ref countReceived, 1);
-                        do
-                        {
-                            initialValue = totalTimeReceived;
-                            computedValue = initialValue + timespan;
-                        }
-                        while (initialValue != Interlocked.CompareExchange(ref totalTimeReceived, computedValue, initialValue));
+                        //Interlocked.Add(ref countReceived, 1);
+                        countReceived++;
+                        //do
+                        //{
+                        //    initialValue = totalTimeReceived;
+                        //    computedValue = initialValue + timespan;
+                        //}
+                        //while (initialValue != Interlocked.CompareExchange(ref totalTimeReceived, computedValue, initialValue));
+                        totalTimeReceived += timespan;
                     }
                     break;
                 case Tcp.ConnectionClosed _:
@@ -213,6 +215,7 @@ namespace Neo.Network.P2P
             }
             catch
             {
+                Log.Warning("Connection is disconnected!!!");
                 Disconnect(true);
             }
         }
