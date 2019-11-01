@@ -230,7 +230,7 @@ namespace Neo.Consensus
                 foreach (var remote in remoteNodes)
                 {
                     AkkaLog.Info($"Class: RemoteNode Count of SendGetDataMessage: {remote.sendGetDataMessageCount}");
-                    AkkaLog.Info($"Class: RemoteNode Count of SendGetDataMessage: {remote.receivedGetDataMessageCount}");
+                    AkkaLog.Info($"Class: RemoteNode Count of ReceivedGetDataMessage: {remote.receivedGetDataMessageCount}");
                     remote.sendGetDataMessageCount = 0;
                     remote.receivedGetDataMessageCount = 0;
                 }
