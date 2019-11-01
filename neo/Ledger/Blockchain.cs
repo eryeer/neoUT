@@ -171,7 +171,14 @@ namespace Neo.Ledger
                 AkkaLog.Info($"Class: ProtocolHandler Type: Pong Count: {ProtocolHandler.countPong} averageTimespan: {ProtocolHandler.totalTimePong / ProtocolHandler.countPong}");
                 AkkaLog.Info($"Class: ProtocolHandler Type: Transaction Count: {ProtocolHandler.countTransaction} averageTimespan: {ProtocolHandler.totalTimeTransaction / ProtocolHandler.countTransaction}");
 
+
                 AkkaLog.Warning($"Class: ProtocolHandler : duplicateTransaction Count: {ProtocolHandler.countDuplicateTX}");
+                AkkaLog.Info($"Class: ProtocolHandler countReturnedPhase1: {ProtocolHandler.countReturnedPhase1}");
+                AkkaLog.Info($"Class: ProtocolHandler countReturnedPhase2: {ProtocolHandler.countReturnedPhase2}");
+                AkkaLog.Info($"Class: ProtocolHandler countReturnedPhase3: {ProtocolHandler.countReturnedPhase3}");
+                AkkaLog.Info($"Class: ProtocolHandler countReturnedPhase4: {ProtocolHandler.countReturnedPhase4}");
+                AkkaLog.Info($"Class: ProtocolHandler countEntryGetData: {ProtocolHandler.countEntryGetData}");
+
                 ProtocolHandler.countAddr = 0;
                 ProtocolHandler.countBlock = 0;
                 ProtocolHandler.countConsensus = 0;
@@ -207,6 +214,12 @@ namespace Neo.Ledger
                 ProtocolHandler.totalTimePing = 0;
                 ProtocolHandler.totalTimePong = 0;
                 ProtocolHandler.totalTimeTransaction = 0;
+
+                ProtocolHandler.countReturnedPhase1 = 0;
+                ProtocolHandler.countReturnedPhase2 = 0;
+                ProtocolHandler.countReturnedPhase3 = 0;
+                ProtocolHandler.countReturnedPhase4 = 0;
+                ProtocolHandler.countEntryGetData = 0;
             }
 
             //TaskManager

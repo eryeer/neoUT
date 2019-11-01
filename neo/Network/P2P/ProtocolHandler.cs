@@ -93,21 +93,44 @@ namespace Neo.Network.P2P
             this.sentHashes = new FIFOSet<UInt256>(Blockchain.Singleton.MemPool.Capacity * 2);
         }
 
+        public static long countReturnedPhase1 = 0;
+        public static long countReturnedPhase2 = 0;
+        public static long countReturnedPhase3 = 0;
+        public static long countReturnedPhase4 = 0;
+        public static long countEntryGetData = 0;
+
         protected override void OnReceive(object message)
         {
-            if (!(message is Message msg)) return;
+            //phase1
+            if (!(message is Message msg))
+            {
+                countReturnedPhase1++;
+                return;
+            }
+            if (((Message)message).Command == MessageCommand.GetData) countEntryGetData++;
+            //phase2
             foreach (IP2PPlugin plugin in Plugin.P2PPlugins)
                 if (!plugin.OnP2PMessage(msg))
+                {
+                    if(msg.Command == MessageCommand.GetData) countReturnedPhase2++;
                     return;
+                }
+            //phase3
             if (version == null)
             {
+                if (msg.Command == MessageCommand.GetData) countReturnedPhase3++;
                 if (msg.Command != MessageCommand.Version)
+                {
+                    
                     throw new ProtocolViolationException();
+                }
                 OnVersionMessageReceived((VersionPayload)msg.Payload);
                 return;
             }
+            //phase4
             if (!verack)
             {
+                if (msg.Command == MessageCommand.GetData) countReturnedPhase4++;
                 if (msg.Command != MessageCommand.Verack)
                     throw new ProtocolViolationException();
                 OnVerackMessageReceived();
