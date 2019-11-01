@@ -361,7 +361,7 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: TaskManager Type: Terminated Count: {TaskManager.countTerminated} averageTimespan: {TaskManager.totalTimeTerminated / TaskManager.countTerminated}");
 
 
-                AkkaLog.Info($"Class: TaskManager : InvGetData Count: {TaskManager.countInvGetData}");
+                AkkaLog.Info($"Class: TaskManager : SendInvGetData InvGetData Count: {TaskManager.countInvGetData}");
 
                 TaskManager.countRegister = 0;
                 TaskManager.countNewTasks = 0;
