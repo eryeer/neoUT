@@ -372,7 +372,7 @@ namespace Neo.Network.P2P
                         //    computedValue = initialValue + timespan;
                         //}
                         //while (initialValue != Interlocked.CompareExchange(ref totalTimeInv, computedValue, initialValue));
-                        totalTimeInv += countInv;
+                        totalTimeInv += timespan;
                     }
                     break;
                 case MessageCommand.Mempool:
