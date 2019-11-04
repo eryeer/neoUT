@@ -104,7 +104,6 @@ namespace Neo.Network.P2P
             //phase1
             if (!(message is Message msg))
             {
-                Console.WriteLine(message.GetType());
                 countReturnedPhase1++;
                 return;
             }
