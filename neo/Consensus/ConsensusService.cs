@@ -186,15 +186,15 @@ namespace Neo.Consensus
             //print block timespan and TPS
             double timespan = (DateTime.Now - lasttime).TotalSeconds;
             lasttime = DateTime.Now;
-            Console.WriteLine("Time spent since last relay = " + timespan + ", TPS = " + block.Transactions.Length / timespan);
+            AkkaLog.Warning("Time spent since last relay = " + timespan + ", TPS = " + block.Transactions.Length / timespan);
 
-            foreach (var remoteNode in remoteNodes) {
-                Console.WriteLine($"High Message Queue count: {remoteNode.message_queue_high.Count}");
-                Console.WriteLine($"Low Message Queue count: {remoteNode.message_queue_low.Count}");
-            }
+            //foreach (var remoteNode in remoteNodes) {
+            //    Console.WriteLine($"High Message Queue count: {remoteNode.message_queue_high.Count}");
+            //    Console.WriteLine($"Low Message Queue count: {remoteNode.message_queue_low.Count}");
+            //}
 
-            Console.WriteLine($"Verified transaction count in mempool: {mempool.VerifiedCount}");
-            Console.WriteLine($"Unverified transaction count in mempool: {mempool.UnVerifiedCount}");
+            AkkaLog.Info($"Verified transaction count in mempool: {mempool.VerifiedCount}");
+            AkkaLog.Info($"Unverified transaction count in mempool: {mempool.UnVerifiedCount}");
 
             //Connection
             if (Connection.countSwitch)
