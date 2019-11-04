@@ -104,21 +104,21 @@ namespace Neo.Network.P2P
             //phase1
             if (!(message is Message msg))
             {
-                countReturnedPhase1++;
+                Interlocked.Increment(ref countReturnedPhase1);
                 return;
             }
-            if (((Message)message).Command == MessageCommand.GetData) countEntryGetData++;
+            if (((Message)message).Command == MessageCommand.GetData) Interlocked.Increment(ref countEntryGetData);
             //phase2
             foreach (IP2PPlugin plugin in Plugin.P2PPlugins)
                 if (!plugin.OnP2PMessage(msg))
                 {
-                    if(msg.Command == MessageCommand.GetData) countReturnedPhase2++;
+                    if(msg.Command == MessageCommand.GetData) Interlocked.Increment(ref countReturnedPhase2);
                     return;
                 }
             //phase3
             if (version == null)
             {
-                if (msg.Command == MessageCommand.GetData) countReturnedPhase3++;
+                if (msg.Command == MessageCommand.GetData) Interlocked.Increment(ref countReturnedPhase3);
                 if (msg.Command != MessageCommand.Version)
                 {
                     
@@ -130,7 +130,7 @@ namespace Neo.Network.P2P
             //phase4
             if (!verack)
             {
-                if (msg.Command == MessageCommand.GetData) countReturnedPhase4++;
+                if (msg.Command == MessageCommand.GetData) Interlocked.Increment(ref countReturnedPhase4);
                 if (msg.Command != MessageCommand.Verack)
                     throw new ProtocolViolationException();
                 OnVerackMessageReceived();
@@ -153,7 +153,7 @@ namespace Neo.Network.P2P
                     }
                     if (countSwitch)
                     {
-                        Interlocked.Add(ref countAddr, 1);
+                        Interlocked.Increment(ref countAddr);
                         do
                         {
                             initialValue = totalTimeAddr;
@@ -321,16 +321,13 @@ namespace Neo.Network.P2P
                     }
                     if (countSwitch)
                     {
-                        //Interlocked.Add(ref countGetData, 1);
-                        countGetData++;
-                        //do
-                        //{
-                        //    initialValue = totalTimeGetData;
-                        //    computedValue = initialValue + timespan;
-                        //}
-                        //while (initialValue != Interlocked.CompareExchange(ref totalTimeGetData, computedValue, initialValue));
-
-                        totalTimeGetData += timespan;
+                        Interlocked.Increment(ref countGetData);
+                        do
+                        {
+                            initialValue = totalTimeGetData;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeGetData, computedValue, initialValue));
                     }
                     break;
                 case MessageCommand.GetHeaders:
@@ -387,15 +384,13 @@ namespace Neo.Network.P2P
                     }
                     if (countSwitch)
                     {
-                        countInv++;
-                        //Interlocked.Add(ref countInv, 1);
-                        //do
-                        //{
-                        //    initialValue = totalTimeInv;
-                        //    computedValue = initialValue + timespan;
-                        //}
-                        //while (initialValue != Interlocked.CompareExchange(ref totalTimeInv, computedValue, initialValue));
-                        totalTimeInv += timespan;
+                        Interlocked.Increment(ref countInv);
+                        do
+                        {
+                            initialValue = totalTimeInv;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeInv, computedValue, initialValue));
                     }
                     break;
                 case MessageCommand.Mempool:
@@ -626,7 +621,7 @@ namespace Neo.Network.P2P
         {
             UInt256[] temphashes2=payload.Hashes.Where(p => knownHashes.Contains(p)).ToArray();
             if (temphashes2.Length > 0) {
-                countDuplicateTX++;
+                Interlocked.Increment(ref countDuplicateTX);
                 //AkkaLog.Info($"Class:ProtocolHandler Type: Inv ：重复消息个数" + temphashes2.Length);
             }
             UInt256[] hashes = payload.Hashes.Where(p => knownHashes.Add(p) && !sentHashes.Contains(p)).ToArray();
@@ -641,7 +636,13 @@ namespace Neo.Network.P2P
                     using (Snapshot snapshot = Blockchain.Singleton.GetSnapshot()) {
                         UInt256[] temphashes = hashes.Where(p => !snapshot.ContainsTransaction(p)).ToArray();
                         if (temphashes.Length < hashes.Length) {
-                            countDuplicateTX = countDuplicateTX + (hashes.Length - temphashes.Length);
+                            long initialValue, computedValue;
+                            do
+                            {
+                                initialValue = countDuplicateTX;
+                                computedValue = initialValue + (hashes.Length - temphashes.Length);
+                            }
+                            while (initialValue != Interlocked.CompareExchange(ref countDuplicateTX, computedValue, initialValue));
                             //AkkaLog.Info($"Class:ProtocolHandler Type: Inv :重复消息已经被过滤,重复个数"+ (hashes.Length- temphashes.Length));
                         }
                     }

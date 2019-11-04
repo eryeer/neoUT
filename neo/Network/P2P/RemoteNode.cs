@@ -46,7 +46,7 @@ namespace Neo.Network.P2P
         public static double totalTimeSetFilter = 0;
         public static double totalTimePingPayload = 0;
 
-        public long receivedGetDataMessageCount = 0;
+        public static long receivedGetDataMessageCount = 0;
 
         internal class Relay { public IInventory Inventory; }
 
@@ -86,7 +86,7 @@ namespace Neo.Network.P2P
             Blockchain.remoteNodes.Add(this);
         }
 
-        public long sendGetDataMessageCount = 0;
+        public static long sendGetDataMessageCount = 0;
         private void CheckMessageQueue()
         {
             if (!verack || !ack) return;
@@ -98,7 +98,7 @@ namespace Neo.Network.P2P
             }
             var msg = queue.Dequeue();
             SendMessage(msg);
-            if(msg.Command == MessageCommand.GetData) sendGetDataMessageCount++;
+            if(msg.Command == MessageCommand.GetData) Interlocked.Increment(ref sendGetDataMessageCount);
 
         }
 
@@ -149,8 +149,6 @@ namespace Neo.Network.P2P
             CheckMessageQueue();
         }
 
-
-
         protected override void OnData(ByteString data)
         {
             msg_buffer = msg_buffer.Concat(data);
@@ -159,7 +157,7 @@ namespace Neo.Network.P2P
             {
                 protocol.Tell(message);
                 if (message.Command is MessageCommand.GetData) {
-                    receivedGetDataMessageCount++;
+                    Interlocked.Increment(ref receivedGetDataMessageCount);
                 }
             }
         }

@@ -11,7 +11,7 @@ namespace Neo.Network.P2P
     public abstract class Connection : UntypedActor
     {
         public static bool watchSwitch = false;
-        public static bool countSwitch = true;
+        public static bool countSwitch = false;
         public ILoggingAdapter Log { get; } = Context.GetLogger();
 
         public System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
@@ -170,15 +170,13 @@ namespace Neo.Network.P2P
                     }
                     if (countSwitch)
                     {
-                        //Interlocked.Add(ref countReceived, 1);
-                        countReceived++;
-                        //do
-                        //{
-                        //    initialValue = totalTimeReceived;
-                        //    computedValue = initialValue + timespan;
-                        //}
-                        //while (initialValue != Interlocked.CompareExchange(ref totalTimeReceived, computedValue, initialValue));
-                        totalTimeReceived += timespan;
+                        Interlocked.Add(ref countReceived, 1);
+                        do
+                        {
+                            initialValue = totalTimeReceived;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeReceived, computedValue, initialValue));
                     }
                     break;
                 case Tcp.ConnectionClosed _:

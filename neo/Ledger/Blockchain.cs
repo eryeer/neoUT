@@ -86,11 +86,11 @@ namespace Neo.Ledger
             lasttime = DateTime.Now;
             Console.WriteLine($"Block Height: {block.Index} Time spent since last relay = " + timespan + ", TPS = " + block.Transactions.Length / timespan);
 
-            foreach (var remoteNode in remoteNodes)
-            {
-                Console.WriteLine($"High Message Queue count: {remoteNode.message_queue_high.Count}");
-                Console.WriteLine($"Low Message Queue count: {remoteNode.message_queue_low.Count}");
-            }
+            //foreach (var remoteNode in remoteNodes)
+            //{
+            //    Console.WriteLine($"High Message Queue count: {remoteNode.message_queue_high.Count}");
+            //    Console.WriteLine($"Low Message Queue count: {remoteNode.message_queue_low.Count}");
+            //}
 
             Console.WriteLine($"Verified transaction count in mempool: {MemPool.VerifiedCount}");
             Console.WriteLine($"Unverified transaction count in mempool: {MemPool.UnVerifiedCount}");
@@ -127,13 +127,12 @@ namespace Neo.Ledger
                 AkkaLog.Info($"Class: RemoteNode Type: SetFilter Count: {RemoteNode.countSetFilter} averageTimespan: {RemoteNode.totalTimeSetFilter / RemoteNode.countSetFilter}");
                 AkkaLog.Info($"Class: RemoteNode Type: PingPayload Count: {RemoteNode.countPingPayload} averageTimespan: {RemoteNode.totalTimePingPayload / RemoteNode.countPingPayload}");
 
-                foreach (var remote in remoteNodes)
-                {
-                    AkkaLog.Info($"Class: RemoteNode Count of SendGetDataMessage: {remote.sendGetDataMessageCount}");
-                    AkkaLog.Info($"Class: RemoteNode Count of ReceivedGetDataMessage: {remote.receivedGetDataMessageCount}");
-                    remote.sendGetDataMessageCount = 0;
-                    remote.receivedGetDataMessageCount = 0;
-                }
+
+                AkkaLog.Info($"Class: RemoteNode Count of SendGetDataMessage: {RemoteNode.sendGetDataMessageCount}");
+                AkkaLog.Info($"Class: RemoteNode Count of ReceivedGetDataMessage: {RemoteNode.receivedGetDataMessageCount}");
+                RemoteNode.sendGetDataMessageCount = 0;
+                RemoteNode.receivedGetDataMessageCount = 0;
+
                 RemoteNode.countMessage = 0;
                 RemoteNode.countIInventory = 0;
                 RemoteNode.countRelay = 0;
@@ -686,28 +685,30 @@ namespace Neo.Ledger
                     stopwatchImport.Start();
                     OnImport(import.Blocks);
                     stopwatchImport.Stop();
-                    timespan=stopwatchImport.Elapsed.TotalSeconds;
+                    timespan = stopwatchImport.Elapsed.TotalSeconds;
                     stopwatchImport.Reset();
                     if (watchSwitchBlockchain)
                     {
                         AkkaLog.Info($"Class:Blockchain Type: Import TimeSpan:{timespan}");
                     }
-                    if (countSwitchBlockchain) {
+                    if (countSwitchBlockchain)
+                    {
                         countImport++;
-                        totalTimeImport+= timespan;
+                        totalTimeImport += timespan;
                     }
                     break;
                 case FillMemoryPool fill:
                     stopwatchFillMemoryPool.Start();
                     OnFillMemoryPool(fill.Transactions);
                     stopwatchFillMemoryPool.Stop();
-                    timespan= stopwatchFillMemoryPool.Elapsed.TotalSeconds;
+                    timespan = stopwatchFillMemoryPool.Elapsed.TotalSeconds;
                     stopwatchFillMemoryPool.Reset();
                     if (watchSwitchBlockchain)
                     {
                         AkkaLog.Info($"Class:Blockchain Type: FillMemoryPool TimeSpan:{timespan}");
                     }
-                    if (countSwitchBlockchain) {
+                    if (countSwitchBlockchain)
+                    {
                         countFillMemoryPool++;
                         totalTimeFillMemoryPool += timespan;
                     }
@@ -722,14 +723,15 @@ namespace Neo.Ledger
                     {
                         AkkaLog.Info($"Class:Blockchain Type: Header TimeSpan:{timespan}");
                     }
-                    if (countSwitchBlockchain) {
+                    if (countSwitchBlockchain)
+                    {
                         countHeaderArray++;
                         totalTimeHeaderArray += timespan;
                     }
                     break;
                 case Block block:
                     stopwatchBlock.Start();
-                    if(isNormalNode) CheckCount(block);
+                    if (isNormalNode) CheckCount(block);
                     Sender.Tell(OnNewBlock(block));
                     stopwatchBlock.Stop();
                     timespan = stopwatchBlock.Elapsed.TotalSeconds;
@@ -738,7 +740,8 @@ namespace Neo.Ledger
                     {
                         AkkaLog.Info($"Class:Blockchain Type: Block TimeSpan:{timespan}");
                     }
-                    if (countSwitchBlockchain) {
+                    if (countSwitchBlockchain)
+                    {
                         countBlock++;
                         totalTimeBlock += timespan;
                     }
@@ -748,13 +751,14 @@ namespace Neo.Ledger
                         stopwatchTransactionArray.Start();
                         foreach (var tx in transactions) OnNewTransaction(tx, false);
                         stopwatchTransactionArray.Stop();
-                        timespan= stopwatchTransactionArray.Elapsed.TotalSeconds;
+                        timespan = stopwatchTransactionArray.Elapsed.TotalSeconds;
                         stopwatchTransactionArray.Reset();
                         if (watchSwitchBlockchain)
                         {
                             AkkaLog.Info($"Class:Blockchain Type: TransactionArray TimeSpan:{timespan}");
                         }
-                        if (countSwitchBlockchain) {
+                        if (countSwitchBlockchain)
+                        {
                             countTransactionArray++;
                             totalTimeTransactionArray += timespan;
                         }
@@ -764,13 +768,14 @@ namespace Neo.Ledger
                     stopwatchTransaction.Start();
                     Sender.Tell(OnNewTransaction(transaction, true));
                     stopwatchTransaction.Stop();
-                    timespan= stopwatchTransaction.Elapsed.TotalSeconds;
+                    timespan = stopwatchTransaction.Elapsed.TotalSeconds;
                     stopwatchTransaction.Reset();
                     if (watchSwitchBlockchain)
                     {
                         AkkaLog.Info($"Class:Blockchain Type: Transaction TimeSpan:{timespan}");
                     }
-                    if (countSwitchBlockchain) {
+                    if (countSwitchBlockchain)
+                    {
                         countTransaction++;
                         totalTimeTransaction += timespan;
                     }
@@ -779,13 +784,14 @@ namespace Neo.Ledger
                     stopwatchConsensusPayload.Start();
                     Sender.Tell(OnNewConsensus(payload));
                     stopwatchConsensusPayload.Stop();
-                    timespan= stopwatchConsensusPayload.Elapsed.TotalSeconds;
+                    timespan = stopwatchConsensusPayload.Elapsed.TotalSeconds;
                     stopwatchConsensusPayload.Reset();
                     if (watchSwitchBlockchain)
                     {
                         AkkaLog.Info($"Class:Blockchain Type: ConsensusPayload TimeSpan:{timespan}");
                     }
-                    if (countSwitchBlockchain) {
+                    if (countSwitchBlockchain)
+                    {
                         countConsensusPayload++;
                         totalTimeConsensusPayload += timespan;
                     }
@@ -795,13 +801,14 @@ namespace Neo.Ledger
                     if (MemPool.ReVerifyTopUnverifiedTransactionsIfNeeded(MaxTxToReverifyPerIdle, currentSnapshot))
                         Self.Tell(Idle.Instance, ActorRefs.NoSender);
                     stopwatchIdle.Stop();
-                    timespan= stopwatchIdle.Elapsed.TotalSeconds;
+                    timespan = stopwatchIdle.Elapsed.TotalSeconds;
                     stopwatchIdle.Reset();
                     if (watchSwitchBlockchain)
                     {
                         AkkaLog.Info($"Class:Blockchain Type: Idle TimeSpan:{timespan}");
                     }
-                    if (countSwitchBlockchain) {
+                    if (countSwitchBlockchain)
+                    {
                         countIdle++;
                         totalTimeIdle += timespan;
                     }
