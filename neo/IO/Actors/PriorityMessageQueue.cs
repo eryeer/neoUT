@@ -48,7 +48,7 @@ namespace Neo.IO.Actors
             {
                 envelope = new Envelope(Idle.Instance, ActorRefs.NoSender);
                 return true;
-            }
+            }            
             return false;
         }
     }

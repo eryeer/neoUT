@@ -719,7 +719,7 @@ namespace Neo.Network.P2P
             {
                 case MessageCommand.GetAddr:
                 case MessageCommand.GetBlocks:
-                case MessageCommand.GetData:
+                //case MessageCommand.GetData:
                 case MessageCommand.GetHeaders:
                 case MessageCommand.Mempool:
                     return queue.OfType<Message>().Any(p => p.Command == msg.Command);
