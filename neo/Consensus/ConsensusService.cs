@@ -22,7 +22,7 @@ namespace Neo.Consensus
     {
 
         public static bool watchSwitch = false;
-        public static bool countSwitch = true;
+        public static bool countSwitch = false;
         public Akka.Event.ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
         private DateTime lasttime = DateTime.Now;
 

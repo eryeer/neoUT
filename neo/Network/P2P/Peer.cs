@@ -21,7 +21,7 @@ namespace Neo.Network.P2P
     public abstract class Peer : UntypedActor
     {
         public static bool watchSwitchPeer = false;
-        public static bool countSwitchPeer = true;
+        public static bool countSwitchPeer = false;
         public ILoggingAdapter Log { get; } = Context.GetLogger();
         public class Peers { public IEnumerable<IPEndPoint> EndPoints; }
         public class Connect { public IPEndPoint EndPoint; public bool IsTrusted = false; }

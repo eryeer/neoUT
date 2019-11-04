@@ -20,7 +20,7 @@ namespace Neo.Network.P2P
     public class RemoteNode : Connection
     {
         public static bool watchSwitchRemoteNode = false;
-        public static bool countSwitchRemoteNode = true;
+        public static bool countSwitchRemoteNode = false;
 
         public System.Diagnostics.Stopwatch stopwatchMessage = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchIInventory = new System.Diagnostics.Stopwatch();
@@ -98,7 +98,7 @@ namespace Neo.Network.P2P
             }
             var msg = queue.Dequeue();
             SendMessage(msg);
-            if(msg.Command == MessageCommand.GetData) Interlocked.Increment(ref sendGetDataMessageCount);
+            if(msg.Command == MessageCommand.GetData && countSwitchRemoteNode) Interlocked.Increment(ref sendGetDataMessageCount);
 
         }
 
@@ -156,7 +156,7 @@ namespace Neo.Network.P2P
             for (Message message = TryParseMessage(); message != null; message = TryParseMessage())
             {
                 protocol.Tell(message);
-                if (message.Command is MessageCommand.GetData) {
+                if (message.Command is MessageCommand.GetData && countSwitchRemoteNode) {
                     Interlocked.Increment(ref receivedGetDataMessageCount);
                 }
             }

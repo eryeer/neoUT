@@ -17,7 +17,7 @@ namespace Neo.Network.P2P
     public class LocalNode : Peer
     {
         public static bool watchSwitchLocalNode = false;
-        public static bool countSwitchLocalNode = true;
+        public static bool countSwitchLocalNode = false;
         public ILoggingAdapter Log { get; } = Context.GetLogger();
         public class Relay { public IInventory Inventory; }
         internal class RelayDirectly { public IInventory Inventory; }

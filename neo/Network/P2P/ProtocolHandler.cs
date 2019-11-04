@@ -21,7 +21,7 @@ namespace Neo.Network.P2P
     internal class ProtocolHandler : UntypedActor
     {
         public static bool watchSwitch = false;
-        public static bool countSwitch = true;
+        public static bool countSwitch = false;
         public Akka.Event.ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
 
         public System.Diagnostics.Stopwatch stopwatchAddr = new System.Diagnostics.Stopwatch();
@@ -104,7 +104,7 @@ namespace Neo.Network.P2P
             //phase1
             if (!(message is Message msg))
             {
-                Interlocked.Increment(ref countReturnedPhase1);
+                if(countSwitch) Interlocked.Increment(ref countReturnedPhase1);
                 return;
             }
             if (((Message)message).Command == MessageCommand.GetData) Interlocked.Increment(ref countEntryGetData);
@@ -112,13 +112,13 @@ namespace Neo.Network.P2P
             foreach (IP2PPlugin plugin in Plugin.P2PPlugins)
                 if (!plugin.OnP2PMessage(msg))
                 {
-                    if(msg.Command == MessageCommand.GetData) Interlocked.Increment(ref countReturnedPhase2);
+                    if(msg.Command == MessageCommand.GetData && countSwitch) Interlocked.Increment(ref countReturnedPhase2);
                     return;
                 }
             //phase3
             if (version == null)
             {
-                if (msg.Command == MessageCommand.GetData) Interlocked.Increment(ref countReturnedPhase3);
+                if (msg.Command == MessageCommand.GetData && countSwitch) Interlocked.Increment(ref countReturnedPhase3);
                 if (msg.Command != MessageCommand.Version)
                 {
                     
@@ -130,7 +130,7 @@ namespace Neo.Network.P2P
             //phase4
             if (!verack)
             {
-                if (msg.Command == MessageCommand.GetData) Interlocked.Increment(ref countReturnedPhase4);
+                if (msg.Command == MessageCommand.GetData && countSwitch) Interlocked.Increment(ref countReturnedPhase4);
                 if (msg.Command != MessageCommand.Verack)
                     throw new ProtocolViolationException();
                 OnVerackMessageReceived();
@@ -621,7 +621,7 @@ namespace Neo.Network.P2P
         {
             UInt256[] temphashes2=payload.Hashes.Where(p => knownHashes.Contains(p)).ToArray();
             if (temphashes2.Length > 0) {
-                Interlocked.Increment(ref countDuplicateTX);
+                if(countSwitch) Interlocked.Increment(ref countDuplicateTX);
                 //AkkaLog.Info($"Class:ProtocolHandler Type: Inv ：重复消息个数" + temphashes2.Length);
             }
             UInt256[] hashes = payload.Hashes.Where(p => knownHashes.Add(p) && !sentHashes.Contains(p)).ToArray();
@@ -636,13 +636,16 @@ namespace Neo.Network.P2P
                     using (Snapshot snapshot = Blockchain.Singleton.GetSnapshot()) {
                         UInt256[] temphashes = hashes.Where(p => !snapshot.ContainsTransaction(p)).ToArray();
                         if (temphashes.Length < hashes.Length) {
-                            long initialValue, computedValue;
-                            do
+                            if (countSwitch)
                             {
-                                initialValue = countDuplicateTX;
-                                computedValue = initialValue + (hashes.Length - temphashes.Length);
+                                long initialValue, computedValue;
+                                do
+                                {
+                                    initialValue = countDuplicateTX;
+                                    computedValue = initialValue + (hashes.Length - temphashes.Length);
+                                }
+                                while (initialValue != Interlocked.CompareExchange(ref countDuplicateTX, computedValue, initialValue));
                             }
-                            while (initialValue != Interlocked.CompareExchange(ref countDuplicateTX, computedValue, initialValue));
                             //AkkaLog.Info($"Class:ProtocolHandler Type: Inv :重复消息已经被过滤,重复个数"+ (hashes.Length- temphashes.Length));
                         }
                     }
