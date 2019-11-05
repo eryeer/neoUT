@@ -56,6 +56,10 @@ namespace Neo.Ledger
         public System.Diagnostics.Stopwatch stopwatchTxPhase4 = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchTxPhase5 = new System.Diagnostics.Stopwatch();
 
+        public System.Diagnostics.Stopwatch stopwatchPersistBlock = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchUpdateMempool = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchReverifyTx = new System.Diagnostics.Stopwatch();
+
         public static double totalTimestopwatchTxPhase1 = 0;
         public static double totalTimestopwatchTxPhase2 = 0;
         public static double totalTimestopwatchTxPhase3 = 0;
@@ -64,6 +68,10 @@ namespace Neo.Ledger
         public static double totalTimestopwatchTxPhase3_3 = 0;
         public static double totalTimestopwatchTxPhase4 = 0;
         public static double totalTimestopwatchTxPhase5 = 0;
+
+        public static double totalTimePersistBlock = 0;
+        public static double totalTimeUpdateMempool = 0;
+        public static double totalTimeReverifyTx = 0;
 
         public static long countImport = 0;
         public static long countFillMemoryPool = 0;
@@ -597,7 +605,18 @@ namespace Neo.Ledger
                 foreach (Block blockToPersist in blocksToPersistList)
                 {
                     block_cache_unverified.Remove(blockToPersist.Index);
-                    Persist(blockToPersist);
+                    if (countSwitchBlockchain)
+                    {
+                        stopwatchPersistBlock.Start();
+                        Persist(blockToPersist);
+                        stopwatchPersistBlock.Stop();
+                        totalTimePersistBlock += stopwatchPersistBlock.Elapsed.TotalSeconds;
+                        stopwatchPersistBlock.Reset();
+                    }
+                    else
+                    {
+                        Persist(blockToPersist);
+                    }
 
                     // 15000 is the default among of seconds per block, while MilliSecondsPerBlock is the current
                     uint extraBlocks = (15000 - MillisecondsPerBlock) / 1000;
@@ -740,7 +759,18 @@ namespace Neo.Ledger
         private void OnPersistCompleted(Block block)
         {
             block_cache.Remove(block.Hash);
-            MemPool.UpdatePoolForBlockPersisted(block, currentSnapshot);
+            if (countSwitchBlockchain)
+            {
+                stopwatchUpdateMempool.Start();
+                MemPool.UpdatePoolForBlockPersisted(block, currentSnapshot);
+                stopwatchUpdateMempool.Stop();
+                totalTimeUpdateMempool += stopwatchUpdateMempool.Elapsed.TotalSeconds;
+                stopwatchUpdateMempool.Reset();
+            }
+            else
+            {
+                MemPool.UpdatePoolForBlockPersisted(block, currentSnapshot);
+            }
             Context.System.EventStream.Publish(new PersistCompleted { Block = block });
         }
 

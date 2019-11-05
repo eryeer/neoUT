@@ -423,9 +423,20 @@ namespace Neo.Ledger
             // until we get caught up.
             if (block.Index > 0 && block.Index < Blockchain.Singleton.HeaderHeight || policyChanged)
                 return;
-
-            ReverifyTransactions(_sortedTransactions, _unverifiedSortedTransactions,
+            if (Blockchain.countSwitchBlockchain)
+            {
+                Blockchain.stopwatchReverifyTx.Start();
+                ReverifyTransactions(_sortedTransactions, _unverifiedSortedTransactions,
                 _maxTxPerBlock, MaxMillisecondsToReverifyTx, snapshot);
+                Blockchain.stopwatchReverifyTx.Stop();
+                Blockchain.totalTimeReverifyTx += Blockchain.stopwatchReverifyTx.Elapsed.TotalSeconds;
+                Blockchain.stopwatchReverifyTx.Reset();
+            }
+            else
+            {
+                ReverifyTransactions(_sortedTransactions, _unverifiedSortedTransactions,
+                    _maxTxPerBlock, MaxMillisecondsToReverifyTx, snapshot);
+            }
         }
 
         internal void InvalidateAllTransactions()
