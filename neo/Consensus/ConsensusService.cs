@@ -401,6 +401,16 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Count: {Blockchain.countTransaction} averageTimespan: {Blockchain.totalTimeTransaction / Blockchain.countTransaction}");
                 AkkaLog.Info($"Class: Blockchain Type: ConsensusPayload Count: {Blockchain.countConsensusPayload} averageTimespan: {Blockchain.totalTimeConsensusPayload / Blockchain.countConsensusPayload}");
                 AkkaLog.Info($"Class: Blockchain Type: Idle Count: {Blockchain.countIdle} averageTimespan: {Blockchain.totalTimeIdle / Blockchain.countIdle}");
+
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase1  averageTimespan: {Blockchain.totalTimestopwatchTxPhase1 / Blockchain.countTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase2  averageTimespan: {Blockchain.totalTimestopwatchTxPhase2 / Blockchain.countTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase3  averageTimespan: {Blockchain.totalTimestopwatchTxPhase3 / Blockchain.countTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase4  averageTimespan: {Blockchain.totalTimestopwatchTxPhase4 / Blockchain.countTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase5  averageTimespan: {Blockchain.totalTimestopwatchTxPhase5 / Blockchain.countTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase3-1  averageTimespan: {Blockchain.totalTimestopwatchTxPhase3_1 / Blockchain.countTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase3-2  averageTimespan: {Blockchain.totalTimestopwatchTxPhase3_2 / Blockchain.countTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase3-3  averageTimespan: {Blockchain.totalTimestopwatchTxPhase3_3 / Blockchain.countTransaction}");
+
                 Blockchain.countImport = 0;
                 Blockchain.countFillMemoryPool = 0;
                 Blockchain.countHeaderArray = 0;
@@ -418,6 +428,15 @@ namespace Neo.Consensus
                 Blockchain.totalTimeTransaction = 0;
                 Blockchain.totalTimeConsensusPayload = 0;
                 Blockchain.totalTimeIdle = 0;
+
+                Blockchain.totalTimestopwatchTxPhase1 = 0;
+                Blockchain.totalTimestopwatchTxPhase2 = 0;
+                Blockchain.totalTimestopwatchTxPhase3 = 0;
+                Blockchain.totalTimestopwatchTxPhase4 = 0;
+                Blockchain.totalTimestopwatchTxPhase5 = 0;
+                Blockchain.totalTimestopwatchTxPhase3_1 = 0;
+                Blockchain.totalTimestopwatchTxPhase3_2 = 0;
+                Blockchain.totalTimestopwatchTxPhase3_3 = 0;
             }
             if (Peer.countSwitchPeer)
             {
