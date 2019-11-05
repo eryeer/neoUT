@@ -241,7 +241,8 @@ namespace Neo.Network.P2P.Payloads
                 Blockchain.stopwatchTxPhase3_2.Reset();
                 //Phase3-3
                 Blockchain.stopwatchTxPhase3_3.Start();
-                var ret3 = this.VerifyWitnesses(snapshot, net_fee);
+                var ret3 = true;
+                    //this.VerifyWitnesses(snapshot, net_fee);
                 Blockchain.stopwatchTxPhase3_3.Stop();
                 Blockchain.totalTimestopwatchTxPhase3_3 += Blockchain.stopwatchTxPhase3_3.Elapsed.TotalSeconds;
                 Blockchain.stopwatchTxPhase3_3.Reset();
@@ -257,7 +258,7 @@ namespace Neo.Network.P2P.Payloads
                 long net_fee = NetworkFee - size * NativeContract.Policy.GetFeePerByte(snapshot);
                 if (net_fee < 0) return false;
                 //Phase3-3
-                return this.VerifyWitnesses(snapshot, net_fee);
+                return true;//this.VerifyWitnesses(snapshot, net_fee);
             }
         }
 
