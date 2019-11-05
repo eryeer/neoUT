@@ -22,7 +22,7 @@ namespace Neo.Ledger
     public sealed partial class Blockchain : UntypedActor
     {
         public static bool watchSwitchBlockchain = false;
-        public static bool countSwitchBlockchain = false;
+        public static bool countSwitchBlockchain = true;
         public ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
         public partial class ApplicationExecuted { }
         public class PersistCompleted { public Block Block; }

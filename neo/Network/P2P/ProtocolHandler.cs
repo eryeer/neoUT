@@ -21,7 +21,7 @@ namespace Neo.Network.P2P
     internal class ProtocolHandler : UntypedActor
     {
         public static bool watchSwitch = false;
-        public static bool countSwitch = false;
+        public static bool countSwitch = true;
         public Akka.Event.ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
 
         public System.Diagnostics.Stopwatch stopwatchAddr = new System.Diagnostics.Stopwatch();
