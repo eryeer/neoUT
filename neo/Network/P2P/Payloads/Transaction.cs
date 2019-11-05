@@ -1,6 +1,7 @@
 using Neo.Cryptography;
 using Neo.IO;
 using Neo.IO.Json;
+using Neo.Ledger;
 using Neo.Persistence;
 using Neo.SmartContract;
 using Neo.SmartContract.Native;
@@ -220,12 +221,44 @@ namespace Neo.Network.P2P.Payloads
 
         public virtual bool Verify(Snapshot snapshot, BigInteger currentFee)
         {
-            if (!Reverify(snapshot, currentFee)) return false;
-            int size = Size;
-            if (size > MaxTransactionSize) return false;
-            long net_fee = NetworkFee - size * NativeContract.Policy.GetFeePerByte(snapshot);
-            if (net_fee < 0) return false;
-            return this.VerifyWitnesses(snapshot, net_fee);
+            if (Blockchain.countSwitchBlockchain)
+            {
+                //Phase3-1
+                Blockchain.stopwatchTxPhase3_1.Start();
+                var ret1 = Reverify(snapshot, currentFee);
+                Blockchain.stopwatchTxPhase3_1.Stop();
+                Blockchain.totalTimestopwatchTxPhase3_1 += Blockchain.stopwatchTxPhase3_1.Elapsed.TotalSeconds;
+                Blockchain.stopwatchTxPhase3_1.Reset();
+                if (!ret1) return false;
+                //Phase3-2
+                Blockchain.stopwatchTxPhase3_2.Start();
+                int size = Size;
+                if (size > MaxTransactionSize) return false;
+                long net_fee = NetworkFee - size * NativeContract.Policy.GetFeePerByte(snapshot);
+                if (net_fee < 0) return false;
+                Blockchain.stopwatchTxPhase3_2.Stop();
+                Blockchain.totalTimestopwatchTxPhase3_2 += Blockchain.stopwatchTxPhase3_2.Elapsed.TotalSeconds;
+                Blockchain.stopwatchTxPhase3_2.Reset();
+                //Phase3-3
+                Blockchain.stopwatchTxPhase3_3.Start();
+                var ret3 = this.VerifyWitnesses(snapshot, net_fee);
+                Blockchain.stopwatchTxPhase3_3.Stop();
+                Blockchain.totalTimestopwatchTxPhase3_3 += Blockchain.stopwatchTxPhase3_3.Elapsed.TotalSeconds;
+                Blockchain.stopwatchTxPhase3_3.Reset();
+                return ret3;
+            }
+            else
+            {
+                //Phase3-1
+                if (!Reverify(snapshot, currentFee)) return false;
+                //Phase3-2
+                int size = Size;
+                if (size > MaxTransactionSize) return false;
+                long net_fee = NetworkFee - size * NativeContract.Policy.GetFeePerByte(snapshot);
+                if (net_fee < 0) return false;
+                //Phase3-3
+                return this.VerifyWitnesses(snapshot, net_fee);
+            }
         }
 
         public StackItem ToStackItem()

@@ -38,6 +38,51 @@ namespace Neo.Ledger
         public static readonly TimeSpan TimePerBlock = TimeSpan.FromMilliseconds(MillisecondsPerBlock);
         public static readonly ECPoint[] StandbyValidators = ProtocolSettings.Default.StandbyValidators.OfType<string>().Select(p => ECPoint.DecodePoint(p.HexToBytes(), ECCurve.Secp256r1)).ToArray();
 
+        public System.Diagnostics.Stopwatch stopwatchImport = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchFillMemoryPool = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchHeaderArray = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchBlock = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTransactionArray = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTransaction = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchConsensusPayload = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchIdle = new System.Diagnostics.Stopwatch();
+
+        public System.Diagnostics.Stopwatch stopwatchTxPhase1 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTxPhase2 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTxPhase3 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTxPhase3_1 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTxPhase3_2 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTxPhase3_3 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTxPhase4 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTxPhase5 = new System.Diagnostics.Stopwatch();
+
+        public static double totalTimestopwatchTxPhase1 = 0;
+        public static double totalTimestopwatchTxPhase2 = 0;
+        public static double totalTimestopwatchTxPhase3 = 0;
+        public static double totalTimestopwatchTxPhase3_1 = 0;
+        public static double totalTimestopwatchTxPhase3_2 = 0;
+        public static double totalTimestopwatchTxPhase3_3 = 0;
+        public static double totalTimestopwatchTxPhase4 = 0;
+        public static double totalTimestopwatchTxPhase5 = 0;
+
+        public static long countImport = 0;
+        public static long countFillMemoryPool = 0;
+        public static long countHeaderArray = 0;
+        public static long countBlock = 0;
+        public static long countTransactionArray = 0;
+        public static long countTransaction = 0;
+        public static long countConsensusPayload = 0;
+        public static long countIdle = 0;
+
+        public static double totalTimeImport = 0;
+        public static double totalTimeFillMemoryPool = 0;
+        public static double totalTimeHeaderArray = 0;
+        public static double totalTimeBlock = 0;
+        public static double totalTimeTransactionArray = 0;
+        public static double totalTimeTransaction = 0;
+        public static double totalTimeConsensusPayload = 0;
+        public static double totalTimeIdle = 0;
+
         public static readonly Block GenesisBlock = new Block
         {
             PrevHash = UInt256.Zero,
@@ -627,17 +672,66 @@ namespace Neo.Ledger
 
         private RelayResultReason OnNewTransaction(Transaction transaction, bool relay)
         {
-            if (ContainsTransaction(transaction.Hash))
-                return RelayResultReason.AlreadyExists;
-            if (!MemPool.CanTransactionFitInPool(transaction))
-                return RelayResultReason.OutOfMemory;
-            if (!transaction.Verify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender)))
-                return RelayResultReason.Invalid;
-            if (!NativeContract.Policy.CheckPolicy(transaction, currentSnapshot))
-                return RelayResultReason.PolicyFail;
-
-            if (!MemPool.TryAdd(transaction.Hash, transaction))
-                return RelayResultReason.OutOfMemory;
+            if (countSwitchBlockchain)
+            {
+                //Phase1
+                stopwatchTxPhase1.Start();
+                var ret1 = ContainsTransaction(transaction.Hash);
+                stopwatchTxPhase1.Stop();
+                totalTimestopwatchTxPhase1 += stopwatchTxPhase1.Elapsed.TotalSeconds;
+                stopwatchTxPhase1.Reset();
+                if (ret1)
+                    return RelayResultReason.AlreadyExists;
+                //Phase2
+                stopwatchTxPhase2.Start();
+                var ret2 = MemPool.CanTransactionFitInPool(transaction);
+                stopwatchTxPhase2.Stop();
+                totalTimestopwatchTxPhase2 += stopwatchTxPhase2.Elapsed.TotalSeconds;
+                stopwatchTxPhase2.Reset();
+                if (!ret2)
+                    return RelayResultReason.OutOfMemory;
+                //Phase3
+                stopwatchTxPhase3.Start();
+                var ret3 = transaction.Verify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender));
+                stopwatchTxPhase3.Stop();
+                totalTimestopwatchTxPhase3 += stopwatchTxPhase3.Elapsed.TotalSeconds;
+                stopwatchTxPhase3.Reset();
+                if (!ret3)
+                    return RelayResultReason.Invalid;
+                //Phase4
+                stopwatchTxPhase4.Start();
+                var ret4 = NativeContract.Policy.CheckPolicy(transaction, currentSnapshot);
+                stopwatchTxPhase4.Stop();
+                totalTimestopwatchTxPhase4 += stopwatchTxPhase4.Elapsed.TotalSeconds;
+                stopwatchTxPhase4.Reset();
+                if (!ret4)
+                    return RelayResultReason.PolicyFail;
+                //Pahse5
+                stopwatchTxPhase5.Start();
+                var ret5 = MemPool.TryAdd(transaction.Hash, transaction);
+                stopwatchTxPhase5.Stop();
+                totalTimestopwatchTxPhase5 += stopwatchTxPhase5.Elapsed.TotalSeconds;
+                stopwatchTxPhase5.Reset();
+                if (!ret5)
+                    return RelayResultReason.OutOfMemory;
+            }
+            else {
+                //Phase1
+                if (ContainsTransaction(transaction.Hash))
+                    return RelayResultReason.AlreadyExists;
+                //Phase2
+                if (!MemPool.CanTransactionFitInPool(transaction))
+                    return RelayResultReason.OutOfMemory;
+                //Phase3
+                if (!transaction.Verify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender)))
+                    return RelayResultReason.Invalid;
+                //Phase4
+                if (!NativeContract.Policy.CheckPolicy(transaction, currentSnapshot))
+                    return RelayResultReason.PolicyFail;
+                //Pahse5
+                if (!MemPool.TryAdd(transaction.Hash, transaction))
+                    return RelayResultReason.OutOfMemory;
+            }
             if (relay)
                 system.LocalNode.Tell(new LocalNode.RelayDirectly { Inventory = transaction });
             return RelayResultReason.Succeed;
@@ -650,32 +744,7 @@ namespace Neo.Ledger
             Context.System.EventStream.Publish(new PersistCompleted { Block = block });
         }
 
-        public System.Diagnostics.Stopwatch stopwatchImport = new System.Diagnostics.Stopwatch();
-        public System.Diagnostics.Stopwatch stopwatchFillMemoryPool = new System.Diagnostics.Stopwatch();
-        public System.Diagnostics.Stopwatch stopwatchHeaderArray = new System.Diagnostics.Stopwatch();
-        public System.Diagnostics.Stopwatch stopwatchBlock = new System.Diagnostics.Stopwatch();
-        public System.Diagnostics.Stopwatch stopwatchTransactionArray = new System.Diagnostics.Stopwatch();
-        public System.Diagnostics.Stopwatch stopwatchTransaction = new System.Diagnostics.Stopwatch();
-        public System.Diagnostics.Stopwatch stopwatchConsensusPayload = new System.Diagnostics.Stopwatch();
-        public System.Diagnostics.Stopwatch stopwatchIdle = new System.Diagnostics.Stopwatch();
-
-        public static long countImport = 0;
-        public static long countFillMemoryPool = 0;
-        public static long countHeaderArray = 0;
-        public static long countBlock = 0;
-        public static long countTransactionArray = 0;
-        public static long countTransaction = 0;
-        public static long countConsensusPayload = 0;
-        public static long countIdle = 0;
-
-        public static double totalTimeImport = 0;
-        public static double totalTimeFillMemoryPool = 0;
-        public static double totalTimeHeaderArray = 0;
-        public static double totalTimeBlock = 0;
-        public static double totalTimeTransactionArray = 0;
-        public static double totalTimeTransaction = 0;
-        public static double totalTimeConsensusPayload = 0;
-        public static double totalTimeIdle = 0;
+       
         protected override void OnReceive(object message)
         {
             double timespan = 0;
