@@ -32,7 +32,7 @@ namespace Neo.IO.Actors
 
         public void Enqueue(IActorRef receiver, Envelope envelope)
         {
-            //Interlocked.Increment(ref idle);
+            Interlocked.Increment(ref idle);
             if (envelope.Message is Idle) return;
             if (dropper(envelope.Message, high.Concat(low).Select(p => p.Message)))
                 return;
@@ -44,11 +44,11 @@ namespace Neo.IO.Actors
         {
             if (high.TryDequeue(out envelope)) return true;
             if (low.TryDequeue(out envelope)) return true;
-            //if (Interlocked.Exchange(ref idle, 0) > 0)
-            //{
-            //    envelope = new Envelope(Idle.Instance, ActorRefs.NoSender);
-            //    return true;
-            //}            
+            if (Interlocked.Exchange(ref idle, 0) > 0)
+            {
+                envelope = new Envelope(Idle.Instance, ActorRefs.NoSender);
+                return true;
+            }
             return false;
         }
     }
