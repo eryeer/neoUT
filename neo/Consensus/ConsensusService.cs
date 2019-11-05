@@ -411,6 +411,10 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase3-2  averageTimespan: {Blockchain.totalTimestopwatchTxPhase3_2 / Blockchain.countTransaction}");
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase3-3  averageTimespan: {Blockchain.totalTimestopwatchTxPhase3_3 / Blockchain.countTransaction}");
 
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist  averageTimespan: {Blockchain.totalTimePersistBlock / Blockchain.countTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: UpdateMempool  averageTimespan: {Blockchain.totalTimeUpdateMempool / Blockchain.countTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: ReverifyTx  averageTimespan: {Blockchain.totalTimeReverifyTx / Blockchain.countTransaction}");
+
                 Blockchain.countImport = 0;
                 Blockchain.countFillMemoryPool = 0;
                 Blockchain.countHeaderArray = 0;
@@ -437,6 +441,10 @@ namespace Neo.Consensus
                 Blockchain.totalTimestopwatchTxPhase3_1 = 0;
                 Blockchain.totalTimestopwatchTxPhase3_2 = 0;
                 Blockchain.totalTimestopwatchTxPhase3_3 = 0;
+
+                Blockchain.totalTimePersistBlock = 0;
+                Blockchain.totalTimeUpdateMempool = 0;
+                Blockchain.totalTimeReverifyTx = 0;
             }
             if (Peer.countSwitchPeer)
             {
