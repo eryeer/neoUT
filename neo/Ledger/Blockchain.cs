@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Neo.Ledger
 {
@@ -90,6 +91,10 @@ namespace Neo.Ledger
         public static double totalTimeTransaction = 0;
         public static double totalTimeConsensusPayload = 0;
         public static double totalTimeIdle = 0;
+
+        private int subVerifierIndex = 0;
+        private readonly List<IActorRef> SubVerifierList = new List<IActorRef>();
+        private const int subVerifierCount = 8;
 
         public static readonly Block GenesisBlock = new Block
         {
@@ -409,11 +414,14 @@ namespace Neo.Ledger
             }
         }
 
+        
+
         public Blockchain(NeoSystem system, Store store)
         {
             this.system = system;
             this.MemPool = new MemoryPool(system, ProtocolSettings.Default.MemoryPoolMaxTransactions);
             this.Store = store;
+            
             lock (lockObj)
             {
                 if (singleton != null)
@@ -447,6 +455,11 @@ namespace Neo.Ledger
                     MemPool.LoadPolicy(currentSnapshot);
                 }
                 singleton = this;
+            }
+            for (int i = 0; i < subVerifierCount; i++)
+            {
+                var subVerifier = Context.ActorOf(BlockchainSubVerifier.Props(currentSnapshot), $"actor-subverifier{i}");
+                SubVerifierList.Add(subVerifier);
             }
         }
 
@@ -709,14 +722,14 @@ namespace Neo.Ledger
                 stopwatchTxPhase2.Reset();
                 if (!ret2)
                     return RelayResultReason.OutOfMemory;
-                //Phase3
-                stopwatchTxPhase3.Start();
-                var ret3 = transaction.Verify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender));
-                stopwatchTxPhase3.Stop();
-                totalTimestopwatchTxPhase3 += stopwatchTxPhase3.Elapsed.TotalSeconds;
-                stopwatchTxPhase3.Reset();
-                if (!ret3)
-                    return RelayResultReason.Invalid;
+                ////Phase3
+                //stopwatchTxPhase3.Start();
+                //var ret3 = transaction.Verify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender));
+                //stopwatchTxPhase3.Stop();
+                //totalTimestopwatchTxPhase3 += stopwatchTxPhase3.Elapsed.TotalSeconds;
+                //stopwatchTxPhase3.Reset();
+                //if (!ret3)
+                //    return RelayResultReason.Invalid;
                 //Phase4
                 stopwatchTxPhase4.Start();
                 var ret4 = NativeContract.Policy.CheckPolicy(transaction, currentSnapshot);
@@ -734,16 +747,17 @@ namespace Neo.Ledger
                 if (!ret5)
                     return RelayResultReason.OutOfMemory;
             }
-            else {
+            else
+            {
                 //Phase1
                 if (ContainsTransaction(transaction.Hash))
                     return RelayResultReason.AlreadyExists;
                 //Phase2
                 if (!MemPool.CanTransactionFitInPool(transaction))
                     return RelayResultReason.OutOfMemory;
-                //Phase3
-                if (!transaction.Verify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender)))
-                    return RelayResultReason.Invalid;
+                ////Phase3
+                //if (!transaction.Verify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender)))
+                //    return RelayResultReason.Invalid;
                 //Phase4
                 if (!NativeContract.Policy.CheckPolicy(transaction, currentSnapshot))
                     return RelayResultReason.PolicyFail;
@@ -774,7 +788,7 @@ namespace Neo.Ledger
             Context.System.EventStream.Publish(new PersistCompleted { Block = block });
         }
 
-       
+
         protected override void OnReceive(object message)
         {
             double timespan = 0;
@@ -863,9 +877,9 @@ namespace Neo.Ledger
                         }
                         break;
                     }
-                case Transaction transaction:
+                case ParallelVerifiedTransaction parallelVerifiedtransaction:
                     stopwatchTransaction.Start();
-                    Sender.Tell(OnNewTransaction(transaction, true));
+                    Sender.Tell(OnNewTransaction(parallelVerifiedtransaction.Transaction, true));
                     stopwatchTransaction.Stop();
                     timespan = stopwatchTransaction.Elapsed.TotalSeconds;
                     stopwatchTransaction.Reset();
@@ -878,6 +892,9 @@ namespace Neo.Ledger
                         countTransaction++;
                         totalTimeTransaction += timespan;
                     }
+                    break;
+                case Transaction transaction:
+                    OnParallelVerify(transaction);
                     break;
                 case ConsensusPayload payload:
                     stopwatchConsensusPayload.Start();
@@ -913,6 +930,18 @@ namespace Neo.Ledger
                     }
                     break;
             }
+        }
+
+        private void OnParallelVerify(Transaction transaction)
+        {
+            if (!transaction.Reverify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender), MemPool.GetSenderVerifyFrozenFee(transaction.Sender)))
+            {
+                Sender.Tell(RelayResultReason.Invalid);
+                return;
+            }
+            var subVerifier = SubVerifierList[subVerifierIndex++];
+            subVerifierIndex = subVerifierIndex >= subVerifierCount ? 0 : subVerifierIndex;
+            subVerifier.Tell(transaction, Sender);
         }
 
         private void Persist(Block block)
@@ -1049,6 +1078,16 @@ namespace Neo.Ledger
                 default:
                     return false;
             }
+        }
+    }
+
+    internal class ParallelVerifiedTransaction
+    {
+        public Transaction Transaction { get; set; }
+
+        public ParallelVerifiedTransaction(Transaction tx)
+        {
+            Transaction = tx;
         }
     }
 }

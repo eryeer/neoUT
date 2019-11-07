@@ -142,7 +142,7 @@ namespace Neo.Network.P2P.Payloads
             return hashes.OrderBy(p => p).ToArray();
         }
 
-        public virtual bool Reverify(Snapshot snapshot, BigInteger currentFee)
+        public virtual bool Reverify(Snapshot snapshot, BigInteger currentFee, BigInteger frozenFee = default)
         {
             if (ValidUntilBlock <= snapshot.Height || ValidUntilBlock > snapshot.Height + MaxValidUntilBlockIncrement)
                 return false;
@@ -151,7 +151,7 @@ namespace Neo.Network.P2P.Payloads
             //从数据库取出账户的Gas
             BigInteger balance = NativeContract.GAS.BalanceOf(snapshot, Sender);
             //当前块高将要扣除的费用总和为当前交易的SystemFee+NetworkFee和Mempoo中其他交易的费用
-            BigInteger fee = SystemFee + NetworkFee + currentFee;
+            BigInteger fee = SystemFee + NetworkFee + currentFee + frozenFee;
             if (balance < fee) return false;
             //获取交易中所有sender和cosigner的hash
             UInt160[] hashes = GetScriptHashesForVerifying(snapshot);
@@ -223,6 +223,7 @@ namespace Neo.Network.P2P.Payloads
         {
             return Verify(snapshot, BigInteger.Zero);
         }
+
 
         public virtual bool Verify(Snapshot snapshot, BigInteger currentFee)
         {

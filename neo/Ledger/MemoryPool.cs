@@ -45,6 +45,8 @@ namespace Neo.Ledger
         /// </summary>
         private readonly Dictionary<UInt160, BigInteger> _senderFee = new Dictionary<UInt160, BigInteger>();
 
+        private readonly Dictionary<UInt160, BigInteger> _senderVerifyFrozenFee = new Dictionary<UInt160, BigInteger>();
+
         /// <summary>
         /// Store all verified unsorted transactions currently in the pool.
         /// </summary>
@@ -201,6 +203,54 @@ namespace Neo.Ledger
         {
             _senderFee[tx.Sender] -= tx.SystemFee + tx.NetworkFee;
             if (_senderFee[tx.Sender] == 0) _senderFee.Remove(tx.Sender);
+        }
+
+        private readonly ReaderWriterLockSlim _frozenFeeRwLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+
+        public BigInteger GetSenderVerifyFrozenFee(UInt160 sender)
+        {
+            _frozenFeeRwLock.EnterReadLock();
+            try
+            {
+                if (_senderVerifyFrozenFee.ContainsKey(sender))
+                    return _senderVerifyFrozenFee[sender];
+                else
+                    return BigInteger.Zero;
+            }
+            finally
+            {
+                _frozenFeeRwLock.ExitReadLock();
+            }
+        }
+
+        private void AddSenderVerifyFrozenFee(Transaction tx)
+        {
+            _frozenFeeRwLock.EnterWriteLock();
+            try
+            {
+                if (!_senderVerifyFrozenFee.ContainsKey(tx.Sender))
+                    _senderVerifyFrozenFee.Add(tx.Sender, tx.SystemFee + tx.NetworkFee);
+                else
+                    _senderVerifyFrozenFee[tx.Sender] += tx.SystemFee + tx.NetworkFee;
+            }
+            finally
+            {
+                _frozenFeeRwLock.ExitWriteLock();
+            }
+        }
+
+        private void RemoveSenderVerifyFrozenFee(Transaction tx)
+        {
+            _frozenFeeRwLock.EnterWriteLock();
+            try
+            {
+                _senderVerifyFrozenFee[tx.Sender] -= tx.SystemFee + tx.NetworkFee;
+            if (_senderVerifyFrozenFee[tx.Sender] == 0) _senderVerifyFrozenFee.Remove(tx.Sender);
+            }
+            finally
+            {
+                _frozenFeeRwLock.ExitWriteLock();
+            }
         }
 
 
