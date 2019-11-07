@@ -223,7 +223,7 @@ namespace Neo.Ledger
             }
         }
 
-        private void AddSenderVerifyFrozenFee(Transaction tx)
+        public void AddSenderVerifyFrozenFee(Transaction tx)
         {
             _frozenFeeRwLock.EnterWriteLock();
             try
@@ -239,7 +239,7 @@ namespace Neo.Ledger
             }
         }
 
-        private void RemoveSenderVerifyFrozenFee(Transaction tx)
+        public void RemoveSenderVerifyFrozenFee(Transaction tx)
         {
             _frozenFeeRwLock.EnterWriteLock();
             try

@@ -44,16 +44,13 @@ namespace Neo.Ledger
         public System.Diagnostics.Stopwatch stopwatchHeaderArray = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchBlock = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchTransactionArray = new System.Diagnostics.Stopwatch();
-        public System.Diagnostics.Stopwatch stopwatchTransaction = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchParallelVerifiedTransaction = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchConsensusPayload = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchIdle = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchTransaction = new System.Diagnostics.Stopwatch();
 
         public System.Diagnostics.Stopwatch stopwatchTxPhase1 = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchTxPhase2 = new System.Diagnostics.Stopwatch();
-        public System.Diagnostics.Stopwatch stopwatchTxPhase3 = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTxPhase3_1 = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTxPhase3_2 = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchTxPhase3_3 = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchTxPhase4 = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchTxPhase5 = new System.Diagnostics.Stopwatch();
 
@@ -63,10 +60,6 @@ namespace Neo.Ledger
 
         public static double totalTimestopwatchTxPhase1 = 0;
         public static double totalTimestopwatchTxPhase2 = 0;
-        public static double totalTimestopwatchTxPhase3 = 0;
-        public static double totalTimestopwatchTxPhase3_1 = 0;
-        public static double totalTimestopwatchTxPhase3_2 = 0;
-        public static double totalTimestopwatchTxPhase3_3 = 0;
         public static double totalTimestopwatchTxPhase4 = 0;
         public static double totalTimestopwatchTxPhase5 = 0;
 
@@ -82,6 +75,7 @@ namespace Neo.Ledger
         public static long countTransaction = 0;
         public static long countConsensusPayload = 0;
         public static long countIdle = 0;
+        public static long countParallelVerifiedTransaction = 0;
 
         public static double totalTimeImport = 0;
         public static double totalTimeFillMemoryPool = 0;
@@ -91,6 +85,7 @@ namespace Neo.Ledger
         public static double totalTimeTransaction = 0;
         public static double totalTimeConsensusPayload = 0;
         public static double totalTimeIdle = 0;
+        public static double totalTimeParallelVerifiedTransaction = 0;
 
         private int subVerifierIndex = 0;
         private readonly List<IActorRef> SubVerifierList = new List<IActorRef>();
@@ -458,7 +453,7 @@ namespace Neo.Ledger
             }
             for (int i = 0; i < subVerifierCount; i++)
             {
-                var subVerifier = Context.ActorOf(BlockchainSubVerifier.Props(currentSnapshot), $"actor-subverifier{i}");
+                var subVerifier = Context.ActorOf(BlockchainSubVerifier.Props(currentSnapshot,MemPool), $"actor-subverifier{i}");
                 SubVerifierList.Add(subVerifier);
             }
         }
@@ -713,7 +708,10 @@ namespace Neo.Ledger
                 totalTimestopwatchTxPhase1 += stopwatchTxPhase1.Elapsed.TotalSeconds;
                 stopwatchTxPhase1.Reset();
                 if (ret1)
+                {
+                    MemPool.RemoveSenderVerifyFrozenFee(transaction);
                     return RelayResultReason.AlreadyExists;
+                }
                 //Phase2
                 stopwatchTxPhase2.Start();
                 var ret2 = MemPool.CanTransactionFitInPool(transaction);
@@ -721,7 +719,10 @@ namespace Neo.Ledger
                 totalTimestopwatchTxPhase2 += stopwatchTxPhase2.Elapsed.TotalSeconds;
                 stopwatchTxPhase2.Reset();
                 if (!ret2)
+                {
+                    MemPool.RemoveSenderVerifyFrozenFee(transaction);
                     return RelayResultReason.OutOfMemory;
+                }
                 ////Phase3
                 //stopwatchTxPhase3.Start();
                 //var ret3 = transaction.Verify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender));
@@ -737,7 +738,10 @@ namespace Neo.Ledger
                 totalTimestopwatchTxPhase4 += stopwatchTxPhase4.Elapsed.TotalSeconds;
                 stopwatchTxPhase4.Reset();
                 if (!ret4)
+                {
+                    MemPool.RemoveSenderVerifyFrozenFee(transaction);
                     return RelayResultReason.PolicyFail;
+                }
                 //Pahse5
                 stopwatchTxPhase5.Start();
                 var ret5 = MemPool.TryAdd(transaction.Hash, transaction);
@@ -745,28 +749,44 @@ namespace Neo.Ledger
                 totalTimestopwatchTxPhase5 += stopwatchTxPhase5.Elapsed.TotalSeconds;
                 stopwatchTxPhase5.Reset();
                 if (!ret5)
+                {
+                    MemPool.RemoveSenderVerifyFrozenFee(transaction);
                     return RelayResultReason.OutOfMemory;
+                }
             }
             else
             {
                 //Phase1
                 if (ContainsTransaction(transaction.Hash))
+                {
+                    MemPool.RemoveSenderVerifyFrozenFee(transaction);
                     return RelayResultReason.AlreadyExists;
+                }
                 //Phase2
                 if (!MemPool.CanTransactionFitInPool(transaction))
+                {
+                    MemPool.RemoveSenderVerifyFrozenFee(transaction);
                     return RelayResultReason.OutOfMemory;
+                }
                 ////Phase3
                 //if (!transaction.Verify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender)))
                 //    return RelayResultReason.Invalid;
                 //Phase4
                 if (!NativeContract.Policy.CheckPolicy(transaction, currentSnapshot))
+                {
+                    MemPool.RemoveSenderVerifyFrozenFee(transaction);
                     return RelayResultReason.PolicyFail;
+                }
                 //Pahse5
                 if (!MemPool.TryAdd(transaction.Hash, transaction))
+                {
+                    MemPool.RemoveSenderVerifyFrozenFee(transaction);
                     return RelayResultReason.OutOfMemory;
+                }
             }
             if (relay)
                 system.LocalNode.Tell(new LocalNode.RelayDirectly { Inventory = transaction });
+            MemPool.RemoveSenderVerifyFrozenFee(transaction);
             return RelayResultReason.Succeed;
         }
 
@@ -878,8 +898,24 @@ namespace Neo.Ledger
                         break;
                     }
                 case ParallelVerifiedTransaction parallelVerifiedtransaction:
-                    stopwatchTransaction.Start();
+                    stopwatchParallelVerifiedTransaction.Start();
                     Sender.Tell(OnNewTransaction(parallelVerifiedtransaction.Transaction, true));
+                    stopwatchParallelVerifiedTransaction.Stop();
+                    timespan = stopwatchParallelVerifiedTransaction.Elapsed.TotalSeconds;
+                    stopwatchParallelVerifiedTransaction.Reset();
+                    if (watchSwitchBlockchain)
+                    {
+                        AkkaLog.Info($"Class:Blockchain Type: ParallelVerifiedTransaction TimeSpan:{timespan}");
+                    }
+                    if (countSwitchBlockchain)
+                    {
+                        countParallelVerifiedTransaction++;
+                        totalTimeParallelVerifiedTransaction += timespan;
+                    }
+                    break;
+                case Transaction transaction:
+                    stopwatchTransaction.Start();
+                    OnParallelVerify(transaction);
                     stopwatchTransaction.Stop();
                     timespan = stopwatchTransaction.Elapsed.TotalSeconds;
                     stopwatchTransaction.Reset();
@@ -892,9 +928,6 @@ namespace Neo.Ledger
                         countTransaction++;
                         totalTimeTransaction += timespan;
                     }
-                    break;
-                case Transaction transaction:
-                    OnParallelVerify(transaction);
                     break;
                 case ConsensusPayload payload:
                     stopwatchConsensusPayload.Start();
@@ -939,6 +972,7 @@ namespace Neo.Ledger
                 Sender.Tell(RelayResultReason.Invalid);
                 return;
             }
+            MemPool.AddSenderVerifyFrozenFee(transaction);
             var subVerifier = SubVerifierList[subVerifierIndex++];
             subVerifierIndex = subVerifierIndex >= subVerifierCount ? 0 : subVerifierIndex;
             subVerifier.Tell(transaction, Sender);

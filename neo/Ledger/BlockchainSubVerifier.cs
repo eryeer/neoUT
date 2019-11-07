@@ -11,10 +11,12 @@ namespace Neo.Ledger
     {
         public ILoggingAdapter Log { get; } = Context.GetLogger();
         private Snapshot currentSnapshot;
+        private MemoryPool mempool;
 
-        public BlockchainSubVerifier(Snapshot snapshot)
+        public BlockchainSubVerifier(Snapshot snapshot,MemoryPool pool)
         {
             currentSnapshot = snapshot;
+            mempool = pool;
         }
 
         protected override void OnReceive(object message)
@@ -35,6 +37,7 @@ namespace Neo.Ledger
             }
             else
             {
+                mempool.RemoveSenderVerifyFrozenFee(tx);
                 Sender.Tell(RelayResultReason.Invalid);
             }
         }
@@ -48,7 +51,7 @@ namespace Neo.Ledger
             return transaction.VerifyWitnesses(currentSnapshot, net_fee);
         }
 
-        public static Props Props(Snapshot snapshot) => Akka.Actor.Props.Create(() => new BlockchainSubVerifier(snapshot));
+        public static Props Props(Snapshot snapshot, MemoryPool mempool) => Akka.Actor.Props.Create(() => new BlockchainSubVerifier(snapshot, mempool));
     }
 
 }
