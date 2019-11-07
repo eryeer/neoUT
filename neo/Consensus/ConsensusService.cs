@@ -401,7 +401,7 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Count: {Blockchain.countTransaction} averageTimespan: {Blockchain.totalTimeTransaction / Blockchain.countTransaction}");
                 AkkaLog.Info($"Class: Blockchain Type: ConsensusPayload Count: {Blockchain.countConsensusPayload} averageTimespan: {Blockchain.totalTimeConsensusPayload / Blockchain.countConsensusPayload}");
                 AkkaLog.Info($"Class: Blockchain Type: Idle Count: {Blockchain.countIdle} averageTimespan: {Blockchain.totalTimeIdle / Blockchain.countIdle}");
-                AkkaLog.Info($"Class: Blockchain Type: Idle Count: {Blockchain.countParallelVerifiedTransaction} averageTimespan: {Blockchain.totalTimeParallelVerifiedTransaction / Blockchain.countParallelVerifiedTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: ParallelVerifiedTransaction Count: {Blockchain.countParallelVerifiedTransaction} averageTimespan: {Blockchain.totalTimeParallelVerifiedTransaction / Blockchain.countParallelVerifiedTransaction}");
 
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase1  averageTimespan: {Blockchain.totalTimestopwatchTxPhase1 / Blockchain.countTransaction}");
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase2  averageTimespan: {Blockchain.totalTimestopwatchTxPhase2 / Blockchain.countTransaction}");
