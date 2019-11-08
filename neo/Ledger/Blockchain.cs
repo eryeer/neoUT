@@ -58,6 +58,24 @@ namespace Neo.Ledger
         public System.Diagnostics.Stopwatch stopwatchUpdateMempool = new System.Diagnostics.Stopwatch();
         public static System.Diagnostics.Stopwatch stopwatchReverifyTx = new System.Diagnostics.Stopwatch();
 
+        public System.Diagnostics.Stopwatch stopwatchPersistPhase1 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistPhase2 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistPhase3 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistPhase4 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistPhase5 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistPhase6 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistPhase7 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistPhase8 = new System.Diagnostics.Stopwatch();
+
+        public static double totalTimestopwatchPersistPhase1 = 0;
+        public static double totalTimestopwatchPersistPhase2 = 0;
+        public static double totalTimestopwatchPersistPhase3 = 0;
+        public static double totalTimestopwatchPersistPhase4 = 0;
+        public static double totalTimestopwatchPersistPhase5 = 0;
+        public static double totalTimestopwatchPersistPhase6 = 0;
+        public static double totalTimestopwatchPersistPhase7 = 0;
+        public static double totalTimestopwatchPersistPhase8 = 0;
+
         public static double totalTimestopwatchTxPhase1 = 0;
         public static double totalTimestopwatchTxPhase2 = 0;
         public static double totalTimestopwatchTxPhase4 = 0;
@@ -89,7 +107,7 @@ namespace Neo.Ledger
 
         private int subVerifierIndex = 0;
         private readonly List<IActorRef> SubVerifierList = new List<IActorRef>();
-        private const int subVerifierCount = 4;
+        private const int subVerifierCount = 16;
 
         public static readonly Block GenesisBlock = new Block
         {
@@ -978,78 +996,203 @@ namespace Neo.Ledger
             subVerifier.Tell(transaction, Sender);
         }
 
+
         private void Persist(Block block)
         {
-            using (Snapshot snapshot = GetSnapshot())
+            if (countSwitchBlockchain)
             {
-                List<ApplicationExecuted> all_application_executed = new List<ApplicationExecuted>();
-                snapshot.PersistingBlock = block;
-                if (block.Index > 0)
+                //phase1
+                stopwatchPersistPhase1.Start();
+                using (Snapshot snapshot = GetSnapshot())
                 {
-                    using (ApplicationEngine engine = new ApplicationEngine(TriggerType.System, null, snapshot, 0, true))
+                    List<ApplicationExecuted> all_application_executed = new List<ApplicationExecuted>();
+                    snapshot.PersistingBlock = block;
+                    stopwatchPersistPhase1.Stop();
+                    totalTimestopwatchPersistPhase1 += stopwatchPersistPhase1.Elapsed.TotalSeconds;
+                    stopwatchPersistPhase1.Reset();
+                    //phase2
+                    stopwatchPersistPhase2.Start();
+                    if (block.Index > 0)
                     {
-                        engine.LoadScript(onPersistNativeContractScript);
-                        if (engine.Execute() != VMState.HALT) throw new InvalidOperationException();
-                        ApplicationExecuted application_executed = new ApplicationExecuted(engine);
-                        Context.System.EventStream.Publish(application_executed);
-                        all_application_executed.Add(application_executed);
-                    }
-                }
-                snapshot.Blocks.Add(block.Hash, block.Trim());
-                foreach (Transaction tx in block.Transactions)
-                {
-                    var state = new TransactionState
-                    {
-                        BlockIndex = block.Index,
-                        Transaction = tx
-                    };
-
-                    snapshot.Transactions.Add(tx.Hash, state);
-
-                    using (ApplicationEngine engine = new ApplicationEngine(TriggerType.Application, tx, snapshot.Clone(), tx.SystemFee))
-                    {
-                        engine.LoadScript(tx.Script);
-                        state.VMState = engine.Execute();
-                        if (state.VMState == VMState.HALT)
+                        using (ApplicationEngine engine = new ApplicationEngine(TriggerType.System, null, snapshot, 0, true))
                         {
-                            engine.Snapshot.Commit();
-                        }
-                        ApplicationExecuted application_executed = new ApplicationExecuted(engine);
-                        Context.System.EventStream.Publish(application_executed);
-                        all_application_executed.Add(application_executed);
-                    }
-                }
-                snapshot.BlockHashIndex.GetAndChange().Set(block);
-                if (block.Index == header_index.Count)
-                {
-                    header_index.Add(block.Hash);
-                    snapshot.HeaderHashIndex.GetAndChange().Set(block);
-                }
-                foreach (IPersistencePlugin plugin in Plugin.PersistencePlugins)
-                    plugin.OnPersist(snapshot, all_application_executed);
-                snapshot.Commit();
-                List<Exception> commitExceptions = null;
-                foreach (IPersistencePlugin plugin in Plugin.PersistencePlugins)
-                {
-                    try
-                    {
-                        plugin.OnCommit(snapshot);
-                    }
-                    catch (Exception ex)
-                    {
-                        if (plugin.ShouldThrowExceptionFromCommit(ex))
-                        {
-                            if (commitExceptions == null)
-                                commitExceptions = new List<Exception>();
-
-                            commitExceptions.Add(ex);
+                            engine.LoadScript(onPersistNativeContractScript);
+                            if (engine.Execute() != VMState.HALT) throw new InvalidOperationException();
+                            ApplicationExecuted application_executed = new ApplicationExecuted(engine);
+                            Context.System.EventStream.Publish(application_executed);
+                            all_application_executed.Add(application_executed);
                         }
                     }
+                    snapshot.Blocks.Add(block.Hash, block.Trim());
+                    stopwatchPersistPhase2.Stop();
+                    totalTimestopwatchPersistPhase2 += stopwatchPersistPhase2.Elapsed.TotalSeconds;
+                    stopwatchPersistPhase2.Reset();
+                    //phase3
+                    stopwatchPersistPhase3.Start();
+                    foreach (Transaction tx in block.Transactions)
+                    {
+                        var state = new TransactionState
+                        {
+                            BlockIndex = block.Index,
+                            Transaction = tx
+                        };
+
+                        snapshot.Transactions.Add(tx.Hash, state);
+
+                        using (ApplicationEngine engine = new ApplicationEngine(TriggerType.Application, tx, snapshot.Clone(), tx.SystemFee))
+                        {
+                            engine.LoadScript(tx.Script);
+                            state.VMState = engine.Execute();
+                            if (state.VMState == VMState.HALT)
+                            {
+                                engine.Snapshot.Commit();
+                            }
+                            ApplicationExecuted application_executed = new ApplicationExecuted(engine);
+                            Context.System.EventStream.Publish(application_executed);
+                            all_application_executed.Add(application_executed);
+                        }
+                    }
+                    stopwatchPersistPhase3.Stop();
+                    totalTimestopwatchPersistPhase3 += stopwatchPersistPhase3.Elapsed.TotalSeconds;
+                    stopwatchPersistPhase3.Reset();
+                    //phase4
+                    stopwatchPersistPhase4.Start();
+                    snapshot.BlockHashIndex.GetAndChange().Set(block);
+                    if (block.Index == header_index.Count)
+                    {
+                        header_index.Add(block.Hash);
+                        snapshot.HeaderHashIndex.GetAndChange().Set(block);
+                    }
+                    foreach (IPersistencePlugin plugin in Plugin.PersistencePlugins)
+                        plugin.OnPersist(snapshot, all_application_executed);
+                    stopwatchPersistPhase4.Stop();
+                    totalTimestopwatchPersistPhase4 += stopwatchPersistPhase4.Elapsed.TotalSeconds;
+                    stopwatchPersistPhase4.Reset();
+                    //phase5
+                    stopwatchPersistPhase5.Start();
+                    snapshot.Commit();
+                    stopwatchPersistPhase5.Stop();
+                    totalTimestopwatchPersistPhase5 += stopwatchPersistPhase5.Elapsed.TotalSeconds;
+                    stopwatchPersistPhase5.Reset();
+                    //phase6
+                    stopwatchPersistPhase6.Start();
+                    List<Exception> commitExceptions = null;
+                    foreach (IPersistencePlugin plugin in Plugin.PersistencePlugins)
+                    {
+                        try
+                        {
+                            plugin.OnCommit(snapshot);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (plugin.ShouldThrowExceptionFromCommit(ex))
+                            {
+                                if (commitExceptions == null)
+                                    commitExceptions = new List<Exception>();
+
+                                commitExceptions.Add(ex);
+                            }
+                        }
+                    }
+                    if (commitExceptions != null) throw new AggregateException(commitExceptions);
+                    stopwatchPersistPhase6.Stop();
+                    totalTimestopwatchPersistPhase6 += stopwatchPersistPhase6.Elapsed.TotalSeconds;
+                    stopwatchPersistPhase6.Reset();
                 }
-                if (commitExceptions != null) throw new AggregateException(commitExceptions);
+                //phase7
+                stopwatchPersistPhase7.Start();
+                UpdateCurrentSnapshot();
+                stopwatchPersistPhase7.Stop();
+                totalTimestopwatchPersistPhase7 += stopwatchPersistPhase7.Elapsed.TotalSeconds;
+                stopwatchPersistPhase7.Reset();
+                //phase8
+                stopwatchPersistPhase8.Start();
+                OnPersistCompleted(block);
+                stopwatchPersistPhase8.Stop();
+                totalTimestopwatchPersistPhase8 += stopwatchPersistPhase8.Elapsed.TotalSeconds;
+                stopwatchPersistPhase8.Reset();
             }
-            UpdateCurrentSnapshot();
-            OnPersistCompleted(block);
+            else
+            {
+                //phase1
+                using (Snapshot snapshot = GetSnapshot())
+                {
+                    List<ApplicationExecuted> all_application_executed = new List<ApplicationExecuted>();
+                    snapshot.PersistingBlock = block;
+                    if (block.Index > 0)
+                    {
+                        using (ApplicationEngine engine = new ApplicationEngine(TriggerType.System, null, snapshot, 0, true))
+                        {
+                            engine.LoadScript(onPersistNativeContractScript);
+                            if (engine.Execute() != VMState.HALT) throw new InvalidOperationException();
+                            ApplicationExecuted application_executed = new ApplicationExecuted(engine);
+                            Context.System.EventStream.Publish(application_executed);
+                            all_application_executed.Add(application_executed);
+                        }
+                    }
+                    snapshot.Blocks.Add(block.Hash, block.Trim());
+                    //phase3
+                    foreach (Transaction tx in block.Transactions)
+                    {
+                        var state = new TransactionState
+                        {
+                            BlockIndex = block.Index,
+                            Transaction = tx
+                        };
+
+                        snapshot.Transactions.Add(tx.Hash, state);
+
+                        using (ApplicationEngine engine = new ApplicationEngine(TriggerType.Application, tx, snapshot.Clone(), tx.SystemFee))
+                        {
+                            engine.LoadScript(tx.Script);
+                            state.VMState = engine.Execute();
+                            if (state.VMState == VMState.HALT)
+                            {
+                                engine.Snapshot.Commit();
+                            }
+                            ApplicationExecuted application_executed = new ApplicationExecuted(engine);
+                            Context.System.EventStream.Publish(application_executed);
+                            all_application_executed.Add(application_executed);
+                        }
+                    }
+                    //phase4
+                    snapshot.BlockHashIndex.GetAndChange().Set(block);
+                    if (block.Index == header_index.Count)
+                    {
+                        header_index.Add(block.Hash);
+                        snapshot.HeaderHashIndex.GetAndChange().Set(block);
+                    }
+                    foreach (IPersistencePlugin plugin in Plugin.PersistencePlugins)
+                        plugin.OnPersist(snapshot, all_application_executed);
+
+                    //phase5
+                    snapshot.Commit();
+                    //phase6
+                    List<Exception> commitExceptions = null;
+                    foreach (IPersistencePlugin plugin in Plugin.PersistencePlugins)
+                    {
+                        try
+                        {
+                            plugin.OnCommit(snapshot);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (plugin.ShouldThrowExceptionFromCommit(ex))
+                            {
+                                if (commitExceptions == null)
+                                    commitExceptions = new List<Exception>();
+
+                                commitExceptions.Add(ex);
+                            }
+                        }
+                    }
+                    if (commitExceptions != null) throw new AggregateException(commitExceptions);
+                }
+                //phase7
+                UpdateCurrentSnapshot();
+                //phase8
+                OnPersistCompleted(block);
+            }
         }
 
         protected override void PostStop()

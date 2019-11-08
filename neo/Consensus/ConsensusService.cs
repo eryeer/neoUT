@@ -412,6 +412,15 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: Blockchain Type: Persist Phase: UpdateMempool  averageTimespan: {Blockchain.totalTimeUpdateMempool / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Persist Phase: ReverifyTx  averageTimespan: {Blockchain.totalTimeReverifyTx / Blockchain.countBlock}");
 
+                AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase1  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase1 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase2  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase2 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase3  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase3 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase4  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase4 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase5  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase5 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase6  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase6 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase7  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase7 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase8  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase8 / Blockchain.countBlock}");
+
                 Blockchain.countImport = 0;
                 Blockchain.countFillMemoryPool = 0;
                 Blockchain.countHeaderArray = 0;
@@ -440,7 +449,17 @@ namespace Neo.Consensus
                 Blockchain.totalTimePersistBlock = 0;
                 Blockchain.totalTimeUpdateMempool = 0;
                 Blockchain.totalTimeReverifyTx = 0;
+
+                Blockchain.totalTimestopwatchPersistPhase1 = 0;
+                Blockchain.totalTimestopwatchPersistPhase2 = 0;
+                Blockchain.totalTimestopwatchPersistPhase3 = 0;
+                Blockchain.totalTimestopwatchPersistPhase4 = 0;
+                Blockchain.totalTimestopwatchPersistPhase5 = 0;
+                Blockchain.totalTimestopwatchPersistPhase6 = 0;
+                Blockchain.totalTimestopwatchPersistPhase7 = 0;
+                Blockchain.totalTimestopwatchPersistPhase8 = 0;
             }
+
             if (Peer.countSwitchPeer)
             {
                 AkkaLog.Info($"Class: Peer Type: ChannelsConfig Count: {Peer.countChannelsConfig} averageTimespan: {Peer.totalTimeChannelsConfig / Peer.countChannelsConfig}");
