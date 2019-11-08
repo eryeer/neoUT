@@ -105,6 +105,8 @@ namespace Neo.Ledger
         public static double totalTimeIdle = 0;
         public static double totalTimeParallelVerifiedTransaction = 0;
 
+        public static int countTxInPersist = 0;
+
         private int subVerifierIndex = 0;
         private readonly List<IActorRef> SubVerifierList = new List<IActorRef>();
         private const int subVerifierCount = 16;
@@ -1031,6 +1033,7 @@ namespace Neo.Ledger
                     stopwatchPersistPhase3.Start();
                     foreach (Transaction tx in block.Transactions)
                     {
+                        countTxInPersist++;
                         var state = new TransactionState
                         {
                             BlockIndex = block.Index,

@@ -420,6 +420,7 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase6  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase6 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase7  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase7 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase8  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase8 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Perist total tx count: {Blockchain.countTxInPersist}");
 
                 Blockchain.countImport = 0;
                 Blockchain.countFillMemoryPool = 0;
@@ -430,6 +431,7 @@ namespace Neo.Consensus
                 Blockchain.countConsensusPayload = 0;
                 Blockchain.countIdle = 0;
                 Blockchain.countParallelVerifiedTransaction = 0;
+                Blockchain.countTxInPersist = 0;
 
                 Blockchain.totalTimeImport = 0;
                 Blockchain.totalTimeFillMemoryPool = 0;
