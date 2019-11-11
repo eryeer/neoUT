@@ -109,7 +109,7 @@ namespace Neo.Ledger
 
         private int subVerifierIndex = 0;
         private readonly List<IActorRef> SubVerifierList = new List<IActorRef>();
-        private const int subVerifierCount = 16;
+        private const int subVerifierCount = 4;
 
         public static readonly Block GenesisBlock = new Block
         {
