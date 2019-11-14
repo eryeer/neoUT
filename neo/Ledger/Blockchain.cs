@@ -67,6 +67,12 @@ namespace Neo.Ledger
         public System.Diagnostics.Stopwatch stopwatchPersistPhase7 = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchPersistPhase8 = new System.Diagnostics.Stopwatch();
 
+        public System.Diagnostics.Stopwatch stopwatchPersistPhase3_1 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistPhase3_2 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistPhase3_3 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistPhase3_4 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistPhase3_5 = new System.Diagnostics.Stopwatch();
+
         public static double totalTimestopwatchPersistPhase1 = 0;
         public static double totalTimestopwatchPersistPhase2 = 0;
         public static double totalTimestopwatchPersistPhase3 = 0;
@@ -75,6 +81,12 @@ namespace Neo.Ledger
         public static double totalTimestopwatchPersistPhase6 = 0;
         public static double totalTimestopwatchPersistPhase7 = 0;
         public static double totalTimestopwatchPersistPhase8 = 0;
+
+        public static double totalTimestopwatchPersistPhase3_1 = 0;
+        public static double totalTimestopwatchPersistPhase3_2 = 0;
+        public static double totalTimestopwatchPersistPhase3_3 = 0;
+        public static double totalTimestopwatchPersistPhase3_4 = 0;
+        public static double totalTimestopwatchPersistPhase3_5 = 0;
 
         public static double totalTimestopwatchTxPhase1 = 0;
         public static double totalTimestopwatchTxPhase2 = 0;
@@ -1033,7 +1045,9 @@ namespace Neo.Ledger
                     stopwatchPersistPhase3.Start();
                     foreach (Transaction tx in block.Transactions)
                     {
+                        //Phase3-1
                         countTxInPersist++;
+                        stopwatchPersistPhase3_1.Start();
                         var state = new TransactionState
                         {
                             BlockIndex = block.Index,
@@ -1041,18 +1055,40 @@ namespace Neo.Ledger
                         };
 
                         snapshot.Transactions.Add(tx.Hash, state);
-
+                        stopwatchPersistPhase3_1.Stop();
+                        totalTimestopwatchPersistPhase3_1+= stopwatchPersistPhase3_1.Elapsed.TotalSeconds;
+                        stopwatchPersistPhase3_1.Reset();
+                        //Phase3-2
+                        stopwatchPersistPhase3_2.Start();
                         using (ApplicationEngine engine = new ApplicationEngine(TriggerType.Application, tx, snapshot.Clone(), tx.SystemFee))
                         {
                             engine.LoadScript(tx.Script);
+                            stopwatchPersistPhase3_2.Stop();
+                            totalTimestopwatchPersistPhase3_2 += stopwatchPersistPhase3_2.Elapsed.TotalSeconds;
+                            stopwatchPersistPhase3_2.Reset();
+                            //Phase3-3
+                            stopwatchPersistPhase3_3.Start();
                             state.VMState = engine.Execute();
+                            stopwatchPersistPhase3_3.Stop();
+                            totalTimestopwatchPersistPhase3_3 += stopwatchPersistPhase3_3.Elapsed.TotalSeconds;
+                            stopwatchPersistPhase3_3.Reset();
+                            //Pahse3-4
+                            stopwatchPersistPhase3_4.Start();
                             if (state.VMState == VMState.HALT)
                             {
                                 engine.Snapshot.Commit();
                             }
+                            stopwatchPersistPhase3_4.Stop();
+                            totalTimestopwatchPersistPhase3_4 += stopwatchPersistPhase3_4.Elapsed.TotalSeconds;
+                            stopwatchPersistPhase3_4.Reset();
+                            //Pahse3-5
+                            stopwatchPersistPhase3_5.Start();
                             ApplicationExecuted application_executed = new ApplicationExecuted(engine);
                             Context.System.EventStream.Publish(application_executed);
                             all_application_executed.Add(application_executed);
+                            stopwatchPersistPhase3_5.Stop();
+                            totalTimestopwatchPersistPhase3_5 += stopwatchPersistPhase3_5.Elapsed.TotalSeconds;
+                            stopwatchPersistPhase3_5.Reset();
                         }
                     }
                     stopwatchPersistPhase3.Stop();

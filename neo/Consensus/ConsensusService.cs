@@ -420,6 +420,11 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase6  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase6 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase7  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase7 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase8  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase8 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase3_1  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase3_1 / Blockchain.countTxInPersist}");
+                AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase3_2  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase3_2 / Blockchain.countTxInPersist}");
+                AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase3_3  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase3_3 / Blockchain.countTxInPersist}");
+                AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase3_4  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase3_4 / Blockchain.countTxInPersist}");
+                AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase3_5  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase3_5 / Blockchain.countTxInPersist}");
                 AkkaLog.Info($"Class: Blockchain Type: Perist total tx count: {Blockchain.countTxInPersist}");
 
                 Blockchain.countImport = 0;
@@ -460,6 +465,11 @@ namespace Neo.Consensus
                 Blockchain.totalTimestopwatchPersistPhase6 = 0;
                 Blockchain.totalTimestopwatchPersistPhase7 = 0;
                 Blockchain.totalTimestopwatchPersistPhase8 = 0;
+                Blockchain.totalTimestopwatchPersistPhase3_1 = 0;
+                Blockchain.totalTimestopwatchPersistPhase3_2 = 0;
+                Blockchain.totalTimestopwatchPersistPhase3_3 = 0;
+                Blockchain.totalTimestopwatchPersistPhase3_4 = 0;
+                Blockchain.totalTimestopwatchPersistPhase3_5 = 0;
             }
 
             if (Peer.countSwitchPeer)
