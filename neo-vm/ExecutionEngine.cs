@@ -232,6 +232,10 @@ namespace Neo.VM
         }
         public static int step = 0;
         public System.Diagnostics.Stopwatch stopwatchStep = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchSyscall1 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchSyscall2 = new System.Diagnostics.Stopwatch();
+
+
 
         private bool ExecuteInstruction()
         {
@@ -359,7 +363,17 @@ namespace Neo.VM
                             }
                         case OpCode.SYSCALL:
                             {
-                                if (!OnSysCall(instruction.TokenU32) || !CheckStackSize(false, int.MaxValue))
+                                stopwatchSyscall1.Start();
+                                var ret1 = OnSysCall(instruction.TokenU32);
+                                stopwatchSyscall1.Stop();
+                                Console.WriteLine($"Syscall Phase1 Timespan: {stopwatchSyscall1.Elapsed.TotalSeconds}");
+                                stopwatchSyscall1.Reset();
+                                stopwatchSyscall2.Start();
+                                var ret2 = CheckStackSize(false, int.MaxValue);
+                                stopwatchSyscall2.Stop();
+                                Console.WriteLine($"Syscall Phase2 Timespan: {stopwatchSyscall2.Elapsed.TotalSeconds}");
+                                stopwatchSyscall2.Reset();
+                                if (!ret1 || !ret2)
                                     return false;
                                 break;
                             }

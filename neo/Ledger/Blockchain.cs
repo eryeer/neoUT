@@ -1046,6 +1046,7 @@ namespace Neo.Ledger
                     Console.WriteLine("=====Start to execute TX =======");
                     foreach (Transaction tx in block.Transactions)
                     {
+                        ExecutionEngine.step = 0;
                         //Phase3-1
                         countTxInPersist++;
                         stopwatchPersistPhase3_1.Start();
@@ -1063,6 +1064,7 @@ namespace Neo.Ledger
                         stopwatchPersistPhase3_2.Start();
                         using (ApplicationEngine engine = new ApplicationEngine(TriggerType.Application, tx, snapshot.Clone(), tx.SystemFee))
                         {
+                            
                             engine.LoadScript(tx.Script);
                             stopwatchPersistPhase3_2.Stop();
                             totalTimestopwatchPersistPhase3_2 += stopwatchPersistPhase3_2.Elapsed.TotalSeconds;
@@ -1091,6 +1093,7 @@ namespace Neo.Ledger
                             totalTimestopwatchPersistPhase3_5 += stopwatchPersistPhase3_5.Elapsed.TotalSeconds;
                             stopwatchPersistPhase3_5.Reset();
                         }
+                        ExecutionEngine.step = 0;
                     }
                     Console.WriteLine("=====End to execute TX =======");
                     stopwatchPersistPhase3.Stop();
