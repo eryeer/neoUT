@@ -180,6 +180,15 @@ namespace Neo.VM
                 ExecuteNext();
             return State;
         }
+        public static bool countSwitch = true;
+
+        public System.Diagnostics.Stopwatch stopwatchVMPreExecution = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchVMExecution = new System.Diagnostics.Stopwatch();
+
+        public static long countVMExe = 0;
+
+        public static double totalTimeVMPreExecution = 0;
+        public static double totalTimeVMExecution = 0;
 
         internal protected void ExecuteNext()
         {
@@ -192,8 +201,28 @@ namespace Neo.VM
                 try
                 {
                     Instruction instruction = CurrentContext.CurrentInstruction;
-                    if (!PreExecuteInstruction() || !ExecuteInstruction() || !PostExecuteInstruction(instruction))
-                        State = VMState.FAULT;
+                    if (countSwitch)
+                    {
+                        countVMExe++;
+                        stopwatchVMPreExecution.Start();
+                        bool retPre = PreExecuteInstruction();
+                        stopwatchVMPreExecution.Stop();
+                        totalTimeVMPreExecution += stopwatchVMPreExecution.Elapsed.TotalSeconds;
+                        stopwatchVMPreExecution.Reset();
+
+                        stopwatchVMExecution.Start();
+                        bool retExe = ExecuteInstruction();
+                        stopwatchVMExecution.Stop();
+                        totalTimeVMExecution += stopwatchVMExecution.Elapsed.TotalSeconds;
+                        stopwatchVMExecution.Reset();
+                        if (!retPre || !retExe || !PostExecuteInstruction(instruction))
+                            State = VMState.FAULT;
+                    }
+                    else
+                    {
+                        if (!PreExecuteInstruction() || !ExecuteInstruction() || !PostExecuteInstruction(instruction))
+                            State = VMState.FAULT;
+                    }
                 }
                 catch
                 {
