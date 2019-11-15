@@ -533,6 +533,16 @@ namespace Neo.Consensus
 
                 AkkaLog.Info($"Class: Nep5Token Type: TransferPhase4  averageTimespan: {Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase4 / Nep5Token<NeoToken.AccountState>.countTransferPhase4}");
 
+                Nep5Token<NeoToken.AccountState>.timeSpanTransferToTal = 0;
+                Nep5Token<NeoToken.AccountState>.countTransferToTal = 0;
+                Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase1 = 0;
+                Nep5Token<NeoToken.AccountState>.countTransferPhase1 = 0;
+                Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase2 = 0;
+                Nep5Token<NeoToken.AccountState>.countTransferPhase2 = 0;
+                Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase3 = 0;
+                Nep5Token<NeoToken.AccountState>.countTransferPhase3 = 0;
+                Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase4 = 0;
+                Nep5Token<NeoToken.AccountState>.countTransferPhase4 = 0;
             }
 
         }
