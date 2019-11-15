@@ -7,6 +7,7 @@ using Neo.VM;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading;
 using VMArray = Neo.VM.Types.Array;
 
 namespace Neo.SmartContract.Native.Tokens
@@ -157,7 +158,7 @@ namespace Neo.SmartContract.Native.Tokens
             Nep5AccountState state = new Nep5AccountState(storage.Value);
             return state.Balance;
         }
-        public static System.Diagnostics.Stopwatch stopwatchTransferToTal = new System.Diagnostics.Stopwatch();
+        public  System.Diagnostics.Stopwatch stopwatchTransferToTal = new System.Diagnostics.Stopwatch();
         public static double timeSpanTransferToTal = 0;
         public static long countTransferToTal = 0;
         [ContractMethod(0_08000000, ContractParameterType.Boolean, ParameterTypes = new[] { ContractParameterType.Hash160, ContractParameterType.Hash160, ContractParameterType.Integer }, ParameterNames = new[] { "from", "to", "amount" })]
@@ -168,26 +169,37 @@ namespace Neo.SmartContract.Native.Tokens
             UInt160 to = new UInt160(args[1].GetByteArray());
             BigInteger amount = args[2].GetBigInteger();
             bool result=Transfer(engine, from, to, amount);
+           
             stopwatchTransferToTal.Stop();
-            timeSpanTransferToTal += stopwatchTransferToTal.Elapsed.TotalSeconds;
+            double timeSpan= stopwatchTransferToTal.Elapsed.TotalSeconds;
             stopwatchTransferToTal.Reset();
-            countTransferToTal++;
+
+            double initialValue = 0;
+            double computedValue = 0;
+            Interlocked.Add(ref countTransferToTal, 1);
+            do
+            {
+                initialValue = timeSpanTransferToTal;
+                computedValue = initialValue + timeSpan;
+            }
+            while (initialValue != Interlocked.CompareExchange(ref timeSpanTransferToTal, computedValue, initialValue));
+
             return result;
         }
 
-        public static System.Diagnostics.Stopwatch stopwatchTransferPhase1 = new System.Diagnostics.Stopwatch();
+        public  System.Diagnostics.Stopwatch stopwatchTransferPhase1 = new System.Diagnostics.Stopwatch();
         public static double timeSpanTransferPhase1 = 0;
         public static long countTransferPhase1 = 0;
 
-        public static System.Diagnostics.Stopwatch stopwatchTransferPhase2 = new System.Diagnostics.Stopwatch();
+        public  System.Diagnostics.Stopwatch stopwatchTransferPhase2 = new System.Diagnostics.Stopwatch();
         public static double timeSpanTransferPhase2 = 0;
         public static long countTransferPhase2 = 0;
 
-        public static System.Diagnostics.Stopwatch stopwatchTransferPhase3 = new System.Diagnostics.Stopwatch();
+        public  System.Diagnostics.Stopwatch stopwatchTransferPhase3 = new System.Diagnostics.Stopwatch();
         public static double timeSpanTransferPhase3 = 0;
         public static long countTransferPhase3 = 0;
 
-        public static System.Diagnostics.Stopwatch stopwatchTransferPhase4 = new System.Diagnostics.Stopwatch();
+        public  System.Diagnostics.Stopwatch stopwatchTransferPhase4 = new System.Diagnostics.Stopwatch();
         public static double timeSpanTransferPhase4 = 0;
         public static long countTransferPhase4 = 0;
         protected virtual bool Transfer(ApplicationEngine engine, UInt160 from, UInt160 to, BigInteger amount)
@@ -198,17 +210,37 @@ namespace Neo.SmartContract.Native.Tokens
             if (!from.Equals(engine.CallingScriptHash) && !InteropService.CheckWitness(engine, from))
                 return false;
             stopwatchTransferPhase1.Stop();
-            timeSpanTransferPhase1 += stopwatchTransferPhase1.Elapsed.TotalSeconds;
+            double timeSpan= stopwatchTransferPhase1.Elapsed.TotalSeconds;
             stopwatchTransferPhase1.Reset();
-            countTransferPhase1++;
+
+            double initialValue = 0;
+            double computedValue = 0;
+            Interlocked.Add(ref countTransferPhase1, 1);
+            do
+            {
+                initialValue = timeSpanTransferPhase1;
+                computedValue = initialValue + timeSpan;
+            }
+            while (initialValue != Interlocked.CompareExchange(ref timeSpanTransferPhase1, computedValue, initialValue));
+
             //TransferPhase2
             stopwatchTransferPhase2.Start();
             ContractState contract_to = engine.Snapshot.Contracts.TryGet(to);
             if (contract_to?.Payable == false) return false;
             stopwatchTransferPhase2.Stop();
-            timeSpanTransferPhase2 += stopwatchTransferPhase2.Elapsed.TotalSeconds;
+            double timeSpan2= stopwatchTransferPhase2.Elapsed.TotalSeconds;
             stopwatchTransferPhase2.Reset();
-            countTransferPhase2++;
+
+            double initialValue2 = 0;
+            double computedValue2 = 0;
+            Interlocked.Add(ref countTransferPhase2, 1);
+            do
+            {
+                initialValue2 = timeSpanTransferPhase2;
+                computedValue2 = initialValue2 + timeSpan2;
+            }
+            while (initialValue2 != Interlocked.CompareExchange(ref timeSpanTransferPhase2, computedValue2, initialValue2));
+
             //TransferPhase3
             stopwatchTransferPhase3.Start();
             StorageKey key_from = CreateAccountKey(from);
@@ -258,16 +290,38 @@ namespace Neo.SmartContract.Native.Tokens
                 }
             }
             stopwatchTransferPhase3.Stop();
-            timeSpanTransferPhase3 += stopwatchTransferPhase1.Elapsed.TotalSeconds;
+            double timeSpan3= stopwatchTransferPhase3.Elapsed.TotalSeconds;
             stopwatchTransferPhase3.Reset();
-            countTransferPhase3++;
+
+            double initialValue3 = 0;
+            double computedValue3 = 0;
+            Interlocked.Add(ref countTransferPhase3, 1);
+            do
+            {
+                initialValue3 = timeSpanTransferPhase3;
+                computedValue3 = initialValue3 + timeSpan3;
+            }
+            while (initialValue3 != Interlocked.CompareExchange(ref timeSpanTransferPhase3, computedValue3, initialValue3));
+
+
             //TransferPhase4
             stopwatchTransferPhase4.Start();
             engine.SendNotification(Hash, new StackItem[] { "Transfer", from.ToArray(), to.ToArray(), amount });
             stopwatchTransferPhase4.Stop();
-            timeSpanTransferPhase4 += stopwatchTransferPhase1.Elapsed.TotalSeconds;
+            double timeSpan4= stopwatchTransferPhase4.Elapsed.TotalSeconds;
             stopwatchTransferPhase4.Reset();
-            countTransferPhase4++;
+
+            double initialValue4 = 0;
+            double computedValue4 = 0;
+            Interlocked.Add(ref countTransferPhase4, 1);
+            do
+            {
+                initialValue4 = timeSpanTransferPhase4;
+                computedValue4 = initialValue4 + timeSpan4;
+            }
+            while (initialValue4 != Interlocked.CompareExchange(ref timeSpanTransferPhase4, computedValue4, initialValue4));
+
+
             return true;
         }
 

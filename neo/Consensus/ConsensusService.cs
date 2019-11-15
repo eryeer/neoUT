@@ -529,6 +529,13 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: Nep5Token Type: TransferPhase3  averageTimespan: {Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase3 / Nep5Token<NeoToken.AccountState>.countTransferPhase3}");
                 AkkaLog.Info($"Class: Nep5Token Type: TransferPhase4  averageTimespan: {Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase4 / Nep5Token<NeoToken.AccountState>.countTransferPhase4}");
 
+                AkkaLog.Info($"Class: Nep5Token Type: countTransferToTal: {Nep5Token<NeoToken.AccountState>.countTransferToTal}");
+                AkkaLog.Info($"Class: Nep5Token Type: countTransferPhase1: {Nep5Token<NeoToken.AccountState>.countTransferPhase1}");
+                AkkaLog.Info($"Class: Nep5Token Type: countTransferPhase2: {Nep5Token<NeoToken.AccountState>.countTransferPhase2}");
+                AkkaLog.Info($"Class: Nep5Token Type: countTransferPhase3: {Nep5Token<NeoToken.AccountState>.countTransferPhase3}");
+                AkkaLog.Info($"Class: Nep5Token Type: countTransferPhase4: {Nep5Token<NeoToken.AccountState>.countTransferPhase4}");
+
+
                 AkkaLog.Info($"Class: ExecutionEngine Type: PreExecution  averageTimespan: {ExecutionEngine.totalTimeVMPreExecution / ExecutionEngine.countVMExe}");
                 AkkaLog.Info($"Class: ExecutionEngine Type: Execution  averageTimespan: {ExecutionEngine.totalTimeVMExecution / ExecutionEngine.countVMExe}");
 
