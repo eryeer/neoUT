@@ -157,9 +157,9 @@ namespace Neo.SmartContract.Native.Tokens
             Nep5AccountState state = new Nep5AccountState(storage.Value);
             return state.Balance;
         }
-        public System.Diagnostics.Stopwatch stopwatchTransferToTal = new System.Diagnostics.Stopwatch();
-        public double timeSpanTransferToTal = 0;
-        public long countTransferToTal = 0;
+        public static System.Diagnostics.Stopwatch stopwatchTransferToTal = new System.Diagnostics.Stopwatch();
+        public static double timeSpanTransferToTal = 0;
+        public static long countTransferToTal = 0;
         [ContractMethod(0_08000000, ContractParameterType.Boolean, ParameterTypes = new[] { ContractParameterType.Hash160, ContractParameterType.Hash160, ContractParameterType.Integer }, ParameterNames = new[] { "from", "to", "amount" })]
         protected StackItem Transfer(ApplicationEngine engine, VMArray args)
         {
@@ -175,21 +175,21 @@ namespace Neo.SmartContract.Native.Tokens
             return result;
         }
 
-        public System.Diagnostics.Stopwatch stopwatchTransferPhase1 = new System.Diagnostics.Stopwatch();
-        public double timeSpanTransferPhase1 = 0;
-        public long countTransferPhase1 = 0;
+        public static System.Diagnostics.Stopwatch stopwatchTransferPhase1 = new System.Diagnostics.Stopwatch();
+        public static double timeSpanTransferPhase1 = 0;
+        public static long countTransferPhase1 = 0;
 
-        public System.Diagnostics.Stopwatch stopwatchTransferPhase2 = new System.Diagnostics.Stopwatch();
-        public double timeSpanTransferPhase2 = 0;
-        public long countTransferPhase2 = 0;
+        public static System.Diagnostics.Stopwatch stopwatchTransferPhase2 = new System.Diagnostics.Stopwatch();
+        public static double timeSpanTransferPhase2 = 0;
+        public static long countTransferPhase2 = 0;
 
-        public System.Diagnostics.Stopwatch stopwatchTransferPhase3 = new System.Diagnostics.Stopwatch();
-        public double timeSpanTransferPhase3 = 0;
-        public long countTransferPhase3 = 0;
+        public static System.Diagnostics.Stopwatch stopwatchTransferPhase3 = new System.Diagnostics.Stopwatch();
+        public static double timeSpanTransferPhase3 = 0;
+        public static long countTransferPhase3 = 0;
 
-        public System.Diagnostics.Stopwatch stopwatchTransferPhase4 = new System.Diagnostics.Stopwatch();
-        public double timeSpanTransferPhase4 = 0;
-        public long countTransferPhase4 = 0;
+        public static System.Diagnostics.Stopwatch stopwatchTransferPhase4 = new System.Diagnostics.Stopwatch();
+        public static double timeSpanTransferPhase4 = 0;
+        public static long countTransferPhase4 = 0;
         protected virtual bool Transfer(ApplicationEngine engine, UInt160 from, UInt160 to, BigInteger amount)
         {
             //TransferPhase1

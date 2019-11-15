@@ -10,6 +10,8 @@ using Neo.Network.P2P.Payloads;
 using Neo.Persistence;
 using Neo.Plugins;
 using Neo.SmartContract.Native;
+using Neo.SmartContract.Native.Tokens;
+using Neo.VM;
 using Neo.Wallets;
 using System;
 using System.Collections.Generic;
@@ -520,7 +522,18 @@ namespace Neo.Consensus
                 LocalNode.totalTimeRelayDirectly = 0;
                 LocalNode.totalTimeSendDirectly = 0;
             }
+            if (ExecutionEngine.countSwitch) {
+                AkkaLog.Info($"Class: Nep5Token Type: TransferToTal  averageTimespan: {Nep5Token<NeoToken.AccountState>.timeSpanTransferToTal/ Nep5Token<NeoToken.AccountState>.countTransferToTal}");
 
+                AkkaLog.Info($"Class: Nep5Token Type: TransferPhase1  averageTimespan: {Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase1 / Nep5Token<NeoToken.AccountState>.countTransferPhase1}");
+
+                AkkaLog.Info($"Class: Nep5Token Type: TransferPhase2  averageTimespan: {Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase2/ Nep5Token<NeoToken.AccountState>.countTransferPhase2}");
+
+                AkkaLog.Info($"Class: Nep5Token Type: TransferPhase3  averageTimespan: {Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase3 / Nep5Token<NeoToken.AccountState>.countTransferPhase3}");
+
+                AkkaLog.Info($"Class: Nep5Token Type: TransferPhase4  averageTimespan: {Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase4 / Nep5Token<NeoToken.AccountState>.countTransferPhase4}");
+
+            }
 
         }
 
