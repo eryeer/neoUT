@@ -28,6 +28,8 @@ namespace Neo.SmartContract
         public IReadOnlyList<NotifyEventArgs> Notifications => notifications;
         internal Dictionary<UInt160, int> InvocationCounter { get; } = new Dictionary<UInt160, int>();
 
+        
+
         public ApplicationEngine(TriggerType trigger, IVerifiable container, Snapshot snapshot, long gas, bool testMode = false)
         {
             this.gas_amount = GasFree + gas;
@@ -71,8 +73,19 @@ namespace Neo.SmartContract
 
         protected override bool OnSysCall(uint method)
         {
+            //phase1-1
+            Console.WriteLine("enter on syscall");
+            InteropService.stopwatchOnSysCall1_1.Start();
             if (!AddGas(InteropService.GetPrice(method, CurrentContext.EvaluationStack)))
+            {
+                Console.WriteLine("Add gas flase");
+                InteropService.stopwatchOnSysCall1_1.Stop();
+                InteropService.stopwatchOnSysCall1_1.Reset();
                 return false;
+            }
+            InteropService.stopwatchOnSysCall1_1.Stop();
+            Console.WriteLine($"Class ApplicationEngine Type: OnSyscall1-1 timespan: {InteropService.stopwatchOnSysCall1_1.Elapsed.TotalSeconds}");
+            InteropService.stopwatchOnSysCall1_1.Reset();
             return InteropService.Invoke(this, method);
         }
 

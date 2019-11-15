@@ -26,6 +26,12 @@ namespace Neo.SmartContract
         public const int MaxStorageValueSize = ushort.MaxValue;
         public const int MaxNotificationSize = 1024;
 
+        public static System.Diagnostics.Stopwatch stopwatchOnSysCall1_1 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchOnSysCall1_2 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchOnSysCall1_3 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchOnSysCall1_4 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchOnSysCall1_5 = new System.Diagnostics.Stopwatch();
+
         private static readonly Dictionary<uint, InteropDescriptor> methods = new Dictionary<uint, InteropDescriptor>();
 
         public static readonly uint System_ExecutionEngine_GetScriptContainer = Register("System.ExecutionEngine.GetScriptContainer", ExecutionEngine_GetScriptContainer, 0_00000250, TriggerType.All);
@@ -132,11 +138,38 @@ namespace Neo.SmartContract
 
         internal static bool Invoke(ApplicationEngine engine, uint method)
         {
+            //phase1-2
+            stopwatchOnSysCall1_2.Start();
             if (!methods.TryGetValue(method, out InteropDescriptor descriptor))
+            {
+                Console.WriteLine($"Cannot get SystemCall Method");
+                stopwatchOnSysCall1_2.Stop();
+                stopwatchOnSysCall1_2.Reset();
                 return false;
+            }
+            stopwatchOnSysCall1_2.Stop();
+            Console.WriteLine($"Class InteropService Type: OnSyscall1-2 timespan: {stopwatchOnSysCall1_2.Elapsed.TotalSeconds}");
+            stopwatchOnSysCall1_2.Reset();
+            //phase1-3
+            stopwatchOnSysCall1_3.Start();
             if (!descriptor.AllowedTriggers.HasFlag(engine.Trigger))
+            {
+                Console.WriteLine($"Hasnot Flag SystemCall Method");
+                stopwatchOnSysCall1_3.Stop();
+                stopwatchOnSysCall1_3.Reset();
                 return false;
-            return descriptor.Handler(engine);
+            }
+            stopwatchOnSysCall1_3.Stop();
+            Console.WriteLine($"Class InteropService Type: OnSyscall1-3 timespan: {stopwatchOnSysCall1_3.Elapsed.TotalSeconds}");
+            stopwatchOnSysCall1_3.Reset();
+            Console.WriteLine($"SystemCall Method: {descriptor.Method}");
+            //phase1-4
+            stopwatchOnSysCall1_4.Start();
+            var ret = descriptor.Handler(engine);
+            stopwatchOnSysCall1_4.Stop();
+            Console.WriteLine($"Class InteropService Type: OnSyscall1-4 timespan: {stopwatchOnSysCall1_4.Elapsed.TotalSeconds}");
+            stopwatchOnSysCall1_4.Reset();
+            return ret;
         }
 
         private static uint Register(string method, Func<ApplicationEngine, bool> handler, long price, TriggerType allowedTriggers)
@@ -488,6 +521,8 @@ namespace Neo.SmartContract
 
         private static bool Contract_Call(ApplicationEngine engine)
         {
+            //phase1-5
+            stopwatchOnSysCall1_5.Start();
             StackItem contractHash = engine.CurrentContext.EvaluationStack.Pop();
 
             ContractState contract = engine.Snapshot.Contracts.TryGet(new UInt160(contractHash.GetByteArray()));
@@ -512,6 +547,9 @@ namespace Neo.SmartContract
             ExecutionContext context_new = engine.LoadScript(contract.Script, 1);
             context_new.EvaluationStack.Push(args);
             context_new.EvaluationStack.Push(method);
+            stopwatchOnSysCall1_5.Stop();
+            Console.WriteLine($"Class InteropService Type: OnSyscall1-5 timespan: {stopwatchOnSysCall1_5.Elapsed.TotalSeconds}");
+            stopwatchOnSysCall1_5.Reset();
             return true;
         }
 
