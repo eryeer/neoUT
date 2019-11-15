@@ -157,23 +157,60 @@ namespace Neo.SmartContract.Native.Tokens
             Nep5AccountState state = new Nep5AccountState(storage.Value);
             return state.Balance;
         }
-
+        public System.Diagnostics.Stopwatch stopwatchTransferToTal = new System.Diagnostics.Stopwatch();
+        public double timeSpanTransferToTal = 0;
+        public long countTransferToTal = 0;
         [ContractMethod(0_08000000, ContractParameterType.Boolean, ParameterTypes = new[] { ContractParameterType.Hash160, ContractParameterType.Hash160, ContractParameterType.Integer }, ParameterNames = new[] { "from", "to", "amount" })]
         protected StackItem Transfer(ApplicationEngine engine, VMArray args)
         {
+            stopwatchTransferToTal.Start();
             UInt160 from = new UInt160(args[0].GetByteArray());
             UInt160 to = new UInt160(args[1].GetByteArray());
             BigInteger amount = args[2].GetBigInteger();
-            return Transfer(engine, from, to, amount);
+            bool result=Transfer(engine, from, to, amount);
+            stopwatchTransferToTal.Stop();
+            timeSpanTransferToTal += stopwatchTransferToTal.Elapsed.TotalSeconds;
+            stopwatchTransferToTal.Reset();
+            countTransferToTal++;
+            return result;
         }
 
+        public System.Diagnostics.Stopwatch stopwatchTransferPhase1 = new System.Diagnostics.Stopwatch();
+        public double timeSpanTransferPhase1 = 0;
+        public long countTransferPhase1 = 0;
+
+        public System.Diagnostics.Stopwatch stopwatchTransferPhase2 = new System.Diagnostics.Stopwatch();
+        public double timeSpanTransferPhase2 = 0;
+        public long countTransferPhase2 = 0;
+
+        public System.Diagnostics.Stopwatch stopwatchTransferPhase3 = new System.Diagnostics.Stopwatch();
+        public double timeSpanTransferPhase3 = 0;
+        public long countTransferPhase3 = 0;
+
+        public System.Diagnostics.Stopwatch stopwatchTransferPhase4 = new System.Diagnostics.Stopwatch();
+        public double timeSpanTransferPhase4 = 0;
+        public long countTransferPhase4 = 0;
         protected virtual bool Transfer(ApplicationEngine engine, UInt160 from, UInt160 to, BigInteger amount)
         {
+            //TransferPhase1
+            stopwatchTransferPhase1.Start();
             if (amount.Sign < 0) throw new ArgumentOutOfRangeException(nameof(amount));
             if (!from.Equals(engine.CallingScriptHash) && !InteropService.CheckWitness(engine, from))
                 return false;
+            stopwatchTransferPhase1.Stop();
+            timeSpanTransferPhase1 += stopwatchTransferPhase1.Elapsed.TotalSeconds;
+            stopwatchTransferPhase1.Reset();
+            countTransferPhase1++;
+            //TransferPhase2
+            stopwatchTransferPhase2.Start();
             ContractState contract_to = engine.Snapshot.Contracts.TryGet(to);
             if (contract_to?.Payable == false) return false;
+            stopwatchTransferPhase2.Stop();
+            timeSpanTransferPhase2 += stopwatchTransferPhase2.Elapsed.TotalSeconds;
+            stopwatchTransferPhase2.Reset();
+            countTransferPhase2++;
+            //TransferPhase3
+            stopwatchTransferPhase3.Start();
             StorageKey key_from = CreateAccountKey(from);
             StorageItem storage_from = engine.Snapshot.Storages.TryGet(key_from);
             if (amount.IsZero)
@@ -220,7 +257,17 @@ namespace Neo.SmartContract.Native.Tokens
                     storage_to.Value = state_to.ToByteArray();
                 }
             }
+            stopwatchTransferPhase3.Stop();
+            timeSpanTransferPhase3 += stopwatchTransferPhase1.Elapsed.TotalSeconds;
+            stopwatchTransferPhase3.Reset();
+            countTransferPhase3++;
+            //TransferPhase4
+            stopwatchTransferPhase4.Start();
             engine.SendNotification(Hash, new StackItem[] { "Transfer", from.ToArray(), to.ToArray(), amount });
+            stopwatchTransferPhase4.Stop();
+            timeSpanTransferPhase4 += stopwatchTransferPhase1.Elapsed.TotalSeconds;
+            stopwatchTransferPhase4.Reset();
+            countTransferPhase4++;
             return true;
         }
 
