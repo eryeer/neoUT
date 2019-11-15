@@ -1043,6 +1043,7 @@ namespace Neo.Ledger
                     stopwatchPersistPhase2.Reset();
                     //phase3
                     stopwatchPersistPhase3.Start();
+                    Console.WriteLine("=====Start to execute TX =======");
                     foreach (Transaction tx in block.Transactions)
                     {
                         //Phase3-1
@@ -1091,6 +1092,7 @@ namespace Neo.Ledger
                             stopwatchPersistPhase3_5.Reset();
                         }
                     }
+                    Console.WriteLine("=====End to execute TX =======");
                     stopwatchPersistPhase3.Stop();
                     totalTimestopwatchPersistPhase3 += stopwatchPersistPhase3.Elapsed.TotalSeconds;
                     stopwatchPersistPhase3.Reset();
