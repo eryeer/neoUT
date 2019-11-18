@@ -1087,39 +1087,39 @@ namespace Neo.Ledger
                         totalTimestopwatchPersistPhase3_1+= stopwatchPersistPhase3_1.Elapsed.TotalSeconds;
                         stopwatchPersistPhase3_1.Reset();
                         //Phase3-2
-                        stopwatchPersistPhase3_2.Start();
-                        using (ApplicationEngine engine = new ApplicationEngine(TriggerType.Application, tx, snapshot.Clone(), tx.SystemFee))
-                        {
+                        //stopwatchPersistPhase3_2.Start();
+                        //using (ApplicationEngine engine = new ApplicationEngine(TriggerType.Application, tx, snapshot.Clone(), tx.SystemFee))
+                        //{
                             
-                            engine.LoadScript(tx.Script);
-                            stopwatchPersistPhase3_2.Stop();
-                            totalTimestopwatchPersistPhase3_2 += stopwatchPersistPhase3_2.Elapsed.TotalSeconds;
-                            stopwatchPersistPhase3_2.Reset();
-                            //Phase3-3
-                            stopwatchPersistPhase3_3.Start();
-                            state.VMState = engine.Execute();
-                            stopwatchPersistPhase3_3.Stop();
-                            totalTimestopwatchPersistPhase3_3 += stopwatchPersistPhase3_3.Elapsed.TotalSeconds;
-                            stopwatchPersistPhase3_3.Reset();
-                            //Pahse3-4
-                            stopwatchPersistPhase3_4.Start();
-                            if (state.VMState == VMState.HALT)
-                            {
-                                engine.Snapshot.Commit();
-                            }
-                            stopwatchPersistPhase3_4.Stop();
-                            totalTimestopwatchPersistPhase3_4 += stopwatchPersistPhase3_4.Elapsed.TotalSeconds;
-                            stopwatchPersistPhase3_4.Reset();
-                            //Pahse3-5
-                            stopwatchPersistPhase3_5.Start();
-                            ApplicationExecuted application_executed = new ApplicationExecuted(engine);
-                            Context.System.EventStream.Publish(application_executed);
-                            all_application_executed.Add(application_executed);
-                            stopwatchPersistPhase3_5.Stop();
-                            totalTimestopwatchPersistPhase3_5 += stopwatchPersistPhase3_5.Elapsed.TotalSeconds;
-                            stopwatchPersistPhase3_5.Reset();
-                        }
-                        ExecutionEngine.step = 0;
+                        //    engine.LoadScript(tx.Script);
+                        //    stopwatchPersistPhase3_2.Stop();
+                        //    totalTimestopwatchPersistPhase3_2 += stopwatchPersistPhase3_2.Elapsed.TotalSeconds;
+                        //    stopwatchPersistPhase3_2.Reset();
+                        //    //Phase3-3
+                        //    stopwatchPersistPhase3_3.Start();
+                        //    state.VMState = engine.Execute();
+                        //    stopwatchPersistPhase3_3.Stop();
+                        //    totalTimestopwatchPersistPhase3_3 += stopwatchPersistPhase3_3.Elapsed.TotalSeconds;
+                        //    stopwatchPersistPhase3_3.Reset();
+                        //    //Pahse3-4
+                        //    stopwatchPersistPhase3_4.Start();
+                        //    if (state.VMState == VMState.HALT)
+                        //    {
+                        //        engine.Snapshot.Commit();
+                        //    }
+                        //    stopwatchPersistPhase3_4.Stop();
+                        //    totalTimestopwatchPersistPhase3_4 += stopwatchPersistPhase3_4.Elapsed.TotalSeconds;
+                        //    stopwatchPersistPhase3_4.Reset();
+                        //    //Pahse3-5
+                        //    stopwatchPersistPhase3_5.Start();
+                        //    ApplicationExecuted application_executed = new ApplicationExecuted(engine);
+                        //    Context.System.EventStream.Publish(application_executed);
+                        //    all_application_executed.Add(application_executed);
+                        //    stopwatchPersistPhase3_5.Stop();
+                        //    totalTimestopwatchPersistPhase3_5 += stopwatchPersistPhase3_5.Elapsed.TotalSeconds;
+                        //    stopwatchPersistPhase3_5.Reset();
+                        //}
+                        //ExecutionEngine.step = 0;
                     }
                     Console.WriteLine("=====End to execute TX =======");
                     stopwatchPersistPhase3.Stop();
