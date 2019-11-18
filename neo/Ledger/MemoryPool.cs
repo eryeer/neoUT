@@ -396,13 +396,32 @@ namespace Neo.Ledger
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryRemoveVerified(UInt256 hash, out PoolItem item)
         {
+            //8-2-2-1-1
+            stopwatchPersistPhase8_2_2_1_1.Start();
             if (!_unsortedTransactions.TryGetValue(hash, out item))
+            {
+                stopwatchPersistPhase8_2_2_1_1.Stop();
+                totalTimePersitTxCount8_2_2_1_1 += stopwatchPersistPhase8_2_2_1_1.Elapsed.TotalSeconds;
+                stopwatchPersistPhase8_2_2_1_1.Reset();
+                Console.WriteLine("!!!! Cannot get tx from pool");
                 return false;
-
+            }
             _unsortedTransactions.Remove(hash);
+            stopwatchPersistPhase8_2_2_1_1.Stop();
+            totalTimePersitTxCount8_2_2_1_1 += stopwatchPersistPhase8_2_2_1_1.Elapsed.TotalSeconds;
+            stopwatchPersistPhase8_2_2_1_1.Reset();
+            //8-2-2-1-2
+            stopwatchPersistPhase8_2_2_1_2.Start();
             RemoveSenderFee(item.Tx);
+            stopwatchPersistPhase8_2_2_1_2.Stop();
+            totalTimePersitTxCount8_2_2_1_2 += stopwatchPersistPhase8_2_2_1_2.Elapsed.TotalSeconds;
+            stopwatchPersistPhase8_2_2_1_2.Reset();
+            //8-2-2-1-3
+            stopwatchPersistPhase8_2_2_1_3.Start();
             _sortedTransactions.Remove(item);
-
+            stopwatchPersistPhase8_2_2_1_3.Stop();
+            totalTimePersitTxCount8_2_2_1_3 += stopwatchPersistPhase8_2_2_1_3.Elapsed.TotalSeconds;
+            stopwatchPersistPhase8_2_2_1_3.Reset();
             return true;
         }
 
@@ -433,6 +452,22 @@ namespace Neo.Ledger
         }
 
         // Note: this must only be called from a single thread (the Blockchain actor)
+
+        public static int PersitTxCount8_2_2_1 = 0;
+        public static int PersitTxCount8_2_2_2 = 0;
+        public static int PersitTxCount8_2_2_1_1 = 0;
+        public static int PersitTxCount8_2_2_1_2 = 0;
+        public static int PersitTxCount8_2_2_1_3 = 0;
+        public static System.Diagnostics.Stopwatch stopwatchPersistPhase8_2_2_1 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistPhase8_2_2_2 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistPhase8_2_2_1_1 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistPhase8_2_2_1_2 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistPhase8_2_2_1_3 = new System.Diagnostics.Stopwatch();
+        public static double totalTimePersitTxCount8_2_2_1 = 0;
+        public static double totalTimePersitTxCount8_2_2_2 = 0;
+        public static double totalTimePersitTxCount8_2_2_1_1 = 0;
+        public static double totalTimePersitTxCount8_2_2_1_2 = 0;
+        public static double totalTimePersitTxCount8_2_2_1_3 = 0;
         internal void UpdatePoolForBlockPersisted(Block block, Snapshot snapshot)
         {
             if (Blockchain.countSwitchBlockchain)
@@ -451,8 +486,26 @@ namespace Neo.Ledger
                     Blockchain.stopwatchPersistBlock8_2_2.Start();
                     foreach (Transaction tx in block.Transactions)
                     {
-                        if (TryRemoveVerified(tx.Hash, out _)) continue;
+                        //8-2-2-1
+                        PersitTxCount8_2_2_1++;
+                        stopwatchPersistPhase8_2_2_1.Start();
+                        if (TryRemoveVerified(tx.Hash, out _))
+                        {
+                            stopwatchPersistPhase8_2_2_1.Stop();
+                            totalTimePersitTxCount8_2_2_1 += stopwatchPersistPhase8_2_2_1.Elapsed.TotalSeconds;
+                            stopwatchPersistPhase8_2_2_1.Reset();
+                            continue;
+                        }
+                        stopwatchPersistPhase8_2_2_1.Stop();
+                        totalTimePersitTxCount8_2_2_1 += stopwatchPersistPhase8_2_2_1.Elapsed.TotalSeconds;
+                        stopwatchPersistPhase8_2_2_1.Reset();
+                        //8-2-2-2
+                        stopwatchPersistPhase8_2_2_2.Start();
                         TryRemoveUnVerified(tx.Hash, out _);
+                        stopwatchPersistPhase8_2_2_2.Stop();
+                        totalTimePersitTxCount8_2_2_2 += stopwatchPersistPhase8_2_2_2.Elapsed.TotalSeconds;
+                        stopwatchPersistPhase8_2_2_2.Reset();
+                        PersitTxCount8_2_2_2++;
                     }
                     Blockchain.stopwatchPersistBlock8_2_2.Stop();
                     Blockchain.totalTimePersistBlock8_2_2 += Blockchain.stopwatchPersistBlock8_2_2.Elapsed.TotalSeconds;

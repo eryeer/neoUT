@@ -430,10 +430,23 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_3  averageTimespan: {Blockchain.totalTimePersistBlock8_3 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_1  averageTimespan: {Blockchain.totalTimePersistBlock8_2_1 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_2  averageTimespan: {Blockchain.totalTimePersistBlock8_2_2 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_2_1  averageTimespan: {MemoryPool.totalTimePersitTxCount8_2_2_1 / MemoryPool.PersitTxCount8_2_2_1}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_2_1_1  averageTimespan: {MemoryPool.totalTimePersitTxCount8_2_2_1_1 / MemoryPool.PersitTxCount8_2_2_1}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_2_1_2  averageTimespan: {MemoryPool.totalTimePersitTxCount8_2_2_1_2 / MemoryPool.PersitTxCount8_2_2_1}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_2_1_3  averageTimespan: {MemoryPool.totalTimePersitTxCount8_2_2_1_3 / MemoryPool.PersitTxCount8_2_2_1}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_2_2  averageTimespan: {MemoryPool.totalTimePersitTxCount8_2_2_2 / MemoryPool.PersitTxCount8_2_2_2}");
                 AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_3  averageTimespan: {Blockchain.totalTimePersistBlock8_2_3 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_4  averageTimespan: {Blockchain.totalTimePersistBlock8_2_4 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_5  averageTimespan: {Blockchain.totalTimePersistBlock8_2_5 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Perist total tx count: {Blockchain.countTxInPersist}");
+
+                MemoryPool.totalTimePersitTxCount8_2_2_1 = 0;
+                MemoryPool.totalTimePersitTxCount8_2_2_2 = 0;
+                MemoryPool.totalTimePersitTxCount8_2_2_1_1 = 0;
+                MemoryPool.totalTimePersitTxCount8_2_2_1_2 = 0;
+                MemoryPool.totalTimePersitTxCount8_2_2_1_3 = 0;
+                MemoryPool.PersitTxCount8_2_2_1 = 0;
+                MemoryPool.PersitTxCount8_2_2_2 = 0;
 
                 Blockchain.countImport = 0;
                 Blockchain.countFillMemoryPool = 0;
