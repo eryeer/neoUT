@@ -435,55 +435,113 @@ namespace Neo.Ledger
         // Note: this must only be called from a single thread (the Blockchain actor)
         internal void UpdatePoolForBlockPersisted(Block block, Snapshot snapshot)
         {
-            bool policyChanged = LoadPolicy(snapshot);
-
-            _txRwLock.EnterWriteLock();
-            try
-            {
-                // First remove the transactions verified in the block.
-                foreach (Transaction tx in block.Transactions)
-                {
-                    if (TryRemoveVerified(tx.Hash, out _)) continue;
-                    TryRemoveUnVerified(tx.Hash, out _);
-                }
-
-                // Add all the previously verified transactions back to the unverified transactions
-                InvalidateVerifiedTransactions();
-
-                if (policyChanged)
-                {
-                    var tx = new List<Transaction>();
-                    foreach (PoolItem item in _unverifiedSortedTransactions.Reverse())
-                        if (item.Tx.FeePerByte >= _feePerByte)
-                            tx.Add(item.Tx);
-
-                    _unverifiedTransactions.Clear();
-                    _unverifiedSortedTransactions.Clear();
-
-                    if (tx.Count > 0)
-                        _system.Blockchain.Tell(tx.ToArray(), ActorRefs.NoSender);
-                }
-            }
-            finally
-            {
-                _txRwLock.ExitWriteLock();
-            }
-
-            // If we know about headers of future blocks, no point in verifying transactions from the unverified tx pool
-            // until we get caught up.
-            if (block.Index > 0 && block.Index < Blockchain.Singleton.HeaderHeight || policyChanged)
-                return;
             if (Blockchain.countSwitchBlockchain)
             {
-                Blockchain.stopwatchReverifyTx.Start();
+                //8-2-1
+                Blockchain.stopwatchPersistBlock8_2_1.Start();
+                bool policyChanged = LoadPolicy(snapshot);
+                _txRwLock.EnterWriteLock();
+                Blockchain.stopwatchPersistBlock8_2_1.Stop();
+                Blockchain.totalTimePersistBlock8_2_1 += Blockchain.stopwatchPersistBlock8_2_1.Elapsed.TotalSeconds;
+                Blockchain.stopwatchPersistBlock8_2_1.Reset();
+                try
+                {
+                    //8-2-2
+                    // First remove the transactions verified in the block.
+                    Blockchain.stopwatchPersistBlock8_2_2.Start();
+                    foreach (Transaction tx in block.Transactions)
+                    {
+                        if (TryRemoveVerified(tx.Hash, out _)) continue;
+                        TryRemoveUnVerified(tx.Hash, out _);
+                    }
+                    Blockchain.stopwatchPersistBlock8_2_2.Stop();
+                    Blockchain.totalTimePersistBlock8_2_2 += Blockchain.stopwatchPersistBlock8_2_2.Elapsed.TotalSeconds;
+                    Blockchain.stopwatchPersistBlock8_2_2.Reset();
+                    //8-2-3
+                    // Add all the previously verified transactions back to the unverified transactions
+                    Blockchain.stopwatchPersistBlock8_2_3.Start();
+                    InvalidateVerifiedTransactions();
+                    Blockchain.stopwatchPersistBlock8_2_3.Stop();
+                    Blockchain.totalTimePersistBlock8_2_3 += Blockchain.stopwatchPersistBlock8_2_3.Elapsed.TotalSeconds;
+                    Blockchain.stopwatchPersistBlock8_2_3.Reset();
+                    //8-2-4
+                    Blockchain.stopwatchPersistBlock8_2_4.Start();
+                    if (policyChanged)
+                    {
+                        var tx = new List<Transaction>();
+                        foreach (PoolItem item in _unverifiedSortedTransactions.Reverse())
+                            if (item.Tx.FeePerByte >= _feePerByte)
+                                tx.Add(item.Tx);
+
+                        _unverifiedTransactions.Clear();
+                        _unverifiedSortedTransactions.Clear();
+
+                        if (tx.Count > 0)
+                            _system.Blockchain.Tell(tx.ToArray(), ActorRefs.NoSender);
+                    }
+                }
+                finally
+                {
+                    _txRwLock.ExitWriteLock();
+                }
+                // If we know about headers of future blocks, no point in verifying transactions from the unverified tx pool
+                // until we get caught up.
+                if (block.Index > 0 && block.Index < Blockchain.Singleton.HeaderHeight || policyChanged)
+                    return;
+                Blockchain.stopwatchPersistBlock8_2_4.Stop();
+                Blockchain.totalTimePersistBlock8_2_4 += Blockchain.stopwatchPersistBlock8_2_4.Elapsed.TotalSeconds;
+                Blockchain.stopwatchPersistBlock8_2_4.Reset();
+                //8-2-5
+                Blockchain.stopwatchPersistBlock8_2_5.Start();
                 ReverifyTransactions(_sortedTransactions, _unverifiedSortedTransactions,
                 _maxTxPerBlock, MaxMillisecondsToReverifyTx, snapshot);
-                Blockchain.stopwatchReverifyTx.Stop();
-                Blockchain.totalTimeReverifyTx += Blockchain.stopwatchReverifyTx.Elapsed.TotalSeconds;
-                Blockchain.stopwatchReverifyTx.Reset();
+                Blockchain.stopwatchPersistBlock8_2_5.Stop();
+                Blockchain.totalTimePersistBlock8_2_5 += Blockchain.stopwatchPersistBlock8_2_5.Elapsed.TotalSeconds;
+                Blockchain.stopwatchPersistBlock8_2_5.Reset();
             }
             else
             {
+                //8-2-1
+                bool policyChanged = LoadPolicy(snapshot);
+
+                _txRwLock.EnterWriteLock();
+                try
+                {
+                    //8-2-2
+                    // First remove the transactions verified in the block.
+                    foreach (Transaction tx in block.Transactions)
+                    {
+                        if (TryRemoveVerified(tx.Hash, out _)) continue;
+                        TryRemoveUnVerified(tx.Hash, out _);
+                    }
+                    //8-2-3
+                    // Add all the previously verified transactions back to the unverified transactions
+                    InvalidateVerifiedTransactions();
+                    //8-2-4
+                    if (policyChanged)
+                    {
+                        var tx = new List<Transaction>();
+                        foreach (PoolItem item in _unverifiedSortedTransactions.Reverse())
+                            if (item.Tx.FeePerByte >= _feePerByte)
+                                tx.Add(item.Tx);
+
+                        _unverifiedTransactions.Clear();
+                        _unverifiedSortedTransactions.Clear();
+
+                        if (tx.Count > 0)
+                            _system.Blockchain.Tell(tx.ToArray(), ActorRefs.NoSender);
+                    }
+                }
+                finally
+                {
+                    _txRwLock.ExitWriteLock();
+                }
+                // If we know about headers of future blocks, no point in verifying transactions from the unverified tx pool
+                // until we get caught up.
+                if (block.Index > 0 && block.Index < Blockchain.Singleton.HeaderHeight || policyChanged)
+                    return;
+
+
                 ReverifyTransactions(_sortedTransactions, _unverifiedSortedTransactions,
                     _maxTxPerBlock, MaxMillisecondsToReverifyTx, snapshot);
             }

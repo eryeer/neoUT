@@ -58,7 +58,11 @@ namespace Neo.Ledger
         public System.Diagnostics.Stopwatch stopwatchPersistBlock8_1 = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchPersistBlock8_2 = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchPersistBlock8_3 = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchReverifyTx = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistBlock8_2_1 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistBlock8_2_2 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistBlock8_2_3 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistBlock8_2_4 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistBlock8_2_5 = new System.Diagnostics.Stopwatch();
 
         public System.Diagnostics.Stopwatch stopwatchPersistPhase1 = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchPersistPhase2 = new System.Diagnostics.Stopwatch();
@@ -99,7 +103,11 @@ namespace Neo.Ledger
         public static double totalTimePersistBlock8_1 = 0;
         public static double totalTimePersistBlock8_2 = 0;
         public static double totalTimePersistBlock8_3 = 0;
-        public static double totalTimeReverifyTx = 0;
+        public static double totalTimePersistBlock8_2_1 = 0;
+        public static double totalTimePersistBlock8_2_2 = 0;
+        public static double totalTimePersistBlock8_2_3 = 0;
+        public static double totalTimePersistBlock8_2_4 = 0;
+        public static double totalTimePersistBlock8_2_5 = 0;
 
         public static long countImport = 0;
         public static long countFillMemoryPool = 0;

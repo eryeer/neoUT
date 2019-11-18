@@ -246,7 +246,7 @@ namespace Neo.VM
             {
                 try
                 {
-                    Console.WriteLine("enter phase1");
+                    //Console.WriteLine("enter phase1");
                     stopwatchStep.Start();
                     if (!CheckMaxItemSize(instruction.Operand.Length)) return false;
                     context.EvaluationStack.Push(instruction.Operand);
@@ -255,7 +255,7 @@ namespace Neo.VM
                 finally
                 {
                     stopwatchStep.Stop();
-                    Console.WriteLine($"Step: {step} opcode: {instruction.OpCode} phase1 timespan {stopwatchStep.Elapsed.TotalSeconds}");
+                    //Console.WriteLine($"Step: {step} opcode: {instruction.OpCode} phase1 timespan {stopwatchStep.Elapsed.TotalSeconds}");
                     stopwatchStep.Reset();
                 }
             }
@@ -366,12 +366,12 @@ namespace Neo.VM
                                 stopwatchSyscall1.Start();
                                 var ret1 = OnSysCall(instruction.TokenU32);
                                 stopwatchSyscall1.Stop();
-                                Console.WriteLine($"Syscall Phase1 Timespan: {stopwatchSyscall1.Elapsed.TotalSeconds}");
+                                //Console.WriteLine($"Syscall Phase1 Timespan: {stopwatchSyscall1.Elapsed.TotalSeconds}");
                                 stopwatchSyscall1.Reset();
                                 stopwatchSyscall2.Start();
                                 var ret2 = CheckStackSize(false, int.MaxValue);
                                 stopwatchSyscall2.Stop();
-                                Console.WriteLine($"Syscall Phase2 Timespan: {stopwatchSyscall2.Elapsed.TotalSeconds}");
+                                //Console.WriteLine($"Syscall Phase2 Timespan: {stopwatchSyscall2.Elapsed.TotalSeconds}");
                                 stopwatchSyscall2.Reset();
                                 if (!ret1 || !ret2)
                                     return false;
@@ -1146,7 +1146,7 @@ namespace Neo.VM
                 finally
                 {
                     stopwatchStep.Stop();
-                    Console.WriteLine($"Step: {step} opcode: {instruction.OpCode} phase2 timespan {stopwatchStep.Elapsed.TotalSeconds}");
+                    //Console.WriteLine($"Step: {step} opcode: {instruction.OpCode} phase2 timespan {stopwatchStep.Elapsed.TotalSeconds}");
                     stopwatchStep.Reset();
                 }
             }

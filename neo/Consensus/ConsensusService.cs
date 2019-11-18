@@ -410,12 +410,6 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase4  averageTimespan: {Blockchain.totalTimestopwatchTxPhase4 / Blockchain.countTransaction}");
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase5  averageTimespan: {Blockchain.totalTimestopwatchTxPhase5 / Blockchain.countTransaction}");
 
-                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist  averageTimespan: {Blockchain.totalTimePersistBlock / Blockchain.countBlock}");
-                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: UpdateMempool  averageTimespan: {Blockchain.totalTimePersistBlock8_1 / Blockchain.countBlock}");
-                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: UpdateMempool  averageTimespan: {Blockchain.totalTimePersistBlock8_2 / Blockchain.countBlock}");
-                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: UpdateMempool  averageTimespan: {Blockchain.totalTimePersistBlock8_3 / Blockchain.countBlock}");
-                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: ReverifyTx  averageTimespan: {Blockchain.totalTimeReverifyTx / Blockchain.countBlock}");
-
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase1  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase1 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase2  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase2 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase3  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase3 / Blockchain.countBlock}");
@@ -429,6 +423,16 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase3_3  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase3_3 / Blockchain.countTxInPersist}");
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase3_4  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase3_4 / Blockchain.countTxInPersist}");
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase3_5  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase3_5 / Blockchain.countTxInPersist}");
+
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist  averageTimespan: {Blockchain.totalTimePersistBlock / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_1  averageTimespan: {Blockchain.totalTimePersistBlock8_1 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2  averageTimespan: {Blockchain.totalTimePersistBlock8_2 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_3  averageTimespan: {Blockchain.totalTimePersistBlock8_3 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_1  averageTimespan: {Blockchain.totalTimePersistBlock8_2_1 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_2  averageTimespan: {Blockchain.totalTimePersistBlock8_2_2 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_3  averageTimespan: {Blockchain.totalTimePersistBlock8_2_3 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_4  averageTimespan: {Blockchain.totalTimePersistBlock8_2_4 / Blockchain.countBlock}");
+                AkkaLog.Info($"Class: Blockchain Type: Persist Phase: Persist8_2_5  averageTimespan: {Blockchain.totalTimePersistBlock8_2_5 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Perist total tx count: {Blockchain.countTxInPersist}");
 
                 Blockchain.countImport = 0;
@@ -461,7 +465,11 @@ namespace Neo.Consensus
                 Blockchain.totalTimePersistBlock8_1 = 0;
                 Blockchain.totalTimePersistBlock8_2 = 0;
                 Blockchain.totalTimePersistBlock8_3 = 0;
-                Blockchain.totalTimeReverifyTx = 0;
+                Blockchain.totalTimePersistBlock8_2_1 = 0;
+                Blockchain.totalTimePersistBlock8_2_2 = 0;
+                Blockchain.totalTimePersistBlock8_2_3 = 0;
+                Blockchain.totalTimePersistBlock8_2_4 = 0;
+                Blockchain.totalTimePersistBlock8_2_5 = 0;
 
                 Blockchain.totalTimestopwatchPersistPhase1 = 0;
                 Blockchain.totalTimestopwatchPersistPhase2 = 0;

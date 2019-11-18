@@ -148,7 +148,7 @@ namespace Neo.SmartContract
                 return false;
             }
             stopwatchOnSysCall1_2.Stop();
-            Console.WriteLine($"Class InteropService Type: OnSyscall1-2 timespan: {stopwatchOnSysCall1_2.Elapsed.TotalSeconds}");
+            //Console.WriteLine($"Class InteropService Type: OnSyscall1-2 timespan: {stopwatchOnSysCall1_2.Elapsed.TotalSeconds}");
             stopwatchOnSysCall1_2.Reset();
             //phase1-3
             stopwatchOnSysCall1_3.Start();
@@ -160,14 +160,14 @@ namespace Neo.SmartContract
                 return false;
             }
             stopwatchOnSysCall1_3.Stop();
-            Console.WriteLine($"Class InteropService Type: OnSyscall1-3 timespan: {stopwatchOnSysCall1_3.Elapsed.TotalSeconds}");
+            //Console.WriteLine($"Class InteropService Type: OnSyscall1-3 timespan: {stopwatchOnSysCall1_3.Elapsed.TotalSeconds}");
             stopwatchOnSysCall1_3.Reset();
-            Console.WriteLine($"SystemCall Method: {descriptor.Method}");
+            //Console.WriteLine($"SystemCall Method: {descriptor.Method}");
             //phase1-4
             stopwatchOnSysCall1_4.Start();
             var ret = descriptor.Handler(engine);
             stopwatchOnSysCall1_4.Stop();
-            Console.WriteLine($"Class InteropService Type: OnSyscall1-4 timespan: {stopwatchOnSysCall1_4.Elapsed.TotalSeconds}");
+            //Console.WriteLine($"Class InteropService Type: OnSyscall1-4 timespan: {stopwatchOnSysCall1_4.Elapsed.TotalSeconds}");
             stopwatchOnSysCall1_4.Reset();
             return ret;
         }
@@ -548,7 +548,7 @@ namespace Neo.SmartContract
             context_new.EvaluationStack.Push(args);
             context_new.EvaluationStack.Push(method);
             stopwatchOnSysCall1_5.Stop();
-            Console.WriteLine($"Class InteropService Type: OnSyscall1-5 timespan: {stopwatchOnSysCall1_5.Elapsed.TotalSeconds}");
+            //Console.WriteLine($"Class InteropService Type: OnSyscall1-5 timespan: {stopwatchOnSysCall1_5.Elapsed.TotalSeconds}");
             stopwatchOnSysCall1_5.Reset();
             return true;
         }
