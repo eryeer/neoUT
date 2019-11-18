@@ -55,7 +55,9 @@ namespace Neo.Ledger
         public System.Diagnostics.Stopwatch stopwatchTxPhase5 = new System.Diagnostics.Stopwatch();
 
         public System.Diagnostics.Stopwatch stopwatchPersistBlock = new System.Diagnostics.Stopwatch();
-        public System.Diagnostics.Stopwatch stopwatchUpdateMempool = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistBlock8_1 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistBlock8_2 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistBlock8_3 = new System.Diagnostics.Stopwatch();
         public static System.Diagnostics.Stopwatch stopwatchReverifyTx = new System.Diagnostics.Stopwatch();
 
         public System.Diagnostics.Stopwatch stopwatchPersistPhase1 = new System.Diagnostics.Stopwatch();
@@ -94,7 +96,9 @@ namespace Neo.Ledger
         public static double totalTimestopwatchTxPhase5 = 0;
 
         public static double totalTimePersistBlock = 0;
-        public static double totalTimeUpdateMempool = 0;
+        public static double totalTimePersistBlock8_1 = 0;
+        public static double totalTimePersistBlock8_2 = 0;
+        public static double totalTimePersistBlock8_3 = 0;
         public static double totalTimeReverifyTx = 0;
 
         public static long countImport = 0;
@@ -824,20 +828,34 @@ namespace Neo.Ledger
 
         private void OnPersistCompleted(Block block)
         {
-            block_cache.Remove(block.Hash);
             if (countSwitchBlockchain)
             {
-                stopwatchUpdateMempool.Start();
+                //phase8-1
+                stopwatchPersistBlock8_1.Start();
+                block_cache.Remove(block.Hash);
+                stopwatchPersistBlock8_1.Stop();
+                totalTimePersistBlock8_1 += stopwatchPersistBlock8_1.Elapsed.TotalSeconds;
+                stopwatchPersistBlock8_1.Reset();
+                //phase8-2
+                stopwatchPersistBlock8_2.Start();
                 MemPool.UpdatePoolForBlockPersisted(block, currentSnapshot);
-                stopwatchUpdateMempool.Stop();
-                totalTimeUpdateMempool += stopwatchUpdateMempool.Elapsed.TotalSeconds;
-                stopwatchUpdateMempool.Reset();
+                stopwatchPersistBlock8_2.Stop();
+                totalTimePersistBlock8_2 += stopwatchPersistBlock8_2.Elapsed.TotalSeconds;
+                stopwatchPersistBlock8_2.Reset();
+                //phase8-3
+                stopwatchPersistBlock8_3.Start();
+                Context.System.EventStream.Publish(new PersistCompleted { Block = block });
+                stopwatchPersistBlock8_3.Stop();
+                totalTimePersistBlock8_3 += stopwatchPersistBlock8_3.Elapsed.TotalSeconds;
+                stopwatchPersistBlock8_3.Reset();
             }
             else
             {
+                block_cache.Remove(block.Hash);
                 MemPool.UpdatePoolForBlockPersisted(block, currentSnapshot);
+                Context.System.EventStream.Publish(new PersistCompleted { Block = block });
             }
-            Context.System.EventStream.Publish(new PersistCompleted { Block = block });
+            
         }
 
 
