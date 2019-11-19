@@ -75,16 +75,28 @@ namespace Neo.Network.P2P.Payloads
             sizeof(long) +  //NetworkFee
             sizeof(uint);   //ValidUntilBlock
 
-        public int Size => HeaderSize +
-            Attributes.GetVarSize() +   //Attributes
-            Cosigners.GetVarSize() +    //Cosigners
-            Script.GetVarSize() +       //Script
-            Witnesses.GetVarSize();     //Witnesses
+        public int Size
+        {
+            get
+            {
+                if (_size == 0)
+                {
+                    return HeaderSize +
+                      Attributes.GetVarSize() +   //Attributes
+                      Cosigners.GetVarSize() +    //Cosigners
+                      Script.GetVarSize() +       //Script
+                      Witnesses.GetVarSize();     //Witnesses
+                }
+                return _size;
+            }
+        }
+        private int _size;
 
         void ISerializable.Deserialize(BinaryReader reader)
         {
             DeserializeUnsigned(reader);
             Witnesses = reader.ReadSerializableArray<Witness>();
+            _size = (int)reader.BaseStream.Position;
         }
 
         internal static Transaction DeserializeFrom(BinaryReader reader)
