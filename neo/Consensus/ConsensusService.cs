@@ -409,6 +409,14 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase2  averageTimespan: {Blockchain.totalTimestopwatchTxPhase2 / Blockchain.countParallelVerifiedTransaction}");
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase4  averageTimespan: {Blockchain.totalTimestopwatchTxPhase4 / Blockchain.countParallelVerifiedTransaction}");
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase5  averageTimespan: {Blockchain.totalTimestopwatchTxPhase5 / Blockchain.countParallelVerifiedTransaction}");
+                AkkaLog.Info($"Class: Mempool Type: TryAdd Phase: Phase5_1  averageTimespan: {MemoryPool.totalTimeTxTryAdd5_1 / Blockchain.countParallelVerifiedTransaction}");
+                AkkaLog.Info($"Class: Mempool Type: TryAdd Phase: Phase5_2  averageTimespan: {MemoryPool.totalTimeTxTryAdd5_2 / Blockchain.countParallelVerifiedTransaction}");
+                AkkaLog.Info($"Class: Mempool Type: TryAdd Phase: Phase5_3  averageTimespan: {MemoryPool.totalTimeTxTryAdd5_3 / Blockchain.countParallelVerifiedTransaction}");
+                AkkaLog.Info($"Class: Mempool Type: TryAdd Phase: Phase5_4  averageTimespan: {MemoryPool.totalTimeTxTryAdd5_4 / Blockchain.countParallelVerifiedTransaction}");
+                AkkaLog.Info($"Class: Mempool Type: TryAdd Phase: Phase5_5  averageTimespan: {MemoryPool.totalTimeTxTryAdd5_5 / Blockchain.countParallelVerifiedTransaction}");
+                AkkaLog.Info($"Class: Mempool Type: TryAdd Phase: Phase5_6  averageTimespan: {MemoryPool.totalTimeTxTryAdd5_6 / Blockchain.countParallelVerifiedTransaction}");
+                AkkaLog.Info($"Class: Mempool Type: TryAdd Phase: Phase5_7  averageTimespan: {MemoryPool.totalTimeTxTryAdd5_7 / Blockchain.countParallelVerifiedTransaction}");
+                AkkaLog.Info($"Class: Mempool Type: TryAdd Phase: Phase5_8  averageTimespan: {MemoryPool.totalTimeTxTryAdd5_8 / Blockchain.countParallelVerifiedTransaction}");
 
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase1  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase1 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase2  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase2 / Blockchain.countBlock}");
@@ -447,6 +455,15 @@ namespace Neo.Consensus
                 MemoryPool.totalTimePersitTxCount8_2_2_1_3 = 0;
                 MemoryPool.PersitTxCount8_2_2_1 = 0;
                 MemoryPool.PersitTxCount8_2_2_2 = 0;
+
+                MemoryPool.totalTimeTxTryAdd5_1 = 0;
+                MemoryPool.totalTimeTxTryAdd5_2 = 0;
+                MemoryPool.totalTimeTxTryAdd5_3 = 0;
+                MemoryPool.totalTimeTxTryAdd5_4 = 0;
+                MemoryPool.totalTimeTxTryAdd5_5 = 0;
+                MemoryPool.totalTimeTxTryAdd5_6 = 0;
+                MemoryPool.totalTimeTxTryAdd5_7 = 0;
+                MemoryPool.totalTimeTxTryAdd5_8 = 0;
 
                 Blockchain.countImport = 0;
                 Blockchain.countFillMemoryPool = 0;
