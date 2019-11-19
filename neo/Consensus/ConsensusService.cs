@@ -655,7 +655,7 @@ namespace Neo.Consensus
             }
             else
             {
-                ChangeTimer(TimeSpan.FromMilliseconds(Blockchain.MillisecondsPerBlock << (viewNumber + 1)));
+                ChangeTimer(TimeSpan.FromMilliseconds(Blockchain.MillisecondsPerBlock << (viewNumber + 2)));
             }
         }
 
