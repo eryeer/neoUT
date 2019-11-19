@@ -767,14 +767,6 @@ namespace Neo.Ledger
                     MemPool.RemoveSenderVerifyFrozenFee(transaction);
                     return RelayResultReason.OutOfMemory;
                 }
-                ////Phase3
-                //stopwatchTxPhase3.Start();
-                //var ret3 = transaction.Verify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender));
-                //stopwatchTxPhase3.Stop();
-                //totalTimestopwatchTxPhase3 += stopwatchTxPhase3.Elapsed.TotalSeconds;
-                //stopwatchTxPhase3.Reset();
-                //if (!ret3)
-                //    return RelayResultReason.Invalid;
                 //Phase4
                 stopwatchTxPhase4.Start();
                 var ret4 = NativeContract.Policy.CheckPolicy(transaction, currentSnapshot);
@@ -956,6 +948,7 @@ namespace Neo.Ledger
                         break;
                     }
                 case ParallelVerifiedTransaction parallelVerifiedtransaction:
+                    countParallelVerifiedTransaction++;
                     stopwatchParallelVerifiedTransaction.Start();
                     Sender.Tell(OnNewTransaction(parallelVerifiedtransaction.Transaction, true));
                     stopwatchParallelVerifiedTransaction.Stop();
@@ -967,11 +960,11 @@ namespace Neo.Ledger
                     }
                     if (countSwitchBlockchain)
                     {
-                        countParallelVerifiedTransaction++;
                         totalTimeParallelVerifiedTransaction += timespan;
                     }
                     break;
                 case Transaction transaction:
+                    countTransaction++;
                     stopwatchTransaction.Start();
                     OnParallelVerify(transaction);
                     stopwatchTransaction.Stop();
@@ -983,7 +976,6 @@ namespace Neo.Ledger
                     }
                     if (countSwitchBlockchain)
                     {
-                        countTransaction++;
                         totalTimeTransaction += timespan;
                     }
                     break;

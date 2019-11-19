@@ -405,10 +405,10 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: Blockchain Type: Idle Count: {Blockchain.countIdle} averageTimespan: {Blockchain.totalTimeIdle / Blockchain.countIdle}");
                 AkkaLog.Info($"Class: Blockchain Type: ParallelVerifiedTransaction Count: {Blockchain.countParallelVerifiedTransaction} averageTimespan: {Blockchain.totalTimeParallelVerifiedTransaction / Blockchain.countParallelVerifiedTransaction}");
 
-                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase1  averageTimespan: {Blockchain.totalTimestopwatchTxPhase1 / Blockchain.countTransaction}");
-                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase2  averageTimespan: {Blockchain.totalTimestopwatchTxPhase2 / Blockchain.countTransaction}");
-                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase4  averageTimespan: {Blockchain.totalTimestopwatchTxPhase4 / Blockchain.countTransaction}");
-                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase5  averageTimespan: {Blockchain.totalTimestopwatchTxPhase5 / Blockchain.countTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase1  averageTimespan: {Blockchain.totalTimestopwatchTxPhase1 / Blockchain.countParallelVerifiedTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase2  averageTimespan: {Blockchain.totalTimestopwatchTxPhase2 / Blockchain.countParallelVerifiedTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase4  averageTimespan: {Blockchain.totalTimestopwatchTxPhase4 / Blockchain.countParallelVerifiedTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase5  averageTimespan: {Blockchain.totalTimestopwatchTxPhase5 / Blockchain.countParallelVerifiedTransaction}");
 
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase1  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase1 / Blockchain.countBlock}");
                 AkkaLog.Info($"Class: Blockchain Type: Perist Phase: Phase2  averageTimespan: {Blockchain.totalTimestopwatchPersistPhase2 / Blockchain.countBlock}");
