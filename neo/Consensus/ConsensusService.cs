@@ -970,11 +970,11 @@ namespace Neo.Consensus
                 Log($"Timestamp incorrect: {message.Timestamp}", Plugins.LogLevel.Warning);
                 return;
             }
-            //if (message.TransactionHashes.Any(p => context.Snapshot.ContainsTransaction(p)))
-            //{
-            //    Log($"Invalid request: transaction already exists", Plugins.LogLevel.Warning);
-            //    return;
-            //}
+            if (message.TransactionHashes.Any(p => context.Snapshot.ContainsTransaction(p)))
+            {
+                Log($"Invalid request: transaction already exists", Plugins.LogLevel.Warning);
+                return;
+            }
 
             // Timeout extension: prepare request has been received with success
             // around 2*15/M=30.0/5 ~ 40% block time (for M=5)
