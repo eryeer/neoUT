@@ -317,56 +317,58 @@ namespace Neo.Network.RPC
                     }
                 case "newTransMigrate":
                     {
-                        if (!File.Exists(utxoFile))
-                            throw new RpcException(-400, "Access denied.");
-                        else
+                        int fileCount = int.Parse(_params[1].AsString());
+                        if (fileCount <= 0 || fileCount > 4) return "fileCount >0 &&<=4";
+                        for (int n = 0; n < fileCount; n++)
                         {
-                            double sleepInterval = double.Parse(_params[0].AsString());
-                            int fileCount = int.Parse(_params[1].AsString());
-                            int TxAmount = 50000;
-                            if (sleepInterval < 0) return "Invalid sleepInterval";
-                            if (fileCount <= 0 || fileCount > 4) return "fileCount >0 &&<=4";
-                            int successfulTransaction = 0;
-                            FileStream stream;
-                            BinaryReader reader;
-                            Transaction[] transactions;
-                            for (int n = 0; n < fileCount; n++)
+                            if (!File.Exists(utxoFiles[n]))
+                                throw new RpcException(-400, "Access denied.");
+                        }
+                        double sleepInterval = double.Parse(_params[0].AsString());
+                        int TxAmount = 50000;
+                        if (sleepInterval < 0) return "Invalid sleepInterval";
+
+                        int successfulTransaction = 0;
+                        FileStream stream;
+                        BinaryReader reader;
+                        Transaction[] transactions;
+                        for (int n = 0; n < fileCount; n++)
+                        {
+                            LoadTransction(n, out stream, out reader, out transactions);
+                            int realTxAmount = Math.Min(TxAmount, transactions.Length);
+                            if (sleepInterval == 0)
                             {
-                                LoadTransction(n, out stream, out reader, out transactions);
-                                int realTxAmount = Math.Min(TxAmount, transactions.Length);
-                                if (sleepInterval == 0)
+                                for (long i = 0; i < realTxAmount; i++)
                                 {
-                                    for (long i = 0; i < realTxAmount; i++)
-                                    {
-                                        successfulTransaction = SendTX(transactions, i, successfulTransaction);
-                                    }
+                                    successfulTransaction = SendTX(transactions, i, successfulTransaction);
                                 }
-                                else if (sleepInterval < 1)
+                            }
+                            else if (sleepInterval < 1)
+                            {
+                                int interval = (int)(1 / sleepInterval);
+                                int times = 0;
+                                for (long i = 0; i < realTxAmount; i++)
                                 {
-                                    int interval = (int)(1 / sleepInterval);
-                                    int times = 0;
-                                    for (long i = 0; i < realTxAmount; i++)
+                                    successfulTransaction = SendTX(transactions, i, successfulTransaction);
+                                    times++;
+                                    if (times == interval)
                                     {
-                                        successfulTransaction = SendTX(transactions, i, successfulTransaction);
-                                        times++;
-                                        if (times == interval)
-                                        {
-                                            times = 0;
-                                            Thread.Sleep(1);
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    for (long i = 0; i < realTxAmount; i++)
-                                    {
-                                        successfulTransaction = SendTX(transactions, i, successfulTransaction);
-                                        Thread.Sleep((int)sleepInterval);
+                                        times = 0;
+                                        Thread.Sleep(1);
                                     }
                                 }
                             }
-                            return successfulTransaction + ":" + Blockchain.Singleton.Height.ToString();
+                            else
+                            {
+                                for (long i = 0; i < realTxAmount; i++)
+                                {
+                                    successfulTransaction = SendTX(transactions, i, successfulTransaction);
+                                    Thread.Sleep((int)sleepInterval);
+                                }
+                            }
                         }
+                        return successfulTransaction + ":" + Blockchain.Singleton.Height.ToString();
+
                     }
                 case "createTransactions":
                     {
@@ -379,7 +381,7 @@ namespace Neo.Network.RPC
                             long migrateCount = 50000;   //生成交易的数量
                             int spreadAmountPerAccount = int.Parse(_params[2].AsString()); //转账金额
                             if (fileCount <= 0 || fileCount > 4) return "filecount>0 && <=4";
-                            
+
                             UInt160 originalAccount = Wallet.GetAccounts().Where(p => !p.Lock && !p.WatchOnly).Select(p => p.ScriptHash).ToArray()[0];
                             AssetDescriptor descriptor = new AssetDescriptor(asset_id);
                             TransferOutput[] outputs = new TransferOutput[]
