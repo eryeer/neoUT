@@ -37,18 +37,19 @@ namespace Neo.Ledger
         {
             if (otherTx == null) return 1;
             // Fees sorted ascending
-            int ret = Tx.FeePerByte.CompareTo(otherTx.FeePerByte);
-            if (ret != 0) return ret;
-            ret = Tx.NetworkFee.CompareTo(otherTx.NetworkFee);
-            if (ret != 0) return ret;
+            //int ret = Tx.FeePerByte.CompareTo(otherTx.FeePerByte);
+            //if (ret != 0) return ret;
+            //ret = Tx.NetworkFee.CompareTo(otherTx.NetworkFee);
+            //if (ret != 0) return ret;
             // Transaction hash sorted descending
             return otherTx.Hash.CompareTo(Tx.Hash);
         }
 
         public int CompareTo(PoolItem otherItem)
         {
-            if (otherItem == null) return 1;
-            return CompareTo(otherItem.Tx);
+            //if (otherItem == null) return 1;
+            //return CompareTo(otherItem.Tx);
+            return 1;
         }
     }
 }

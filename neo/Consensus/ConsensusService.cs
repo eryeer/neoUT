@@ -564,7 +564,7 @@ namespace Neo.Consensus
                 LocalNode.totalTimeRelayDirectly = 0;
                 LocalNode.totalTimeSendDirectly = 0;
             }
-            if (ExecutionEngine.countSwitch) {
+            if (Blockchain.countSwitchBlockchain) {
                 AkkaLog.Info($"Class: Nep5Token Type: TransferToTal  averageTimespan: {Nep5Token<NeoToken.AccountState>.timeSpanTransferToTal/ Nep5Token<NeoToken.AccountState>.countTransferToTal}");
                 AkkaLog.Info($"Class: Nep5Token Type: TransferPhase1  averageTimespan: {Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase1 / Nep5Token<NeoToken.AccountState>.countTransferPhase1}");
                 AkkaLog.Info($"Class: Nep5Token Type: TransferPhase2  averageTimespan: {Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase2/ Nep5Token<NeoToken.AccountState>.countTransferPhase2}");
@@ -577,10 +577,6 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: Nep5Token Type: countTransferPhase3: {Nep5Token<NeoToken.AccountState>.countTransferPhase3}");
                 AkkaLog.Info($"Class: Nep5Token Type: countTransferPhase4: {Nep5Token<NeoToken.AccountState>.countTransferPhase4}");
 
-
-                AkkaLog.Info($"Class: ExecutionEngine Type: PreExecution  averageTimespan: {ExecutionEngine.totalTimeVMPreExecution / ExecutionEngine.countVMExe}");
-                AkkaLog.Info($"Class: ExecutionEngine Type: Execution  averageTimespan: {ExecutionEngine.totalTimeVMExecution / ExecutionEngine.countVMExe}");
-
                 Nep5Token<NeoToken.AccountState>.timeSpanTransferToTal = 0;
                 Nep5Token<NeoToken.AccountState>.countTransferToTal = 0;
                 Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase1 = 0;
@@ -592,9 +588,6 @@ namespace Neo.Consensus
                 Nep5Token<NeoToken.AccountState>.timeSpanTransferPhase4 = 0;
                 Nep5Token<NeoToken.AccountState>.countTransferPhase4 = 0;
 
-                ExecutionEngine.totalTimeVMPreExecution = 0;
-                ExecutionEngine.totalTimeVMExecution = 0;
-                ExecutionEngine.countVMExe = 0;
             }
 
         }
@@ -977,11 +970,11 @@ namespace Neo.Consensus
                 Log($"Timestamp incorrect: {message.Timestamp}", Plugins.LogLevel.Warning);
                 return;
             }
-            if (message.TransactionHashes.Any(p => context.Snapshot.ContainsTransaction(p)))
-            {
-                Log($"Invalid request: transaction already exists", Plugins.LogLevel.Warning);
-                return;
-            }
+            //if (message.TransactionHashes.Any(p => context.Snapshot.ContainsTransaction(p)))
+            //{
+            //    Log($"Invalid request: transaction already exists", Plugins.LogLevel.Warning);
+            //    return;
+            //}
 
             // Timeout extension: prepare request has been received with success
             // around 2*15/M=30.0/5 ~ 40% block time (for M=5)
