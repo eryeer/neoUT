@@ -18,6 +18,38 @@ namespace Neo.Ledger
 {
     public class MemoryPool : IReadOnlyCollection<Transaction>
     {
+        public static int PersitTxCount8_2_2_1 = 0;
+        public static int PersitTxCount8_2_2_2 = 0;
+        public static int PersitTxCount8_2_2_1_1 = 0;
+        public static int PersitTxCount8_2_2_1_2 = 0;
+        public static int PersitTxCount8_2_2_1_3 = 0;
+        public static System.Diagnostics.Stopwatch stopwatchPersistPhase8_2_2_1 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistPhase8_2_2_2 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistPhase8_2_2_1_1 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistPhase8_2_2_1_2 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistPhase8_2_2_1_3 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTxTryAdd5_1 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTxTryAdd5_2 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTxTryAdd5_3 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTxTryAdd5_4 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTxTryAdd5_5 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTxTryAdd5_6 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTxTryAdd5_7 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchTxTryAdd5_8 = new System.Diagnostics.Stopwatch();
+
+        public static double totalTimeTxTryAdd5_1 = 0;
+        public static double totalTimeTxTryAdd5_2 = 0;
+        public static double totalTimeTxTryAdd5_3 = 0;
+        public static double totalTimeTxTryAdd5_4 = 0;
+        public static double totalTimeTxTryAdd5_5 = 0;
+        public static double totalTimeTxTryAdd5_6 = 0;
+        public static double totalTimeTxTryAdd5_7 = 0;
+        public static double totalTimeTxTryAdd5_8 = 0;
+        public static double totalTimePersitTxCount8_2_2_1 = 0;
+        public static double totalTimePersitTxCount8_2_2_2 = 0;
+        public static double totalTimePersitTxCount8_2_2_1_1 = 0;
+        public static double totalTimePersitTxCount8_2_2_1_2 = 0;
+        public static double totalTimePersitTxCount8_2_2_1_3 = 0;
         // Allow a reverified transaction to be rebroadcasted if it has been this many block times since last broadcast.
         private const int BlocksTillRebroadcastLowPriorityPoolTx = 30;
         private const int BlocksTillRebroadcastHighPriorityPoolTx = 10;
@@ -348,34 +380,114 @@ namespace Neo.Ledger
         /// <returns></returns>
         internal bool TryAdd(UInt256 hash, Transaction tx)
         {
-            var poolItem = new PoolItem(tx);
-
-            if (_unsortedTransactions.ContainsKey(hash)) return false;
-
-            List<Transaction> removedTransactions = null;
-            _txRwLock.EnterWriteLock();
-            try
+            if (Blockchain.countSwitchBlockchain)
             {
-                _unsortedTransactions.Add(hash, poolItem);
-                AddSenderFee(tx);
-                _sortedTransactions.Add(poolItem);
-
-                if (Count > Capacity)
-                    removedTransactions = RemoveOverCapacity();
+                //phase5-1
+                stopwatchTxTryAdd5_1.Start();
+                var poolItem = new PoolItem(tx);
+                stopwatchTxTryAdd5_1.Stop();
+                totalTimeTxTryAdd5_1 += stopwatchTxTryAdd5_1.Elapsed.TotalSeconds;
+                stopwatchTxTryAdd5_1.Reset();
+                //phase5-2
+                stopwatchTxTryAdd5_2.Start();
+                if (_unsortedTransactions.ContainsKey(hash))
+                {
+                    stopwatchTxTryAdd5_2.Stop();
+                    totalTimeTxTryAdd5_2 += stopwatchTxTryAdd5_2.Elapsed.TotalSeconds;
+                    stopwatchTxTryAdd5_2.Reset();
+                    return false;
+                }
+                List<Transaction> removedTransactions = null;
+                _txRwLock.EnterWriteLock();
+                stopwatchTxTryAdd5_2.Stop();
+                totalTimeTxTryAdd5_2 += stopwatchTxTryAdd5_2.Elapsed.TotalSeconds;
+                stopwatchTxTryAdd5_2.Reset();
+                try
+                {
+                    //phase5-3
+                    stopwatchTxTryAdd5_3.Start();
+                    _unsortedTransactions.Add(hash, poolItem);
+                    stopwatchTxTryAdd5_3.Stop();
+                    totalTimeTxTryAdd5_3 += stopwatchTxTryAdd5_3.Elapsed.TotalSeconds;
+                    stopwatchTxTryAdd5_3.Reset();
+                    //phase5-4
+                    stopwatchTxTryAdd5_4.Start();
+                    AddSenderFee(tx);
+                    stopwatchTxTryAdd5_4.Stop();
+                    totalTimeTxTryAdd5_4 += stopwatchTxTryAdd5_4.Elapsed.TotalSeconds;
+                    stopwatchTxTryAdd5_4.Reset();
+                    //phase5-5
+                    stopwatchTxTryAdd5_5.Start();
+                    _sortedTransactions.Add(poolItem);
+                    stopwatchTxTryAdd5_5.Stop();
+                    totalTimeTxTryAdd5_5 += stopwatchTxTryAdd5_5.Elapsed.TotalSeconds;
+                    stopwatchTxTryAdd5_5.Reset();
+                    //phase5-6
+                    stopwatchTxTryAdd5_6.Start();
+                    if (Count > Capacity)
+                        removedTransactions = RemoveOverCapacity();
+                    stopwatchTxTryAdd5_6.Stop();
+                    totalTimeTxTryAdd5_6 += stopwatchTxTryAdd5_6.Elapsed.TotalSeconds;
+                    stopwatchTxTryAdd5_6.Reset();
+                }
+                finally
+                {
+                    _txRwLock.ExitWriteLock();
+                }
+                //phase5-7
+                stopwatchTxTryAdd5_7.Start();
+                foreach (IMemoryPoolTxObserverPlugin plugin in Plugin.TxObserverPlugins)
+                {
+                    plugin.TransactionAdded(poolItem.Tx);
+                    if (removedTransactions != null)
+                        plugin.TransactionsRemoved(MemoryPoolTxRemovalReason.CapacityExceeded, removedTransactions);
+                }
+                stopwatchTxTryAdd5_7.Stop();
+                totalTimeTxTryAdd5_7 += stopwatchTxTryAdd5_7.Elapsed.TotalSeconds;
+                stopwatchTxTryAdd5_7.Reset();
+                //phase5-8
+                stopwatchTxTryAdd5_8.Start();
+                var ret = _unsortedTransactions.ContainsKey(hash);
+                stopwatchTxTryAdd5_8.Stop();
+                totalTimeTxTryAdd5_8 += stopwatchTxTryAdd5_8.Elapsed.TotalSeconds;
+                stopwatchTxTryAdd5_8.Reset();
+                return ret;
             }
-            finally
+            else
             {
-                _txRwLock.ExitWriteLock();
-            }
+                var poolItem = new PoolItem(tx);
 
-            foreach (IMemoryPoolTxObserverPlugin plugin in Plugin.TxObserverPlugins)
-            {
-                plugin.TransactionAdded(poolItem.Tx);
-                if (removedTransactions != null)
-                    plugin.TransactionsRemoved(MemoryPoolTxRemovalReason.CapacityExceeded, removedTransactions);
+                if (_unsortedTransactions.ContainsKey(hash)) return false;
+                //phase5-2
+                List<Transaction> removedTransactions = null;
+                _txRwLock.EnterWriteLock();
+                try
+                {
+                    //phase5-3
+                    _unsortedTransactions.Add(hash, poolItem);
+                    //phase5-4
+                    AddSenderFee(tx);
+                    //phase5-5
+                    _sortedTransactions.Add(poolItem);
+                    //phase5-6
+                    if (Count > Capacity)
+                        removedTransactions = RemoveOverCapacity();
+                }
+                finally
+                {
+                    _txRwLock.ExitWriteLock();
+                }
+                //phase5-7
+                foreach (IMemoryPoolTxObserverPlugin plugin in Plugin.TxObserverPlugins)
+                {
+                    plugin.TransactionAdded(poolItem.Tx);
+                    if (removedTransactions != null)
+                        plugin.TransactionsRemoved(MemoryPoolTxRemovalReason.CapacityExceeded, removedTransactions);
+                }
+                //phase5-8
+                var ret = _unsortedTransactions.ContainsKey(hash);
+                return ret;
             }
-
-            return _unsortedTransactions.ContainsKey(hash);
         }
 
         private List<Transaction> RemoveOverCapacity()
@@ -396,13 +508,32 @@ namespace Neo.Ledger
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryRemoveVerified(UInt256 hash, out PoolItem item)
         {
+            //8-2-2-1-1
+            stopwatchPersistPhase8_2_2_1_1.Start();
             if (!_unsortedTransactions.TryGetValue(hash, out item))
+            {
+                stopwatchPersistPhase8_2_2_1_1.Stop();
+                totalTimePersitTxCount8_2_2_1_1 += stopwatchPersistPhase8_2_2_1_1.Elapsed.TotalSeconds;
+                stopwatchPersistPhase8_2_2_1_1.Reset();
+                Console.WriteLine("!!!! Cannot get tx from pool");
                 return false;
-
+            }
             _unsortedTransactions.Remove(hash);
+            stopwatchPersistPhase8_2_2_1_1.Stop();
+            totalTimePersitTxCount8_2_2_1_1 += stopwatchPersistPhase8_2_2_1_1.Elapsed.TotalSeconds;
+            stopwatchPersistPhase8_2_2_1_1.Reset();
+            //8-2-2-1-2
+            stopwatchPersistPhase8_2_2_1_2.Start();
             RemoveSenderFee(item.Tx);
+            stopwatchPersistPhase8_2_2_1_2.Stop();
+            totalTimePersitTxCount8_2_2_1_2 += stopwatchPersistPhase8_2_2_1_2.Elapsed.TotalSeconds;
+            stopwatchPersistPhase8_2_2_1_2.Reset();
+            //8-2-2-1-3
+            stopwatchPersistPhase8_2_2_1_3.Start();
             _sortedTransactions.Remove(item);
-
+            stopwatchPersistPhase8_2_2_1_3.Stop();
+            totalTimePersitTxCount8_2_2_1_3 += stopwatchPersistPhase8_2_2_1_3.Elapsed.TotalSeconds;
+            stopwatchPersistPhase8_2_2_1_3.Reset();
             return true;
         }
 
@@ -433,57 +564,135 @@ namespace Neo.Ledger
         }
 
         // Note: this must only be called from a single thread (the Blockchain actor)
+
+
         internal void UpdatePoolForBlockPersisted(Block block, Snapshot snapshot)
         {
-            bool policyChanged = LoadPolicy(snapshot);
-
-            _txRwLock.EnterWriteLock();
-            try
-            {
-                // First remove the transactions verified in the block.
-                foreach (Transaction tx in block.Transactions)
-                {
-                    if (TryRemoveVerified(tx.Hash, out _)) continue;
-                    TryRemoveUnVerified(tx.Hash, out _);
-                }
-
-                // Add all the previously verified transactions back to the unverified transactions
-                InvalidateVerifiedTransactions();
-
-                if (policyChanged)
-                {
-                    var tx = new List<Transaction>();
-                    foreach (PoolItem item in _unverifiedSortedTransactions.Reverse())
-                        if (item.Tx.FeePerByte >= _feePerByte)
-                            tx.Add(item.Tx);
-
-                    _unverifiedTransactions.Clear();
-                    _unverifiedSortedTransactions.Clear();
-
-                    if (tx.Count > 0)
-                        _system.Blockchain.Tell(tx.ToArray(), ActorRefs.NoSender);
-                }
-            }
-            finally
-            {
-                _txRwLock.ExitWriteLock();
-            }
-
-            // If we know about headers of future blocks, no point in verifying transactions from the unverified tx pool
-            // until we get caught up.
-            if (block.Index > 0 && block.Index < Blockchain.Singleton.HeaderHeight || policyChanged)
-                return;
             if (Blockchain.countSwitchBlockchain)
             {
-                Blockchain.stopwatchReverifyTx.Start();
+                //8-2-1
+                Blockchain.stopwatchPersistBlock8_2_1.Start();
+                bool policyChanged = LoadPolicy(snapshot);
+                _txRwLock.EnterWriteLock();
+                Blockchain.stopwatchPersistBlock8_2_1.Stop();
+                Blockchain.totalTimePersistBlock8_2_1 += Blockchain.stopwatchPersistBlock8_2_1.Elapsed.TotalSeconds;
+                Blockchain.stopwatchPersistBlock8_2_1.Reset();
+                try
+                {
+                    //8-2-2
+                    // First remove the transactions verified in the block.
+                    Blockchain.stopwatchPersistBlock8_2_2.Start();
+                    foreach (Transaction tx in block.Transactions)
+                    {
+                        //8-2-2-1
+                        PersitTxCount8_2_2_1++;
+                        stopwatchPersistPhase8_2_2_1.Start();
+                        if (TryRemoveVerified(tx.Hash, out _))
+                        {
+                            stopwatchPersistPhase8_2_2_1.Stop();
+                            totalTimePersitTxCount8_2_2_1 += stopwatchPersistPhase8_2_2_1.Elapsed.TotalSeconds;
+                            stopwatchPersistPhase8_2_2_1.Reset();
+                            continue;
+                        }
+                        stopwatchPersistPhase8_2_2_1.Stop();
+                        totalTimePersitTxCount8_2_2_1 += stopwatchPersistPhase8_2_2_1.Elapsed.TotalSeconds;
+                        stopwatchPersistPhase8_2_2_1.Reset();
+                        //8-2-2-2
+                        stopwatchPersistPhase8_2_2_2.Start();
+                        TryRemoveUnVerified(tx.Hash, out _);
+                        stopwatchPersistPhase8_2_2_2.Stop();
+                        totalTimePersitTxCount8_2_2_2 += stopwatchPersistPhase8_2_2_2.Elapsed.TotalSeconds;
+                        stopwatchPersistPhase8_2_2_2.Reset();
+                        PersitTxCount8_2_2_2++;
+                    }
+                    Blockchain.stopwatchPersistBlock8_2_2.Stop();
+                    Blockchain.totalTimePersistBlock8_2_2 += Blockchain.stopwatchPersistBlock8_2_2.Elapsed.TotalSeconds;
+                    Blockchain.stopwatchPersistBlock8_2_2.Reset();
+                    //8-2-3
+                    // Add all the previously verified transactions back to the unverified transactions
+                    Blockchain.stopwatchPersistBlock8_2_3.Start();
+                    InvalidateVerifiedTransactions();
+                    Blockchain.stopwatchPersistBlock8_2_3.Stop();
+                    Blockchain.totalTimePersistBlock8_2_3 += Blockchain.stopwatchPersistBlock8_2_3.Elapsed.TotalSeconds;
+                    Blockchain.stopwatchPersistBlock8_2_3.Reset();
+                    //8-2-4
+                    Blockchain.stopwatchPersistBlock8_2_4.Start();
+                    if (policyChanged)
+                    {
+                        var tx = new List<Transaction>();
+                        foreach (PoolItem item in _unverifiedSortedTransactions.Reverse())
+                            if (item.Tx.FeePerByte >= _feePerByte)
+                                tx.Add(item.Tx);
+
+                        _unverifiedTransactions.Clear();
+                        _unverifiedSortedTransactions.Clear();
+
+                        if (tx.Count > 0)
+                            _system.Blockchain.Tell(tx.ToArray(), ActorRefs.NoSender);
+                    }
+                }
+                finally
+                {
+                    _txRwLock.ExitWriteLock();
+                }
+                // If we know about headers of future blocks, no point in verifying transactions from the unverified tx pool
+                // until we get caught up.
+                if (block.Index > 0 && block.Index < Blockchain.Singleton.HeaderHeight || policyChanged)
+                    return;
+                Blockchain.stopwatchPersistBlock8_2_4.Stop();
+                Blockchain.totalTimePersistBlock8_2_4 += Blockchain.stopwatchPersistBlock8_2_4.Elapsed.TotalSeconds;
+                Blockchain.stopwatchPersistBlock8_2_4.Reset();
+                //8-2-5
+                Blockchain.stopwatchPersistBlock8_2_5.Start();
                 ReverifyTransactions(_sortedTransactions, _unverifiedSortedTransactions,
                 _maxTxPerBlock, MaxMillisecondsToReverifyTx, snapshot);
-                Blockchain.stopwatchReverifyTx.Stop();
-                Blockchain.totalTimeReverifyTx += Blockchain.stopwatchReverifyTx.Elapsed.TotalSeconds;
-                Blockchain.stopwatchReverifyTx.Reset();
+                Blockchain.stopwatchPersistBlock8_2_5.Stop();
+                Blockchain.totalTimePersistBlock8_2_5 += Blockchain.stopwatchPersistBlock8_2_5.Elapsed.TotalSeconds;
+                Blockchain.stopwatchPersistBlock8_2_5.Reset();
             }
             else
             {
+                //8-2-1
+                bool policyChanged = LoadPolicy(snapshot);
+
+                _txRwLock.EnterWriteLock();
+                try
+                {
+                    //8-2-2
+                    // First remove the transactions verified in the block.
+                    foreach (Transaction tx in block.Transactions)
+                    {
+                        if (TryRemoveVerified(tx.Hash, out _)) continue;
+                        TryRemoveUnVerified(tx.Hash, out _);
+                    }
+                    //8-2-3
+                    // Add all the previously verified transactions back to the unverified transactions
+                    InvalidateVerifiedTransactions();
+                    //8-2-4
+                    if (policyChanged)
+                    {
+                        var tx = new List<Transaction>();
+                        foreach (PoolItem item in _unverifiedSortedTransactions.Reverse())
+                            if (item.Tx.FeePerByte >= _feePerByte)
+                                tx.Add(item.Tx);
+
+                        _unverifiedTransactions.Clear();
+                        _unverifiedSortedTransactions.Clear();
+
+                        if (tx.Count > 0)
+                            _system.Blockchain.Tell(tx.ToArray(), ActorRefs.NoSender);
+                    }
+                }
+                finally
+                {
+                    _txRwLock.ExitWriteLock();
+                }
+                // If we know about headers of future blocks, no point in verifying transactions from the unverified tx pool
+                // until we get caught up.
+                if (block.Index > 0 && block.Index < Blockchain.Singleton.HeaderHeight || policyChanged)
+                    return;
+
+
                 ReverifyTransactions(_sortedTransactions, _unverifiedSortedTransactions,
                     _maxTxPerBlock, MaxMillisecondsToReverifyTx, snapshot);
             }

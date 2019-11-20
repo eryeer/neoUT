@@ -55,8 +55,14 @@ namespace Neo.Ledger
         public System.Diagnostics.Stopwatch stopwatchTxPhase5 = new System.Diagnostics.Stopwatch();
 
         public System.Diagnostics.Stopwatch stopwatchPersistBlock = new System.Diagnostics.Stopwatch();
-        public System.Diagnostics.Stopwatch stopwatchUpdateMempool = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchReverifyTx = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistBlock8_1 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistBlock8_2 = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchPersistBlock8_3 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistBlock8_2_1 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistBlock8_2_2 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistBlock8_2_3 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistBlock8_2_4 = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchPersistBlock8_2_5 = new System.Diagnostics.Stopwatch();
 
         public System.Diagnostics.Stopwatch stopwatchPersistPhase1 = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchPersistPhase2 = new System.Diagnostics.Stopwatch();
@@ -94,8 +100,14 @@ namespace Neo.Ledger
         public static double totalTimestopwatchTxPhase5 = 0;
 
         public static double totalTimePersistBlock = 0;
-        public static double totalTimeUpdateMempool = 0;
-        public static double totalTimeReverifyTx = 0;
+        public static double totalTimePersistBlock8_1 = 0;
+        public static double totalTimePersistBlock8_2 = 0;
+        public static double totalTimePersistBlock8_3 = 0;
+        public static double totalTimePersistBlock8_2_1 = 0;
+        public static double totalTimePersistBlock8_2_2 = 0;
+        public static double totalTimePersistBlock8_2_3 = 0;
+        public static double totalTimePersistBlock8_2_4 = 0;
+        public static double totalTimePersistBlock8_2_5 = 0;
 
         public static long countImport = 0;
         public static long countFillMemoryPool = 0;
@@ -755,14 +767,6 @@ namespace Neo.Ledger
                     MemPool.RemoveSenderVerifyFrozenFee(transaction);
                     return RelayResultReason.OutOfMemory;
                 }
-                ////Phase3
-                //stopwatchTxPhase3.Start();
-                //var ret3 = transaction.Verify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender));
-                //stopwatchTxPhase3.Stop();
-                //totalTimestopwatchTxPhase3 += stopwatchTxPhase3.Elapsed.TotalSeconds;
-                //stopwatchTxPhase3.Reset();
-                //if (!ret3)
-                //    return RelayResultReason.Invalid;
                 //Phase4
                 stopwatchTxPhase4.Start();
                 var ret4 = NativeContract.Policy.CheckPolicy(transaction, currentSnapshot);
@@ -824,20 +828,34 @@ namespace Neo.Ledger
 
         private void OnPersistCompleted(Block block)
         {
-            block_cache.Remove(block.Hash);
             if (countSwitchBlockchain)
             {
-                stopwatchUpdateMempool.Start();
+                //phase8-1
+                stopwatchPersistBlock8_1.Start();
+                block_cache.Remove(block.Hash);
+                stopwatchPersistBlock8_1.Stop();
+                totalTimePersistBlock8_1 += stopwatchPersistBlock8_1.Elapsed.TotalSeconds;
+                stopwatchPersistBlock8_1.Reset();
+                //phase8-2
+                stopwatchPersistBlock8_2.Start();
                 MemPool.UpdatePoolForBlockPersisted(block, currentSnapshot);
-                stopwatchUpdateMempool.Stop();
-                totalTimeUpdateMempool += stopwatchUpdateMempool.Elapsed.TotalSeconds;
-                stopwatchUpdateMempool.Reset();
+                stopwatchPersistBlock8_2.Stop();
+                totalTimePersistBlock8_2 += stopwatchPersistBlock8_2.Elapsed.TotalSeconds;
+                stopwatchPersistBlock8_2.Reset();
+                //phase8-3
+                stopwatchPersistBlock8_3.Start();
+                Context.System.EventStream.Publish(new PersistCompleted { Block = block });
+                stopwatchPersistBlock8_3.Stop();
+                totalTimePersistBlock8_3 += stopwatchPersistBlock8_3.Elapsed.TotalSeconds;
+                stopwatchPersistBlock8_3.Reset();
             }
             else
             {
+                block_cache.Remove(block.Hash);
                 MemPool.UpdatePoolForBlockPersisted(block, currentSnapshot);
+                Context.System.EventStream.Publish(new PersistCompleted { Block = block });
             }
-            Context.System.EventStream.Publish(new PersistCompleted { Block = block });
+            
         }
 
 
@@ -930,6 +948,7 @@ namespace Neo.Ledger
                         break;
                     }
                 case ParallelVerifiedTransaction parallelVerifiedtransaction:
+                    countParallelVerifiedTransaction++;
                     stopwatchParallelVerifiedTransaction.Start();
                     Sender.Tell(OnNewTransaction(parallelVerifiedtransaction.Transaction, true));
                     stopwatchParallelVerifiedTransaction.Stop();
@@ -941,11 +960,11 @@ namespace Neo.Ledger
                     }
                     if (countSwitchBlockchain)
                     {
-                        countParallelVerifiedTransaction++;
                         totalTimeParallelVerifiedTransaction += timespan;
                     }
                     break;
                 case Transaction transaction:
+                    countTransaction++;
                     stopwatchTransaction.Start();
                     OnParallelVerify(transaction);
                     stopwatchTransaction.Stop();
@@ -957,7 +976,6 @@ namespace Neo.Ledger
                     }
                     if (countSwitchBlockchain)
                     {
-                        countTransaction++;
                         totalTimeTransaction += timespan;
                     }
                     break;
@@ -1046,7 +1064,6 @@ namespace Neo.Ledger
                     Console.WriteLine("=====Start to execute TX =======");
                     foreach (Transaction tx in block.Transactions)
                     {
-                        ExecutionEngine.step = 0;
                         //Phase3-1
                         countTxInPersist++;
                         stopwatchPersistPhase3_1.Start();
@@ -1061,39 +1078,39 @@ namespace Neo.Ledger
                         totalTimestopwatchPersistPhase3_1+= stopwatchPersistPhase3_1.Elapsed.TotalSeconds;
                         stopwatchPersistPhase3_1.Reset();
                         //Phase3-2
-                        stopwatchPersistPhase3_2.Start();
-                        using (ApplicationEngine engine = new ApplicationEngine(TriggerType.Application, tx, snapshot.Clone(), tx.SystemFee))
-                        {
-                            
-                            engine.LoadScript(tx.Script);
-                            stopwatchPersistPhase3_2.Stop();
-                            totalTimestopwatchPersistPhase3_2 += stopwatchPersistPhase3_2.Elapsed.TotalSeconds;
-                            stopwatchPersistPhase3_2.Reset();
-                            //Phase3-3
-                            stopwatchPersistPhase3_3.Start();
-                            state.VMState = engine.Execute();
-                            stopwatchPersistPhase3_3.Stop();
-                            totalTimestopwatchPersistPhase3_3 += stopwatchPersistPhase3_3.Elapsed.TotalSeconds;
-                            stopwatchPersistPhase3_3.Reset();
-                            //Pahse3-4
-                            stopwatchPersistPhase3_4.Start();
-                            if (state.VMState == VMState.HALT)
-                            {
-                                engine.Snapshot.Commit();
-                            }
-                            stopwatchPersistPhase3_4.Stop();
-                            totalTimestopwatchPersistPhase3_4 += stopwatchPersistPhase3_4.Elapsed.TotalSeconds;
-                            stopwatchPersistPhase3_4.Reset();
-                            //Pahse3-5
-                            stopwatchPersistPhase3_5.Start();
-                            ApplicationExecuted application_executed = new ApplicationExecuted(engine);
-                            Context.System.EventStream.Publish(application_executed);
-                            all_application_executed.Add(application_executed);
-                            stopwatchPersistPhase3_5.Stop();
-                            totalTimestopwatchPersistPhase3_5 += stopwatchPersistPhase3_5.Elapsed.TotalSeconds;
-                            stopwatchPersistPhase3_5.Reset();
-                        }
-                        ExecutionEngine.step = 0;
+                        //stopwatchPersistPhase3_2.Start();
+                        //using (ApplicationEngine engine = new ApplicationEngine(TriggerType.Application, tx, snapshot.Clone(), tx.SystemFee))
+                        //{
+
+                        //    engine.LoadScript(tx.Script);
+                        //    stopwatchPersistPhase3_2.Stop();
+                        //    totalTimestopwatchPersistPhase3_2 += stopwatchPersistPhase3_2.Elapsed.TotalSeconds;
+                        //    stopwatchPersistPhase3_2.Reset();
+                        //    //Phase3-3
+                        //    stopwatchPersistPhase3_3.Start();
+                        //    state.VMState = engine.Execute();
+                        //    stopwatchPersistPhase3_3.Stop();
+                        //    totalTimestopwatchPersistPhase3_3 += stopwatchPersistPhase3_3.Elapsed.TotalSeconds;
+                        //    stopwatchPersistPhase3_3.Reset();
+                        //    //Pahse3-4
+                        //    stopwatchPersistPhase3_4.Start();
+                        //    if (state.VMState == VMState.HALT)
+                        //    {
+                        //        engine.Snapshot.Commit();
+                        //    }
+                        //    stopwatchPersistPhase3_4.Stop();
+                        //    totalTimestopwatchPersistPhase3_4 += stopwatchPersistPhase3_4.Elapsed.TotalSeconds;
+                        //    stopwatchPersistPhase3_4.Reset();
+                        //    //Pahse3-5
+                        //    stopwatchPersistPhase3_5.Start();
+                        //    ApplicationExecuted application_executed = new ApplicationExecuted(engine);
+                        //    Context.System.EventStream.Publish(application_executed);
+                        //    all_application_executed.Add(application_executed);
+                        //    stopwatchPersistPhase3_5.Stop();
+                        //    totalTimestopwatchPersistPhase3_5 += stopwatchPersistPhase3_5.Elapsed.TotalSeconds;
+                        //    stopwatchPersistPhase3_5.Reset();
+                        //}
+                        //ExecutionEngine.step = 0;
                     }
                     Console.WriteLine("=====End to execute TX =======");
                     stopwatchPersistPhase3.Stop();
