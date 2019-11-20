@@ -78,6 +78,7 @@ namespace Neo.Network.RPC
 
         public static readonly string utxoFile = "utxo.json";
         public static readonly string utxoFile1 = "utxo1.json";
+        public static readonly string[] utxoFiles = { "utxo1.json", "utxo2.json", "utxo3.json", "utxo4.json" };
 
         public RpcServer(NeoSystem system, Wallet wallet = null, long maxGasInvoke = default)
         {
@@ -321,70 +322,18 @@ namespace Neo.Network.RPC
                         else
                         {
                             double sleepInterval = double.Parse(_params[0].AsString());
-                            int TxAmount = int.Parse(_params[1].AsString());
+                            int fileCount = int.Parse(_params[1].AsString());
+                            int TxAmount = 50000;
                             if (sleepInterval < 0) return "Invalid sleepInterval";
-                            if (TxAmount <= 0) return "Invalid TxAmount";
+                            if (fileCount <= 0 || fileCount > 4) return "fileCount >0 &&<=4";
                             int successfulTransaction = 0;
-                            FileStream stream = new FileStream(utxoFile, FileMode.Open);
-                            BinaryReader reader = new BinaryReader(stream);
-                            Transaction[] transactions = new Transaction[reader.ReadVarInt()];
-                            for (int i = 0; i < transactions.Length; i++)
+                            FileStream stream;
+                            BinaryReader reader;
+                            Transaction[] transactions;
+                            for (int n = 0; n < fileCount; n++)
                             {
-                                transactions[i] = Transaction.DeserializeFrom(reader);
-                            }
-                            reader.Close();
-                            stream.Close();
-                            reader.Dispose();
-                            stream.Dispose();
-
-                            int realTxAmount = Math.Min(TxAmount, transactions.Length);
-                            if (sleepInterval == 0)
-                            {
-                                for (long i = 0; i < realTxAmount; i++)
-                                {
-                                    successfulTransaction = SendTX(transactions, i, successfulTransaction);
-                                }
-                            }
-                            else if (sleepInterval < 1)
-                            {
-                                int interval = (int)(1 / sleepInterval);
-                                int times = 0;
-                                for (long i = 0; i < realTxAmount; i++)
-                                {
-                                    successfulTransaction = SendTX(transactions, i, successfulTransaction);
-                                    times++;
-                                    if (times == interval)
-                                    {
-                                        times = 0;
-                                        Thread.Sleep(1);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                for (long i = 0; i < realTxAmount; i++)
-                                {
-                                    successfulTransaction = SendTX(transactions, i, successfulTransaction);
-                                    Thread.Sleep((int)sleepInterval);
-                                }
-                            }
-                            TxAmount -= transactions.Length;
-                            if (TxAmount > 0)
-                            {
-                                transactions = null;
-                                stream = new FileStream(utxoFile1, FileMode.Open);
-                                reader = new BinaryReader(stream);
-                                transactions = new Transaction[reader.ReadVarInt()];
-                                for (int i = 0; i < transactions.Length; i++)
-                                {
-                                    transactions[i] = Transaction.DeserializeFrom(reader);
-                                }
-                                reader.Close();
-                                stream.Close();
-                                reader.Dispose();
-                                stream.Dispose();
-
-                                realTxAmount = Math.Min(TxAmount, transactions.Length);
+                                LoadTransction(n, out stream, out reader, out transactions);
+                                int realTxAmount = Math.Min(TxAmount, transactions.Length);
                                 if (sleepInterval == 0)
                                 {
                                     for (long i = 0; i < realTxAmount; i++)
@@ -426,9 +375,11 @@ namespace Neo.Network.RPC
                         else
                         {
                             UInt160 asset_id = UInt160.Parse(_params[0].AsString()); //NEO或GAS的hash
-                            long migrateCount = long.Parse(_params[1].AsString());   //生成交易的数量
+                            int fileCount = int.Parse(_params[1].AsString());
+                            long migrateCount = 50000;   //生成交易的数量
                             int spreadAmountPerAccount = int.Parse(_params[2].AsString()); //转账金额
-                            if (migrateCount <= 0) return "Invalid migrateCount";
+                            if (fileCount <= 0 || fileCount > 4) return "filecount>0 && <=4";
+                            
                             UInt160 originalAccount = Wallet.GetAccounts().Where(p => !p.Lock && !p.WatchOnly).Select(p => p.ScriptHash).ToArray()[0];
                             AssetDescriptor descriptor = new AssetDescriptor(asset_id);
                             TransferOutput[] outputs = new TransferOutput[]
@@ -440,40 +391,54 @@ namespace Neo.Network.RPC
                                     ScriptHash = originalAccount //转账目标是自己
                                 }
                             };
-                            Transaction[] transactions = new Transaction[migrateCount];
                             int successfulTransaction = 0;
-                            for (int i = 0; i < migrateCount; i++)
+                            for (int n = 0; n < fileCount; n++)
                             {
-                                transactions[i] = Wallet.MakeTransaction(outputs, originalAccount);
-                                if (transactions[i] == null)
-                                    throw new RpcException(-300, "Insufficient funds");
-                                ContractParametersContext context = new ContractParametersContext(transactions[i]);
-                                Wallet.Sign(context);
-                                if (context.Completed)
+                                Transaction[] transactions = new Transaction[migrateCount];
+                                for (int i = 0; i < migrateCount; i++)
                                 {
-                                    transactions[i].Witnesses = context.GetWitnesses();
-                                    successfulTransaction++;
+                                    transactions[i] = Wallet.MakeTransaction(outputs, originalAccount);
+                                    if (transactions[i] == null)
+                                        throw new RpcException(-300, "Insufficient funds");
+                                    ContractParametersContext context = new ContractParametersContext(transactions[i]);
+                                    Wallet.Sign(context);
+                                    if (context.Completed)
+                                    {
+                                        transactions[i].Witnesses = context.GetWitnesses();
+                                        successfulTransaction++;
+                                    }
                                 }
+                                FileStream stream = new FileStream(utxoFiles[n], FileMode.Create);
+                                BinaryWriter writer = new BinaryWriter(stream);
+                                writer.Write(transactions);
+                                writer.Flush();
+                                stream.Flush();
+                                writer.Close();
+                                stream.Close();
+                                writer.Dispose();
+                                stream.Dispose();
                             }
-                            /*for (int i = 0; i < migrateCount; i++)
-                            {
-                                system.LocalNode.Tell(new LocalNode.Relay { Inventory = transactions[i] });
-                            }*/
-                            FileStream stream = new FileStream(utxoFile, FileMode.Create);
-                            BinaryWriter writer = new BinaryWriter(stream);
-                            writer.Write(transactions);
-                            writer.Flush();
-                            stream.Flush();
-                            writer.Close();
-                            stream.Close();
-                            writer.Dispose();
-                            stream.Dispose();
                             return successfulTransaction;
                         }
                     }
                 default:
                     throw new RpcException(-32601, "Method not found");
             }
+        }
+
+        private static void LoadTransction(int fileNum, out FileStream stream, out BinaryReader reader, out Transaction[] transactions)
+        {
+            stream = new FileStream(utxoFiles[fileNum], FileMode.Open);
+            reader = new BinaryReader(stream);
+            transactions = new Transaction[reader.ReadVarInt()];
+            for (int i = 0; i < transactions.Length; i++)
+            {
+                transactions[i] = Transaction.DeserializeFrom(reader);
+            }
+            reader.Close();
+            stream.Close();
+            reader.Dispose();
+            stream.Dispose();
         }
 
         private int SendTX(Transaction[] transactions, long index, int successfulTransaction)
