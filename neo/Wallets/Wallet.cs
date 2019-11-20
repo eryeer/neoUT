@@ -299,15 +299,13 @@ namespace Neo.Wallets
 
         private Transaction MakeTransaction(Snapshot snapshot, byte[] script, TransactionAttribute[] attributes, Cosigner[] cosigners, List<(UInt160 Account, BigInteger Value)> balances_gas)
         {
-            //Random rand = new Random();
-            string uuid = System.Guid.NewGuid().ToString("N");
+            Random rand = new Random();
             foreach (var (account, value) in balances_gas)
             {
                 Transaction tx = new Transaction
                 {
                     Version = 0,
-                    //Nonce = (uint)rand.Next(),
-                    Nonce = (uint)(new UInt256(Crypto.Default.Hash256(Encoding.UTF8.GetBytes(uuid))).GetHashCode()),
+                    Nonce = (uint)rand.Next(),
                     Script = script,
                     Sender = account,
                     ValidUntilBlock = snapshot.Height + Transaction.MaxValidUntilBlockIncrement,
