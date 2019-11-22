@@ -59,6 +59,10 @@ namespace Neo.SmartContract
         public static readonly uint System_Storage_Delete = Register("System.Storage.Delete", Storage_Delete, 0_01000000, TriggerType.Application);
         public static readonly uint System_StorageContext_AsReadOnly = Register("System.StorageContext.AsReadOnly", StorageContext_AsReadOnly, 0_00000400, TriggerType.Application);
 
+
+        public static System.Diagnostics.Stopwatch stopwatchInvokeHandler = new System.Diagnostics.Stopwatch();
+        public static System.Diagnostics.Stopwatch stopwatchContractCall = new System.Diagnostics.Stopwatch();
+
         private static bool CheckItemForNotification(StackItem state)
         {
             int size = 0;
@@ -140,7 +144,11 @@ namespace Neo.SmartContract
             {
                 return false;
             }
+            stopwatchInvokeHandler.Start();
             var ret = descriptor.Handler(engine);
+            stopwatchInvokeHandler.Stop();
+            Console.WriteLine($"Class: InteropService Type: InvokeHandler CallingMethod: {descriptor.Method} Timespan: {stopwatchInvokeHandler.Elapsed.TotalSeconds}");
+            stopwatchInvokeHandler.Reset();
             return ret;
         }
 
@@ -493,6 +501,7 @@ namespace Neo.SmartContract
 
         private static bool Contract_Call(ApplicationEngine engine)
         {
+            stopwatchContractCall.Start();
             StackItem contractHash = engine.CurrentContext.EvaluationStack.Pop();
 
             ContractState contract = engine.Snapshot.Contracts.TryGet(new UInt160(contractHash.GetByteArray()));
@@ -517,6 +526,9 @@ namespace Neo.SmartContract
             ExecutionContext context_new = engine.LoadScript(contract.Script, 1);
             context_new.EvaluationStack.Push(args);
             context_new.EvaluationStack.Push(method);
+            stopwatchContractCall.Stop();
+            Console.WriteLine($"Class: InteropService Type: Contract_Call TimeSpan: {stopwatchContractCall.Elapsed.TotalSeconds}");
+            stopwatchContractCall.Reset();
             return true;
         }
 
