@@ -20,7 +20,7 @@ namespace Neo.Network.P2P
     public class RemoteNode : Connection
     {
         public static bool watchSwitchRemoteNode = false;
-        public static bool countSwitchRemoteNode = true;
+        public static bool countSwitchRemoteNode = false;
 
         public System.Diagnostics.Stopwatch stopwatchMessage = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchIInventory = new System.Diagnostics.Stopwatch();
