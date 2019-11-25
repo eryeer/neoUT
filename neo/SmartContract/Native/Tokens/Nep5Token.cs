@@ -159,19 +159,13 @@ namespace Neo.SmartContract.Native.Tokens
             return state.Balance;
         }
 
-        public System.Diagnostics.Stopwatch stopwatchTransfer = new System.Diagnostics.Stopwatch();
-
         [ContractMethod(0_08000000, ContractParameterType.Boolean, ParameterTypes = new[] { ContractParameterType.Hash160, ContractParameterType.Hash160, ContractParameterType.Integer }, ParameterNames = new[] { "from", "to", "amount" })]
         protected StackItem Transfer(ApplicationEngine engine, VMArray args)
         {
-            stopwatchTransfer.Start();
             UInt160 from = new UInt160(args[0].GetByteArray());
             UInt160 to = new UInt160(args[1].GetByteArray());
             BigInteger amount = args[2].GetBigInteger();
             bool result=Transfer(engine, from, to, amount);
-            stopwatchTransfer.Stop();
-            Console.WriteLine($"Class Nep5Token Type: Transfer Timespan: {stopwatchTransfer.Elapsed.TotalSeconds}");
-            stopwatchTransfer.Reset();
             return result;
         }
 

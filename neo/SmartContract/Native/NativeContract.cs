@@ -83,36 +83,20 @@ namespace Neo.SmartContract.Native
             return CreateStorageKey(prefix, key.ToArray());
         }
 
-        public System.Diagnostics.Stopwatch stopwatchNativeInvoke = new System.Diagnostics.Stopwatch();
-        public System.Diagnostics.Stopwatch stopwatchNativeInvokeDelegate = new System.Diagnostics.Stopwatch();
         internal bool Invoke(ApplicationEngine engine)
         {
-            stopwatchNativeInvoke.Start();
             if (!engine.CurrentScriptHash.Equals(Hash))
             {
-                stopwatchNativeInvoke.Stop();
-                Console.WriteLine($"Class: NativeContract Type: Invoke Timespan:{stopwatchNativeInvoke.Elapsed.TotalSeconds} Status: stop1");
-                stopwatchNativeInvoke.Reset();
                 return false;
             }
             string operation = engine.CurrentContext.EvaluationStack.Pop().GetString();
             VMArray args = (VMArray)engine.CurrentContext.EvaluationStack.Pop();
             if (!methods.TryGetValue(operation, out ContractMethodMetadata method))
             {
-                stopwatchNativeInvoke.Stop();
-                Console.WriteLine($"Class: NativeContract Type: Invoke Timespan:{stopwatchNativeInvoke.Elapsed.TotalSeconds} Status: stop2");
-                stopwatchNativeInvoke.Reset();
                 return false;
             }
-            stopwatchNativeInvokeDelegate.Start();
             StackItem result = method.Delegate(engine, args);
-            stopwatchNativeInvokeDelegate.Stop();
-            Console.WriteLine($"Class: NativeContract Type: InvokeDelegate CallingMethod: {operation} Timespan:{stopwatchNativeInvoke.Elapsed.TotalSeconds}");
-            stopwatchNativeInvokeDelegate.Reset();
             engine.CurrentContext.EvaluationStack.Push(result);
-            stopwatchNativeInvoke.Stop();
-            Console.WriteLine($"Class: NativeContract Type: Invoke Timespan:{stopwatchNativeInvoke.Elapsed.TotalSeconds} Status: Finished");
-            stopwatchNativeInvoke.Reset();
             return true;
         }
 

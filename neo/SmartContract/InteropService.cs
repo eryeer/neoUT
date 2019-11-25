@@ -59,17 +59,6 @@ namespace Neo.SmartContract
         public static readonly uint System_Storage_Delete = Register("System.Storage.Delete", Storage_Delete, 0_01000000, TriggerType.Application);
         public static readonly uint System_StorageContext_AsReadOnly = Register("System.StorageContext.AsReadOnly", StorageContext_AsReadOnly, 0_00000400, TriggerType.Application);
 
-
-        public static System.Diagnostics.Stopwatch stopwatchInvokeHandler = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchContractCall = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchContractCall_phase1 = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchContractCall_phase1_2 = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchContractCall_phase1_2_3 = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchContractCall_phase1_2_3_1 = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchContractCall_phase1_2_3_2 = new System.Diagnostics.Stopwatch();
-        public static System.Diagnostics.Stopwatch stopwatchContractCall_phase1_2_3_3 = new System.Diagnostics.Stopwatch();
- 
-
         private static bool CheckItemForNotification(StackItem state)
         {
             int size = 0;
@@ -151,11 +140,7 @@ namespace Neo.SmartContract
             {
                 return false;
             }
-            stopwatchInvokeHandler.Start();
             var ret = descriptor.Handler(engine);
-            stopwatchInvokeHandler.Stop();
-            Console.WriteLine($"Class: InteropService Type: InvokeHandler CallingMethod: {descriptor.Method} Timespan: {stopwatchInvokeHandler.Elapsed.TotalSeconds}");
-            stopwatchInvokeHandler.Reset();
             return ret;
         }
 
@@ -508,40 +493,16 @@ namespace Neo.SmartContract
 
         private static bool Contract_Call(ApplicationEngine engine)
         {
-            stopwatchContractCall.Start();
-            //phase1
-            stopwatchContractCall_phase1.Start();
             StackItem contractHash = engine.CurrentContext.EvaluationStack.Pop();
-            //phase1-2
-            stopwatchContractCall_phase1_2.Start();
-            //phase1-2-1
             var bytearray = contractHash.GetByteArray();
-            //phase1-2-2
             var uint160 = new UInt160(bytearray);
-            //phase1-2-3
-            Console.WriteLine("====start to tryGet Contract====");
-            stopwatchContractCall_phase1_2_3.Start();
             ContractState contract = engine.Snapshot.Contracts.TryGet(uint160);
-            stopwatchContractCall_phase1_2_3.Stop();
-            Console.WriteLine("====end to tryGet Contract====");
-            Console.WriteLine($"Contract_Call phase1-2-3: {stopwatchContractCall_phase1_2_3.Elapsed.TotalSeconds}");
-            stopwatchContractCall_phase1_2_3.Reset();
             if (contract is null) return false;
-            stopwatchContractCall_phase1_2.Stop();
-            Console.WriteLine($"Contract_Call phase1-2: {stopwatchContractCall_phase1_2.Elapsed.TotalSeconds}");
-            stopwatchContractCall_phase1_2.Reset();
-            //phase1-3
             StackItem method = engine.CurrentContext.EvaluationStack.Pop();
             StackItem args = engine.CurrentContext.EvaluationStack.Pop();
-            //phase1-4
             ContractManifest currentManifest = engine.Snapshot.Contracts.TryGet(engine.CurrentScriptHash)?.Manifest;
-            stopwatchContractCall_phase1.Stop();
-            Console.WriteLine($"Contract_Call phase1: {stopwatchContractCall_phase1.Elapsed.TotalSeconds}");
-            stopwatchContractCall_phase1.Reset();
-            //phase2
             if (currentManifest != null && !currentManifest.CanCall(contract.Manifest, method.GetString()))
                 return false;
-            //phase3
             if (engine.InvocationCounter.TryGetValue(contract.ScriptHash, out var counter))
             {
                 engine.InvocationCounter[contract.ScriptHash] = counter + 1;
@@ -550,14 +511,9 @@ namespace Neo.SmartContract
             {
                 engine.InvocationCounter[contract.ScriptHash] = 1;
             }
-            //phase4
             ExecutionContext context_new = engine.LoadScript(contract.Script, 1);
             context_new.EvaluationStack.Push(args);
             context_new.EvaluationStack.Push(method);
-
-            stopwatchContractCall.Stop();
-            Console.WriteLine($"Class: InteropService Type: Contract_Call TimeSpan: {stopwatchContractCall.Elapsed.TotalSeconds}");
-            stopwatchContractCall.Reset();
             return true;
         }
 

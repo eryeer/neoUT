@@ -263,40 +263,21 @@ namespace Neo.IO.Caching
 
         public TValue TryGet(TKey key)
         {
-            Console.WriteLine(this.GetType());
-            //phase 1-2-3-1
-            InteropService.stopwatchContractCall_phase1_2_3_1.Start();
             lock (dictionary)
             {
                 if (dictionary.TryGetValue(key, out Trackable trackable))
                 {
                     if (trackable.State == TrackState.Deleted) return null;
-                    InteropService.stopwatchContractCall_phase1_2_3_1.Stop();
-                    Console.WriteLine($"Class: DataCache Type: TryGet Phase1-2-3-1 Timespan: {InteropService.stopwatchContractCall_phase1_2_3_1.Elapsed.TotalSeconds} Status: Finished");
-                    InteropService.stopwatchContractCall_phase1_2_3_1.Reset();
                     return trackable.Item;
                 }
-                InteropService.stopwatchContractCall_phase1_2_3_1.Stop();
-                Console.WriteLine($"Class: DataCache Type: TryGet Phase1-2-3-1 Timespan: {InteropService.stopwatchContractCall_phase1_2_3_1.Elapsed.TotalSeconds} Status: Continue");
-                InteropService.stopwatchContractCall_phase1_2_3_1.Reset();
-                //phase1-2-3-2
-                InteropService.stopwatchContractCall_phase1_2_3_2.Start();
                 TValue value = TryGetInternal(key);
                 if (value == null) return null;
-                InteropService.stopwatchContractCall_phase1_2_3_2.Stop();
-                Console.WriteLine($"Class: DataCache Type: TryGet Phase1-2-3-2 Timespan: {InteropService.stopwatchContractCall_phase1_2_3_2.Elapsed.TotalSeconds}");
-                InteropService.stopwatchContractCall_phase1_2_3_2.Reset();
-                //phase1-2-3-3
-                InteropService.stopwatchContractCall_phase1_2_3_3.Start();
                 dictionary.Add(key, new Trackable
                 {
                     Key = key,
                     Item = value,
                     State = TrackState.None
                 });
-                InteropService.stopwatchContractCall_phase1_2_3_3.Stop();
-                Console.WriteLine($"Class: DataCache Type: TryGet Phase1-2-3-3 Timespan: {InteropService.stopwatchContractCall_phase1_2_3_3.Elapsed.TotalSeconds}");
-                InteropService.stopwatchContractCall_phase1_2_3_3.Reset();
                 return value;
             }
         }
