@@ -407,6 +407,7 @@ namespace Neo.Consensus
 
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase1  averageTimespan: {Blockchain.totalTimestopwatchTxPhase1 / Blockchain.countParallelVerifiedTransaction}");
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase2  averageTimespan: {Blockchain.totalTimestopwatchTxPhase2 / Blockchain.countParallelVerifiedTransaction}");
+                AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase2  averageTimespan: {Blockchain.totalTimestopwatchTxPhase3 / Blockchain.countParallelVerifiedTransaction}");
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase4  averageTimespan: {Blockchain.totalTimestopwatchTxPhase4 / Blockchain.countParallelVerifiedTransaction}");
                 AkkaLog.Info($"Class: Blockchain Type: Transaction Phase: Phase5  averageTimespan: {Blockchain.totalTimestopwatchTxPhase5 / Blockchain.countParallelVerifiedTransaction}");
                 AkkaLog.Info($"Class: Mempool Type: TryAdd Phase: Phase5_1  averageTimespan: {MemoryPool.totalTimeTxTryAdd5_1 / Blockchain.countParallelVerifiedTransaction}");
@@ -488,6 +489,7 @@ namespace Neo.Consensus
 
                 Blockchain.totalTimestopwatchTxPhase1 = 0;
                 Blockchain.totalTimestopwatchTxPhase2 = 0;
+                Blockchain.totalTimestopwatchTxPhase3 = 0;
                 Blockchain.totalTimestopwatchTxPhase4 = 0;
                 Blockchain.totalTimestopwatchTxPhase5 = 0;
 
