@@ -26,8 +26,6 @@ namespace Neo.Ledger
         /// </summary>
         public DateTime LastBroadcastTimestamp;
 
-        public UInt256 TxHash;
-
         public long TxFeePerByte;
 
         internal PoolItem(Transaction tx)
@@ -35,7 +33,6 @@ namespace Neo.Ledger
             Tx = tx;
             Timestamp = TimeProvider.Current.UtcNow;
             LastBroadcastTimestamp = Timestamp;
-            TxHash = tx.Hash;
             TxFeePerByte = tx.FeePerByte;
         }
 
@@ -59,7 +56,7 @@ namespace Neo.Ledger
             if (ret != 0) return ret;
             ret = Tx.NetworkFee.CompareTo(otherItem.Tx.NetworkFee);
             if (ret != 0) return ret;
-            return TxHash.CompareTo(otherItem.TxHash);
+            return otherItem.Tx.Hash.CompareTo(Tx.Hash);
         }
     }
 }
