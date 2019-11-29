@@ -31,6 +31,7 @@ namespace Neo.Ledger
         public class ImportCompleted { }
         public class FillMemoryPool { public IEnumerable<Transaction> Transactions; }
         public class FillCompleted { }
+        private class ParallelVerified { public Transaction Transaction; public bool ShouldRelay; public bool VerifyResult; }
 
         public static readonly uint MillisecondsPerBlock = ProtocolSettings.Default.MillisecondsPerBlock;
         public const uint DecrementInterval = 2000000;
@@ -734,90 +735,43 @@ namespace Neo.Ledger
             system.TaskManager.Tell(new TaskManager.HeaderTaskCompleted(), Sender);
         }
 
-        private RelayResultReason OnNewTransaction(Transaction transaction, bool relay)
+        private void OnNewTransaction(Transaction transaction, bool relay)
         {
-            if (countSwitchBlockchain)
+            RelayResultReason reason = RelayResultReason.Succeed;
+            if (ContainsTransaction(transaction.Hash))
+                reason = RelayResultReason.AlreadyExists;
+            else if (!MemPool.CanTransactionFitInPool(transaction))
+                reason = RelayResultReason.OutOfMemory;
+            else if (!transaction.Reverify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender)))
+                reason = RelayResultReason.Invalid;
+            else if (!NativeContract.Policy.CheckPolicy(transaction, currentSnapshot))
+                reason = RelayResultReason.PolicyFail;
+            if (reason != RelayResultReason.Succeed)
             {
-                //Phase1
-                stopwatchTxPhase1.Start();
-                var ret1 = ContainsTransaction(transaction.Hash);
-                stopwatchTxPhase1.Stop();
-                totalTimestopwatchTxPhase1 += stopwatchTxPhase1.Elapsed.TotalSeconds;
-                stopwatchTxPhase1.Reset();
-                if (ret1)
-                {
-                    return RelayResultReason.AlreadyExists;
-                }
-                //Phase2
-                stopwatchTxPhase2.Start();
-                var ret2 = MemPool.CanTransactionFitInPool(transaction);
-                stopwatchTxPhase2.Stop();
-                totalTimestopwatchTxPhase2 += stopwatchTxPhase2.Elapsed.TotalSeconds;
-                stopwatchTxPhase2.Reset();
-                if (!ret2)
-                {
-                    return RelayResultReason.OutOfMemory;
-                }
-                //Phase3
-                stopwatchTxPhase3.Start();
-                var ret3 = transaction.Reverify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender));
-                stopwatchTxPhase3.Stop();
-                totalTimestopwatchTxPhase3 += stopwatchTxPhase3.Elapsed.TotalSeconds;
-                stopwatchTxPhase3.Reset();
-                if (!ret3)
-                {
-                    return RelayResultReason.Invalid;
-                }
-                //Phase4
-                stopwatchTxPhase4.Start();
-                var ret4 = NativeContract.Policy.CheckPolicy(transaction, currentSnapshot);
-                stopwatchTxPhase4.Stop();
-                totalTimestopwatchTxPhase4 += stopwatchTxPhase4.Elapsed.TotalSeconds;
-                stopwatchTxPhase4.Reset();
-                if (!ret4)
-                {
-                    return RelayResultReason.PolicyFail;
-                }
-                //Pahse5
-                stopwatchTxPhase5.Start();
-                var ret5 = MemPool.TryAdd(transaction.Hash, transaction);
-                stopwatchTxPhase5.Stop();
-                totalTimestopwatchTxPhase5 += stopwatchTxPhase5.Elapsed.TotalSeconds;
-                stopwatchTxPhase5.Reset();
-                if (!ret5)
-                {
-                    return RelayResultReason.OutOfMemory;
-                }
+                Sender.Tell(reason);
+                return;
             }
-            else
+            Task.Run(() =>
             {
-                //Phase1
-                if (ContainsTransaction(transaction.Hash))
+                return new ParallelVerified
                 {
-                    return RelayResultReason.AlreadyExists;
-                }
-                //Phase2
-                if (!MemPool.CanTransactionFitInPool(transaction))
-                {
-                    return RelayResultReason.OutOfMemory;
-                }
-                ////Phase3
-                if (!transaction.Reverify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender)))
-                    return RelayResultReason.Invalid;
-                //Phase4
-                if (!NativeContract.Policy.CheckPolicy(transaction, currentSnapshot))
-                {
-                    return RelayResultReason.PolicyFail;
-                }
-                //Pahse5
-                if (!MemPool.TryAdd(transaction.Hash, transaction))
-                {
-                    return RelayResultReason.OutOfMemory;
-                }
-            }
-            if (relay)
-                system.LocalNode.Tell(new LocalNode.RelayDirectly { Inventory = transaction });
-            return RelayResultReason.Succeed;
+                    Transaction = transaction,
+                    ShouldRelay = relay,
+                    VerifyResult = transaction.VerifyParallelParts(currentSnapshot)
+                };
+            }).PipeTo(Self, Sender);
+        }
+
+        private void OnParallelVerified(ParallelVerified parallelVerified)
+        {
+            RelayResultReason reason = RelayResultReason.Succeed;
+            if (!parallelVerified.VerifyResult)
+                reason = RelayResultReason.Invalid;
+            else if (!MemPool.TryAdd(parallelVerified.Transaction.Hash, parallelVerified.Transaction))
+                reason = RelayResultReason.OutOfMemory;
+            if (reason == RelayResultReason.Succeed && parallelVerified.ShouldRelay)
+                system.LocalNode.Tell(new LocalNode.RelayDirectly { Inventory = parallelVerified.Transaction });
+            Sender.Tell(reason);
         }
 
         private void OnPersistCompleted(Block block)
@@ -941,32 +895,10 @@ namespace Neo.Ledger
                         }
                         break;
                     }
-                case ParallelVerifiedTransaction parallelVerifiedtransaction:
-                    countParallelVerifiedTransaction++;
-                    stopwatchParallelVerifiedTransaction.Start();
-                    if (parallelVerifiedtransaction.Result)
-                    {
-                        Sender.Tell(OnNewTransaction(parallelVerifiedtransaction.Transaction, true));
-                    }
-                    else {
-                        Sender.Tell(RelayResultReason.Invalid);
-                    }
-                    stopwatchParallelVerifiedTransaction.Stop();
-                    timespan = stopwatchParallelVerifiedTransaction.Elapsed.TotalSeconds;
-                    stopwatchParallelVerifiedTransaction.Reset();
-                    if (watchSwitchBlockchain)
-                    {
-                        AkkaLog.Info($"Class:Blockchain Type: ParallelVerifiedTransaction TimeSpan:{timespan}");
-                    }
-                    if (countSwitchBlockchain)
-                    {
-                        totalTimeParallelVerifiedTransaction += timespan;
-                    }
-                    break;
                 case Transaction transaction:
                     countTransaction++;
                     stopwatchTransaction.Start();
-                    OnParallelVerify(transaction);
+                    OnNewTransaction(transaction, true);
                     stopwatchTransaction.Stop();
                     timespan = stopwatchTransaction.Elapsed.TotalSeconds;
                     stopwatchTransaction.Reset();
@@ -977,6 +909,22 @@ namespace Neo.Ledger
                     if (countSwitchBlockchain)
                     {
                         totalTimeTransaction += timespan;
+                    }
+                    break;
+                case ParallelVerified parallelVerified:
+                    countParallelVerifiedTransaction++;
+                    stopwatchParallelVerifiedTransaction.Start();
+                    OnParallelVerified(parallelVerified);
+                    stopwatchParallelVerifiedTransaction.Stop();
+                    timespan = stopwatchParallelVerifiedTransaction.Elapsed.TotalSeconds;
+                    stopwatchParallelVerifiedTransaction.Reset();
+                    if (watchSwitchBlockchain)
+                    {
+                        AkkaLog.Info($"Class:Blockchain Type: ParallelVerifiedTransaction TimeSpan:{timespan}");
+                    }
+                    if (countSwitchBlockchain)
+                    {
+                        totalTimeParallelVerifiedTransaction += timespan;
                     }
                     break;
                 case ConsensusPayload payload:
@@ -1013,11 +961,6 @@ namespace Neo.Ledger
                     }
                     break;
             }
-        }
-
-        private void OnParallelVerify(Transaction transaction)
-        {
-            Task.Run(()=> { return CheckWitnesses(transaction); }).ContinueWith((checkResult)=> { return new ParallelVerifiedTransaction(transaction, checkResult.Result); }).PipeTo(Self, Sender);
         }
 
         private bool CheckWitnesses(Transaction transaction)
@@ -1315,18 +1258,6 @@ namespace Neo.Ledger
                 default:
                     return false;
             }
-        }
-    }
-
-    internal class ParallelVerifiedTransaction
-    {
-        public Transaction Transaction { get; set; }
-        public bool Result { get; set; }
-
-        public ParallelVerifiedTransaction(Transaction tx, bool result)
-        {
-            Transaction = tx;
-            Result = result;
         }
     }
 }

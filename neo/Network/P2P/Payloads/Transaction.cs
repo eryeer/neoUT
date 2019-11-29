@@ -237,35 +237,19 @@ namespace Neo.Network.P2P.Payloads
         }
 
 
-        public virtual bool Verify(Snapshot snapshot, BigInteger currentFee)
+        public virtual bool Verify(Snapshot snapshot, BigInteger totalSenderFeeFromPool)
         {
-            if (Blockchain.countSwitchBlockchain)
-            {
-                //Phase3-1
-                var ret1 = Reverify(snapshot, currentFee);
-                if (!ret1) return false;
-                //Phase3-2
-                int size = Size;
-                if (size > MaxTransactionSize) return false;
-                long net_fee = NetworkFee - size * NativeContract.Policy.GetFeePerByte(snapshot);
-                if (net_fee < 0) return false;
-                //Phase3-3
-                var ret3 = this.VerifyWitnesses(snapshot, net_fee);
-                return ret3;
-            }
-            else
-            {
-                //Phase3-1
-                if (!Reverify(snapshot, currentFee)) return false;
-                //Phase3-2
-                //VM处理验证脚本的费用从NetworkFee中扣除
-                int size = Size;
-                if (size > MaxTransactionSize) return false;
-                long net_fee = NetworkFee - size * NativeContract.Policy.GetFeePerByte(snapshot);
-                if (net_fee < 0) return false;
-                //Phase3-3
-                return this.VerifyWitnesses(snapshot, net_fee);
-            }
+            if (!Reverify(snapshot, totalSenderFeeFromPool)) return false;
+            return VerifyParallelParts(snapshot);
+        }
+
+        public bool VerifyParallelParts(Snapshot snapshot)
+        {
+            int size = Size;
+            if (size > MaxTransactionSize) return false;
+            long net_fee = NetworkFee - size * NativeContract.Policy.GetFeePerByte(snapshot);
+            if (net_fee < 0) return false;
+            return this.VerifyWitnesses(snapshot, net_fee);
         }
 
         public StackItem ToStackItem()
