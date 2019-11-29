@@ -16,7 +16,7 @@ namespace Neo.Network.P2P
     internal class TaskManager : UntypedActor
     {
         public static bool watchSwitch = false;
-        public static bool countSwitch = false;
+        public static bool countSwitch = true;
         public Akka.Event.ILoggingAdapter AkkaLog { get; } = Context.GetLogger();
 
         public System.Diagnostics.Stopwatch stopwatchRegister = new System.Diagnostics.Stopwatch();

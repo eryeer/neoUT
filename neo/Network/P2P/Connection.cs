@@ -11,7 +11,7 @@ namespace Neo.Network.P2P
     public abstract class Connection : UntypedActor
     {
         public static bool watchSwitch = false;
-        public static bool countSwitch = false;
+        public static bool countSwitch = true;
         public ILoggingAdapter Log { get; } = Context.GetLogger();
 
         public System.Diagnostics.Stopwatch stopwatchTimer = new System.Diagnostics.Stopwatch();
