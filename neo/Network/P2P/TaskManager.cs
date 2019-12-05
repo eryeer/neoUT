@@ -69,7 +69,7 @@ namespace Neo.Network.P2P
         public TaskManager(NeoSystem system)
         {
             this.system = system;
-            this.knownHashes = new FIFOSet<UInt256>(200_000);
+            this.knownHashes = new FIFOSet<UInt256>(150_000);
         }
 
         private void OnHeaderTaskCompleted()
