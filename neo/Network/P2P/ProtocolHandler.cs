@@ -89,8 +89,8 @@ namespace Neo.Network.P2P
         public ProtocolHandler(NeoSystem system)
         {
             this.system = system;
-            this.knownHashes = new FIFOSet<UInt256>(Blockchain.Singleton.MemPool.Capacity * 2);
-            this.sentHashes = new FIFOSet<UInt256>(Blockchain.Singleton.MemPool.Capacity * 2);
+            this.knownHashes = new FIFOSet<UInt256>(200_000);
+            this.sentHashes = new FIFOSet<UInt256>(200_000);
         }
 
         public static long countReturnedPhase1 = 0;
