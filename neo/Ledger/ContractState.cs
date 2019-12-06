@@ -36,7 +36,7 @@ namespace Neo.Ledger
             return new ContractState
             {
                 Script = Script,
-                Manifest = Manifest
+                Manifest = Manifest.Clone()
             };
         }
 
