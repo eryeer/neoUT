@@ -69,7 +69,10 @@ namespace Neo.Network.P2P
 
         private void BroadcastMessage(Message message)
         {
-            Connections.Tell(message);
+            foreach (var connection in RemoteNodes.Keys)
+            {
+                connection.Tell(message);
+            }
         }
 
         private static IPEndPoint GetIPEndpointFromHostPort(string hostNameOrAddress, int port)
@@ -232,12 +235,18 @@ namespace Neo.Network.P2P
 
         private void OnRelayDirectly(IInventory inventory)
         {
-            Connections.Tell(new RemoteNode.Relay { Inventory = inventory });
+            foreach (var connection in RemoteNodes.Keys)
+            {
+                connection.Tell(new RemoteNode.Relay { Inventory = inventory });
+            }
         }
 
         private void OnSendDirectly(IInventory inventory)
         {
-            Connections.Tell(inventory);
+            foreach (var connection in RemoteNodes.Keys)
+            {
+                connection.Tell(inventory);
+            }
         }
 
         public static Props Props(NeoSystem system)
