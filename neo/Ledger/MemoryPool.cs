@@ -464,7 +464,6 @@ namespace Neo.Ledger
                 stopwatchPersistPhase8_2_2_1_1.Stop();
                 totalTimePersitTxCount8_2_2_1_1 += stopwatchPersistPhase8_2_2_1_1.Elapsed.TotalSeconds;
                 stopwatchPersistPhase8_2_2_1_1.Reset();
-                Console.WriteLine("!!!! Cannot get tx from pool");
                 return false;
             }
             _unsortedTransactions.Remove(hash);

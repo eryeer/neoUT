@@ -111,7 +111,7 @@ namespace Neo.Consensus
 
             if (verify && !tx.Verify(context.Snapshot, context.GetSenderFee(tx.Sender)))
             {
-                Log($"Invalid transaction: {tx.Hash}{Environment.NewLine}{tx.ToArray().ToHexString()}", Plugins.LogLevel.Warning);
+                Log($"Invalid transaction in Consensus addTx: {tx.Hash}{Environment.NewLine}{tx.ToArray().ToHexString()}", Plugins.LogLevel.Warning);
                 RequestChangeView(ChangeViewReason.TxInvalid);
                 return false;
             }
@@ -1000,6 +1000,7 @@ namespace Neo.Consensus
             if (context.Transactions.Count < context.TransactionHashes.Length)
             {
                 UInt256[] hashes = context.TransactionHashes.Where(i => !context.Transactions.ContainsKey(i)).ToArray();
+                Log($"{hashes.Length} transactions need to be asked.");
                 taskManager.Tell(new TaskManager.RestartTasks
                 {
                     Payload = InvPayload.Create(InventoryType.TX, hashes)

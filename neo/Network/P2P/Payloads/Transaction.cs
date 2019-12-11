@@ -156,24 +156,47 @@ namespace Neo.Network.P2P.Payloads
 
         public virtual bool Reverify(Snapshot snapshot, BigInteger currentFee)
         {
+            //reverify-1
             if (ValidUntilBlock <= snapshot.Height || ValidUntilBlock > snapshot.Height + MaxValidUntilBlockIncrement)
+            {
+                Console.WriteLine($"Invalid transaction: {this.Hash} reverify-1");
                 return false;
+            }
+            //reverify-2
             if (NativeContract.Policy.GetBlockedAccounts(snapshot).Intersect(GetScriptHashesForVerifying(snapshot)).Count() > 0)
+            {
+                Console.WriteLine($"Invalid transaction: {this.Hash} reverify-2");
                 return false;
+            }
             //从数据库取出账户的Gas
             BigInteger balance = NativeContract.GAS.BalanceOf(snapshot, Sender);
             //当前块高将要扣除的费用总和为当前交易的SystemFee+NetworkFee和Mempoo中其他交易的费用
             BigInteger fee = SystemFee + NetworkFee + currentFee;
-            if (balance < fee) return false;
+            //reverify-3
+            if (balance < fee)
+            {
+                Console.WriteLine($"Invalid transaction: {this.Hash} reverify-3");
+                return false;
+            }
             //获取交易中所有sender和cosigner的hash
             UInt160[] hashes = GetScriptHashesForVerifying(snapshot);
             //这些hash要和witness数量相同
-            if (hashes.Length != Witnesses.Length) return false;
+            //reverify-4
+            if (hashes.Length != Witnesses.Length)
+            {
+                Console.WriteLine($"Invalid transaction: {this.Hash} reverify-4");
+                return false;
+            }
+            //reverify-5
             for (int i = 0; i < hashes.Length; i++)
             {
                 //witness的验证脚本要能拿到
                 if (Witnesses[i].VerificationScript.Length > 0) continue;
-                if (snapshot.Contracts.TryGet(hashes[i]) is null) return false;
+                if (snapshot.Contracts.TryGet(hashes[i]) is null)
+                {
+                    Console.WriteLine($"Invalid transaction: {this.Hash} reverify-5");
+                    return false;
+                }
             }
             return true;
         }
@@ -246,10 +269,23 @@ namespace Neo.Network.P2P.Payloads
         public bool VerifyParallelParts(Snapshot snapshot)
         {
             int size = Size;
-            if (size > MaxTransactionSize) return false;
+            //parallelverify-1
+            if (size > MaxTransactionSize)
+            {
+                Console.WriteLine($"Invalid transaction: {this.Hash} parallelverify-1");
+                return false;
+            }
             long net_fee = NetworkFee - size * NativeContract.Policy.GetFeePerByte(snapshot);
-            if (net_fee < 0) return false;
-            return this.VerifyWitnesses(snapshot, net_fee);
+            //parallelverify-2
+            if (net_fee < 0)
+            {
+                Console.WriteLine($"Invalid transaction: {this.Hash} parallelverify-2");
+                return false;
+            }
+            //parallelverify-3
+            var ret = this.VerifyWitnesses(snapshot, net_fee);
+            if (!ret) Console.WriteLine($"Invalid transaction: {this.Hash} parallelverify-3");
+            return ret;
         }
 
         public StackItem ToStackItem()
