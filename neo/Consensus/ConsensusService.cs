@@ -636,7 +636,10 @@ namespace Neo.Consensus
         private void OnChangeViewReceived(ConsensusPayload payload, ChangeView message)
         {
             if (message.NewViewNumber <= context.ViewNumber)
+            {
+                Log($"received changeview but as recoveryRequest: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex} nv={message.NewViewNumber} reason={message.Reason} ContextView:{context.ViewNumber}");
                 OnRecoveryRequestReceived(payload);
+            }
 
             if (context.CommitSent) return;
 
@@ -915,7 +918,7 @@ namespace Neo.Consensus
             // additional recovery message response.
             if (!knownHashes.Add(payload.Hash)) return;
 
-            Log($"On{payload.ConsensusMessage.GetType().Name}Received: height={payload.BlockIndex} index={payload.ValidatorIndex} view={payload.ConsensusMessage.ViewNumber}");
+            Log($"OnRecoveryRequestReceived: On{payload.ConsensusMessage.GetType().Name}Received: height={payload.BlockIndex} index={payload.ValidatorIndex} view={payload.ConsensusMessage.ViewNumber}");
             if (context.WatchOnly) return;
             if (!context.CommitSent)
             {
@@ -930,7 +933,11 @@ namespace Neo.Consensus
                     break;
                 }
 
-                if (!shouldSendRecovery) return;
+                if (!shouldSendRecovery)
+                {
+                    Log($"Received recovery request but no need to send recovery, payloadview: {payload.ConsensusMessage.ViewNumber}");
+                    return;
+                }
             }
             Log($"send recovery: view={context.ViewNumber}");
             localNode.Tell(new LocalNode.SendDirectly { Inventory = context.MakeRecoveryMessage() });
@@ -938,8 +945,18 @@ namespace Neo.Consensus
 
         private void OnPrepareRequestReceived(ConsensusPayload payload, PrepareRequest message)
         {
-            if (context.RequestSentOrReceived || context.NotAcceptingPayloadsDueToViewChanging) return;
-            if (payload.ValidatorIndex != context.Block.ConsensusData.PrimaryIndex || message.ViewNumber != context.ViewNumber) return;
+            //phase1
+            if (context.RequestSentOrReceived || context.NotAcceptingPayloadsDueToViewChanging)
+            {
+                Log($"{nameof(OnPrepareRequestReceived)} but filtered by phase1: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex} tx={message.TransactionHashes.Length}");
+                return;
+            }
+            //phase2
+            if (payload.ValidatorIndex != context.Block.ConsensusData.PrimaryIndex || message.ViewNumber != context.ViewNumber)
+            {
+                Log($"{nameof(OnPrepareRequestReceived)} but filtered by phase2: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex} tx={message.TransactionHashes.Length}");
+                return;
+            }
             Log($"{nameof(OnPrepareRequestReceived)}: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex} tx={message.TransactionHashes.Length}");
             if (message.Timestamp <= context.PrevHeader.Timestamp || message.Timestamp > TimeProvider.Current.UtcNow.AddMinutes(10).ToTimestampMS())
             {
