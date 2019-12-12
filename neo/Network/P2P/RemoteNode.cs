@@ -98,7 +98,15 @@ namespace Neo.Network.P2P
             }
             var msg = queue.Dequeue();
             SendMessage(msg);
-            if(msg.Command == MessageCommand.GetData && countSwitchRemoteNode) Interlocked.Increment(ref sendGetDataMessageCount);
+            if (msg.Command == MessageCommand.Consensus)
+            {
+                var consensuspayload = (ConsensusPayload)msg.Payload;
+                if (consensuspayload.ConsensusMessage is PrepareRequest request)
+                {
+                    Log.Info($"RemoteNode CheckMessageQueue: send prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex}");
+                }
+            }
+            if (msg.Command == MessageCommand.GetData && countSwitchRemoteNode) Interlocked.Increment(ref sendGetDataMessageCount);
 
         }
 
@@ -155,6 +163,14 @@ namespace Neo.Network.P2P
 
             for (Message message = TryParseMessage(); message != null; message = TryParseMessage())
             {
+                if (message.Command == MessageCommand.Consensus)
+                {
+                    var consensuspayload = (ConsensusPayload)message.Payload;
+                    if (consensuspayload.ConsensusMessage is PrepareRequest request)
+                    {
+                        Log.Info($"RemoteNode OnData: receive prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex}");
+                    }
+                }
                 protocol.Tell(message);
                 if (message.Command is MessageCommand.GetData && countSwitchRemoteNode) {
                     Interlocked.Increment(ref receivedGetDataMessageCount);
@@ -343,6 +359,14 @@ namespace Neo.Network.P2P
             {
                 if (bloom_filter != null && !bloom_filter.Test((Transaction)inventory))
                     return;
+            }
+            if (inventory.InventoryType == InventoryType.Consensus)
+            {
+                var consensuspayload = (ConsensusPayload)inventory;
+                if (consensuspayload.ConsensusMessage is PrepareRequest request)
+                {
+                    Log.Info($"Remotenode OnSend: send prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex}");
+                }
             }
             EnqueueMessage(inventory.InventoryType.ToMessageCommand(), inventory);
         }

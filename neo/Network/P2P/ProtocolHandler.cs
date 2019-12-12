@@ -1,6 +1,7 @@
 using Akka.Actor;
 using Akka.Configuration;
 using Akka.Event;
+using Neo.Consensus;
 using Neo.Cryptography;
 using Neo.IO;
 using Neo.IO.Actors;
@@ -185,6 +186,11 @@ namespace Neo.Network.P2P
                     break;
                 case MessageCommand.Consensus:
                     stopwatchConsensus.Start();
+                    var consensuspayload = (ConsensusPayload)msg.Payload;
+                    if (consensuspayload.ConsensusMessage is PrepareRequest request)
+                    {
+                        AkkaLog.Info($"ProtolHandler OnReceive: received prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex}");
+                    }
                     OnInventoryReceived((ConsensusPayload)msg.Payload);
                     stopwatchConsensus.Stop();
                     timespan = stopwatchConsensus.Elapsed.TotalSeconds;
