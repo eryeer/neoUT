@@ -103,7 +103,7 @@ namespace Neo.Network.P2P
                 var consensuspayload = (ConsensusPayload)msg.Payload;
                 if (consensuspayload.ConsensusMessage is PrepareRequest request)
                 {
-                    Log.Info($"RemoteNode CheckMessageQueue: send prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex}");
+                    Log.Info($"RemoteNode CheckMessageQueue: send prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex} tx {request.TransactionHashes.Length}");
                 }
             }
             if (msg.Command == MessageCommand.GetData && countSwitchRemoteNode) Interlocked.Increment(ref sendGetDataMessageCount);
@@ -168,7 +168,7 @@ namespace Neo.Network.P2P
                     var consensuspayload = (ConsensusPayload)message.Payload;
                     if (consensuspayload.ConsensusMessage is PrepareRequest request)
                     {
-                        Log.Info($"RemoteNode OnData: receive prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex}");
+                        Log.Info($"RemoteNode OnData: receive prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex} tx {request.TransactionHashes.Length}");
                     }
                 }
                 protocol.Tell(message);
@@ -365,7 +365,7 @@ namespace Neo.Network.P2P
                 var consensuspayload = (ConsensusPayload)inventory;
                 if (consensuspayload.ConsensusMessage is PrepareRequest request)
                 {
-                    Log.Info($"Remotenode OnSend: send prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex}");
+                    Log.Info($"Remotenode OnSend: send prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex} tx {request.TransactionHashes.Length}");
                 }
             }
             EnqueueMessage(inventory.InventoryType.ToMessageCommand(), inventory);

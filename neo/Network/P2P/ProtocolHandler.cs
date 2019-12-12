@@ -189,7 +189,7 @@ namespace Neo.Network.P2P
                     var consensuspayload = (ConsensusPayload)msg.Payload;
                     if (consensuspayload.ConsensusMessage is PrepareRequest request)
                     {
-                        AkkaLog.Info($"ProtolHandler OnReceive: received prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex}");
+                        AkkaLog.Info($"ProtolHandler OnReceive: received prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex} tx {request.TransactionHashes.Length}");
                     }
                     OnInventoryReceived((ConsensusPayload)msg.Payload);
                     stopwatchConsensus.Stop();
