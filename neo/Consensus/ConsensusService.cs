@@ -598,6 +598,10 @@ namespace Neo.Consensus
                 ChangeTimer(TimeSpan.FromMilliseconds(Blockchain.MillisecondsPerBlock));
                 CheckCommits();
             }
+            else if(!context.TransactionHashes.All(p => context.Transactions.ContainsKey(p)))
+            {
+                Log($"Still lack of {context.TransactionHashes.Length - context.Transactions.Count} txs");
+            }
         }
 
         private void InitializeConsensus(byte viewNumber)
