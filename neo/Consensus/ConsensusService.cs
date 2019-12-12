@@ -15,6 +15,7 @@ using Neo.VM;
 using Neo.Wallets;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -949,6 +950,11 @@ namespace Neo.Consensus
 
         private void OnPrepareRequestReceived(ConsensusPayload payload, PrepareRequest message)
         {
+            Stopwatch watch3 = new Stopwatch();
+            Stopwatch watch4 = new Stopwatch();
+            Stopwatch watch5 = new Stopwatch();
+            Stopwatch watch6 = new Stopwatch();
+            Stopwatch watch7 = new Stopwatch();
             //phase1
             if (context.RequestSentOrReceived || context.NotAcceptingPayloadsDueToViewChanging)
             {
@@ -962,19 +968,31 @@ namespace Neo.Consensus
                 return;
             }
             Log($"{nameof(OnPrepareRequestReceived)}: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex} tx={message.TransactionHashes.Length}");
+            //phase3
+            watch3.Start();
             if (message.Timestamp <= context.PrevHeader.Timestamp || message.Timestamp > TimeProvider.Current.UtcNow.AddMinutes(10).ToTimestampMS())
             {
                 Log($"Timestamp incorrect: {message.Timestamp}", Plugins.LogLevel.Warning);
+                watch3.Stop();
+                Log($"{nameof(OnPrepareRequestReceived)} phase3 timespan: {watch3.Elapsed.TotalSeconds}");
+                watch3.Reset();
                 return;
             }
             if (message.TransactionHashes.Any(p => context.Snapshot.ContainsTransaction(p)))
             {
                 Log($"Invalid request: transaction already exists", Plugins.LogLevel.Warning);
+                watch3.Stop();
+                Log($"{nameof(OnPrepareRequestReceived)} phase3 timespan: {watch3.Elapsed.TotalSeconds}");
+                watch3.Reset();
                 return;
             }
-
+            watch3.Stop();
+            Log($"{nameof(OnPrepareRequestReceived)} phase3 timespan: {watch3.Elapsed.TotalSeconds}");
+            watch3.Reset();
+            //phase4
             // Timeout extension: prepare request has been received with success
             // around 2*15/M=30.0/5 ~ 40% block time (for M=5)
+            watch4.Start();
             ExtendTimerByFactor(10);
 
             context.Block.Timestamp = message.Timestamp;
@@ -982,6 +1000,11 @@ namespace Neo.Consensus
             context.TransactionHashes = message.TransactionHashes;
             context.Transactions = new Dictionary<UInt256, Transaction>();
             context.SenderFee = new Dictionary<UInt160, System.Numerics.BigInteger>();
+            watch4.Stop();
+            Log($"{nameof(OnPrepareRequestReceived)} phase4 timespan: {watch4.Elapsed.TotalSeconds}");
+            watch4.Reset();
+            //phase5
+            watch5.Start();
             for (int i = 0; i < context.PreparationPayloads.Length; i++)
                 if (context.PreparationPayloads[i] != null)
                     if (!context.PreparationPayloads[i].GetDeserializedMessage<PrepareResponse>().PreparationHash.Equals(payload.Hash))
@@ -997,9 +1020,16 @@ namespace Neo.Consensus
             {
                 // There are no tx so we should act like if all the transactions were filled
                 CheckPrepareResponse();
+                watch5.Stop();
+                Log($"{nameof(OnPrepareRequestReceived)} phase5 timespan: {watch5.Elapsed.TotalSeconds}");
+                watch5.Reset();
                 return;
             }
-
+            watch5.Stop();
+            Log($"{nameof(OnPrepareRequestReceived)} phase5 timespan: {watch5.Elapsed.TotalSeconds}");
+            watch5.Reset();
+            //phase6
+            watch6.Start();
             Dictionary<UInt256, Transaction> mempoolVerified = Blockchain.Singleton.MemPool.GetVerifiedTransactions().ToDictionary(p => p.Hash);
             List<Transaction> unverified = new List<Transaction>();
             foreach (UInt256 hash in context.TransactionHashes)
@@ -1007,7 +1037,12 @@ namespace Neo.Consensus
                 if (mempoolVerified.TryGetValue(hash, out Transaction tx))
                 {
                     if (!AddTransaction(tx, false))
+                    {
+                        watch6.Stop();
+                        Log($"{nameof(OnPrepareRequestReceived)} phase6 timespan: {watch6.Elapsed.TotalSeconds}");
+                        watch6.Reset();
                         return;
+                    }
                 }
                 else
                 {
@@ -1015,9 +1050,19 @@ namespace Neo.Consensus
                         unverified.Add(tx);
                 }
             }
+            watch6.Stop();
+            Log($"{nameof(OnPrepareRequestReceived)} phase6 timespan: {watch6.Elapsed.TotalSeconds}");
+            watch6.Reset();
+            //phase7
+            watch7.Start();
             foreach (Transaction tx in unverified)
                 if (!AddTransaction(tx, true))
+                {
+                    watch7.Stop();
+                    Log($"{nameof(OnPrepareRequestReceived)} phase7 timespan: {watch7.Elapsed.TotalSeconds}");
+                    watch7.Reset();
                     return;
+                }
             if (context.Transactions.Count < context.TransactionHashes.Length)
             {
                 UInt256[] hashes = context.TransactionHashes.Where(i => !context.Transactions.ContainsKey(i)).ToArray();
@@ -1027,6 +1072,9 @@ namespace Neo.Consensus
                     Payload = InvPayload.Create(InventoryType.TX, hashes)
                 });
             }
+            watch7.Stop();
+            Log($"{nameof(OnPrepareRequestReceived)} phase7 timespan: {watch7.Elapsed.TotalSeconds}");
+            watch7.Reset();
         }
 
         private void OnPrepareResponseReceived(ConsensusPayload payload, PrepareResponse message)
