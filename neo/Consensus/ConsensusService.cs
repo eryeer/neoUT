@@ -176,7 +176,10 @@ namespace Neo.Consensus
                 Log($"relay block: height={block.Index} hash={block.Hash} tx={block.Transactions.Length}");
                 localNode.Tell(new LocalNode.Relay { Inventory = block });
                 CheckCount(block);
-
+            }
+            else if (!context.TransactionHashes.All(p => context.Transactions.ContainsKey(p)))
+            {
+                Log($"Still lack of {context.TransactionHashes.Length - context.Transactions.Count} txs");
             }
         }
 
