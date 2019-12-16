@@ -62,7 +62,7 @@ namespace Neo.Network.P2P
                 case IActorRef tcp:
                     this.tcp = tcp;
                     break;
-                case WebSocket ws:
+                case WebSocket ws:Connection is disconnected!!!
                     this.ws = ws;
                     WsReceive();
                     break;
@@ -211,9 +211,11 @@ namespace Neo.Network.P2P
             {
                 OnData(data);
             }
-            catch
+            catch(Exception e)
             {
-                Log.Warning("Connection is disconnected!!!");
+                Log.Warning($"Connection {Self.ToString()} @ {Self.Path.ToStringWithAddress()} is disconnected!!!");
+                Log.Error("message: "+ e.Message);
+                Log.Error("stacktrace: "+ e.StackTrace);
                 Disconnect(true);
             }
         }
