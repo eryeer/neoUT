@@ -1297,8 +1297,9 @@ namespace Neo.Consensus
 
         private void SendPrepareRequest()
         {
-            Log($"send prepare request: height={context.Block.Index} view={context.ViewNumber}");
-            localNode.Tell(new LocalNode.SendDirectly { Inventory = context.MakePrepareRequest() });
+            var prepareRequest = context.MakePrepareRequest();
+            Log($"send prepare request: height={context.Block.Index} view={context.ViewNumber} tx={((PrepareRequest)prepareRequest.ConsensusMessage).TransactionHashes.Length}");
+            localNode.Tell(new LocalNode.SendDirectly { Inventory = prepareRequest });
 
             if (context.Validators.Length == 1)
                 CheckPreparations();
