@@ -14,7 +14,7 @@ namespace Neo.Network.P2P.Payloads
 {
     public class Block : BlockBase, IInventory, IEquatable<Block>, IInteroperable
     {
-        public const int MaxContentsPerBlock = 51201;
+        public const int MaxContentsPerBlock = 512001;
         public const int MaxTransactionsPerBlock = MaxContentsPerBlock - 1;
 
         public ConsensusData ConsensusData;
