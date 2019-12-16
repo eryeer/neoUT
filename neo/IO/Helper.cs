@@ -155,7 +155,7 @@ namespace Neo.IO
                 value = reader.ReadUInt64();
             else
                 value = fb;
-            if (value > max) throw new FormatException();
+            if (value > max) throw new FormatException($"ReadVarInt: value {value} > max {max}");
             return value;
         }
 
