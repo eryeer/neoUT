@@ -246,10 +246,15 @@ namespace Neo.Network.P2P
 
         private void OnRestartTasks(InvPayload payload)
         {
-            Console.WriteLine($"TaskManager OnRestartTasks start, inv count: {payload.Hashes.Length}");
+            //phase1
+            AkkaLog.Info($"TaskManager OnRestartTasks start, inv count: {payload.Hashes.Length}, knownHashes count: {knownHashes.Size}");
             knownHashes.ExceptWith(payload.Hashes);
+            //phase2
+            AkkaLog.Info($"TaskManager OnRestartTasks start phase2");
             foreach (UInt256 hash in payload.Hashes)
                 globalTasks.Remove(hash);
+            //phase3
+            AkkaLog.Info($"TaskManager OnRestartTasks start phase3");
             foreach (InvPayload group in InvPayload.CreateGroup(payload.Type, payload.Hashes))
             {
                 Console.WriteLine($"group info: type {group.Type} length {group.Hashes.Length}");

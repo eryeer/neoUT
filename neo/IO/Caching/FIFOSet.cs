@@ -12,6 +12,8 @@ namespace Neo.IO.Caching
         private readonly int removeCount;
         private readonly OrderedDictionary dictionary;
 
+        public int Size => dictionary.Count;
+
         public FIFOSet(int maxCapacity, decimal batchSize = 0.1m)
         {
             if (maxCapacity <= 0) throw new ArgumentOutOfRangeException(nameof(maxCapacity));
