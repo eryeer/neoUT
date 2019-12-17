@@ -34,6 +34,7 @@ namespace Neo.Network.P2P
         public System.Diagnostics.Stopwatch stopwatchGetAddr = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchGetBlocks = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchGetData = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch stopwatchGetDataHighPriority = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchGetHeaders = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchHeaders = new System.Diagnostics.Stopwatch();
         public System.Diagnostics.Stopwatch stopwatchInv = new System.Diagnostics.Stopwatch();
@@ -51,6 +52,7 @@ namespace Neo.Network.P2P
         public static long countGetAddr = 0;
         public static long countGetBlocks = 0;
         public static long countGetData = 0;
+        public static long countGetDataHighPriority = 0;
         public static long countGetHeaders = 0;
         public static long countHeaders = 0;
         public static long countInv = 0;
@@ -70,6 +72,7 @@ namespace Neo.Network.P2P
         public static double totalTimeGetAddr = 0;
         public static double totalTimeGetBlocks = 0;
         public static double totalTimeGetData = 0;
+        public static double totalTimeGetDataHighPriority = 0;
         public static double totalTimeGetHeaders = 0;
         public static double totalTimeHeaders = 0;
         public static double totalTimeInv = 0;
@@ -336,6 +339,27 @@ namespace Neo.Network.P2P
                         while (initialValue != Interlocked.CompareExchange(ref totalTimeGetData, computedValue, initialValue));
                     }
                     break;
+                case MessageCommand.GetDataHighPriority:
+                    stopwatchGetDataHighPriority.Start();
+                    OnGetDataMessageHighPriorityReceived((InvPayload)msg.Payload);
+                    stopwatchGetDataHighPriority.Stop();
+                    timespan = stopwatchGetDataHighPriority.Elapsed.TotalSeconds;
+                    stopwatchGetDataHighPriority.Reset();
+                    if (watchSwitch)
+                    {
+                        AkkaLog.Info($"Class:ProtocolHandler Type: GetDataHighPriority TimeSpan:{timespan}");
+                    }
+                    if (countSwitch)
+                    {
+                        Interlocked.Increment(ref countGetDataHighPriority);
+                        do
+                        {
+                            initialValue = totalTimeGetData;
+                            computedValue = initialValue + timespan;
+                        }
+                        while (initialValue != Interlocked.CompareExchange(ref totalTimeGetDataHighPriority, computedValue, initialValue));
+                    }
+                    break;
                 case MessageCommand.GetHeaders:
                     stopwatchGetHeaders.Start();
                     OnGetHeadersMessageReceived((GetBlocksPayload)msg.Payload);
@@ -589,6 +613,22 @@ namespace Neo.Network.P2P
             }
         }
 
+        private void OnGetDataMessageHighPriorityReceived(InvPayload payload)
+        {
+            UInt256[] hashes = payload.Hashes.Where(p => sentHashes.Add(p)).ToArray();
+            foreach (UInt256 hash in hashes)
+            {
+                switch (payload.Type)
+                {
+                    case InventoryType.TX:
+                        Transaction tx = Blockchain.Singleton.GetTransaction(hash);
+                        if (tx != null)
+                            Context.Parent.Tell(Message.Create(MessageCommand.TransactionHighPriority, tx));
+                        break;
+                }
+            }
+        }
+
         private void OnGetHeadersMessageReceived(GetBlocksPayload payload)
         {
             UInt256 hash = payload.HashStart;
@@ -715,6 +755,7 @@ namespace Neo.Network.P2P
                 case MessageCommand.Verack:
                 case MessageCommand.Version:
                 case MessageCommand.Alert:
+                case MessageCommand.GetDataHighPriority:
                     return true;
                 default:
                     return false;

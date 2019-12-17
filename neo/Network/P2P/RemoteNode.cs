@@ -87,6 +87,8 @@ namespace Neo.Network.P2P
         }
 
         public static long sendGetDataMessageCount = 0;
+        public static long sendGetDataMessageHighPriorityCount = 0;
+        public static long sendTransactionHighPriorityCount = 0;
         private void CheckMessageQueue()
         {
             if (!verack || !ack) return;
@@ -104,6 +106,19 @@ namespace Neo.Network.P2P
                 if (consensuspayload.ConsensusMessage is PrepareRequest request)
                 {
                     Log.Info($"RemoteNode CheckMessageQueue: send prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex} tx {request.TransactionHashes.Length}");
+                }
+            }
+            if (msg.Command == MessageCommand.GetDataHighPriority)
+            {
+                Interlocked.Increment(ref sendGetDataMessageHighPriorityCount);
+                Log.Info($"RemoteNode CheckMessageQueue: send getDataHighPriority count: {sendGetDataMessageHighPriorityCount * 500}");
+                
+            } if (msg.Command == MessageCommand.TransactionHighPriority)
+            {
+                Interlocked.Increment(ref sendTransactionHighPriorityCount);
+                if (sendTransactionHighPriorityCount % 500 == 0)
+                {
+                    Log.Info($"RemoteNode CheckMessageQueue: send transactionHighPriority count: {sendTransactionHighPriorityCount}");
                 }
             }
             if (msg.Command == MessageCommand.GetData && countSwitchRemoteNode) Interlocked.Increment(ref sendGetDataMessageCount);
@@ -139,6 +154,8 @@ namespace Neo.Network.P2P
                 case MessageCommand.FilterClear:
                 case MessageCommand.FilterLoad:
                 case MessageCommand.GetAddr:
+                case MessageCommand.GetDataHighPriority:
+                case MessageCommand.TransactionHighPriority:
                 case MessageCommand.Mempool:
                     message_queue = message_queue_high;
                     break;
@@ -170,6 +187,10 @@ namespace Neo.Network.P2P
                     {
                         Log.Info($"RemoteNode OnData: receive prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex} tx {request.TransactionHashes.Length}");
                     }
+                }
+                if (message.Command == MessageCommand.TransactionHighPriority)
+                {
+                    Log.Info($"RemoteNode OnData: receive TransactionHighPriority");
                 }
                 protocol.Tell(message);
                 if (message.Command is MessageCommand.GetData && countSwitchRemoteNode) {

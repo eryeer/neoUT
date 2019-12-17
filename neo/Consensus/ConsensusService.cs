@@ -237,6 +237,8 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: RemoteNode Count of SendGetDataMessage: {RemoteNode.sendGetDataMessageCount}");
                 AkkaLog.Info($"Class: RemoteNode Count of ReceivedGetDataMessage: {RemoteNode.receivedGetDataMessageCount}");
                 RemoteNode.sendGetDataMessageCount = 0;
+                RemoteNode.sendGetDataMessageHighPriorityCount = 0;
+                RemoteNode.sendTransactionHighPriorityCount = 0;
                 RemoteNode.receivedGetDataMessageCount = 0;
 
                 RemoteNode.countMessage = 0;
@@ -307,6 +309,7 @@ namespace Neo.Consensus
                 AkkaLog.Info($"Class: ProtocolHandler Type: GetAddr Count: {ProtocolHandler.countGetAddr} averageTimespan: {ProtocolHandler.totalTimeGetAddr / ProtocolHandler.countGetAddr}");
                 AkkaLog.Info($"Class: ProtocolHandler Type: GetBlocks Count: {ProtocolHandler.countGetBlocks} averageTimespan: {ProtocolHandler.totalTimeGetBlocks / ProtocolHandler.countGetBlocks}");
                 AkkaLog.Info($"Class: ProtocolHandler Type: GetData Count: {ProtocolHandler.countGetData} averageTimespan: {ProtocolHandler.totalTimeGetData / ProtocolHandler.countGetData}");
+                AkkaLog.Info($"Class: ProtocolHandler Type: GetDataHighPriority Count: {ProtocolHandler.countGetDataHighPriority} averageTimespan: {ProtocolHandler.totalTimeGetDataHighPriority / ProtocolHandler.countGetDataHighPriority}");
                 AkkaLog.Info($"Class: ProtocolHandler Type: GetHeaders Count: {ProtocolHandler.countGetHeaders} averageTimespan: {ProtocolHandler.totalTimeGetHeaders / ProtocolHandler.countGetHeaders}");
                 AkkaLog.Info($"Class: ProtocolHandler Type: Headers Count: {ProtocolHandler.countHeaders} averageTimespan: {ProtocolHandler.totalTimeHeaders / ProtocolHandler.countHeaders}");
                 AkkaLog.Info($"Class: ProtocolHandler Type: Inv Count: {ProtocolHandler.countInv} averageTimespan: {ProtocolHandler.totalTimeInv / ProtocolHandler.countInv}");
@@ -331,6 +334,7 @@ namespace Neo.Consensus
                 ProtocolHandler.countGetAddr = 0;
                 ProtocolHandler.countGetBlocks = 0;
                 ProtocolHandler.countGetData = 0;
+                ProtocolHandler.countGetDataHighPriority = 0;
                 ProtocolHandler.countGetHeaders = 0;
                 ProtocolHandler.countHeaders = 0;
                 ProtocolHandler.countInv = 0;
@@ -350,6 +354,7 @@ namespace Neo.Consensus
                 ProtocolHandler.totalTimeGetAddr = 0;
                 ProtocolHandler.totalTimeGetBlocks = 0;
                 ProtocolHandler.totalTimeGetData = 0;
+                ProtocolHandler.totalTimeGetDataHighPriority = 0;
                 ProtocolHandler.totalTimeGetHeaders = 0;
                 ProtocolHandler.totalTimeHeaders = 0;
                 ProtocolHandler.totalTimeInv = 0;

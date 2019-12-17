@@ -227,6 +227,8 @@ namespace Neo.Ledger
                 AkkaLog.Info($"Class: RemoteNode Count of SendGetDataMessage: {RemoteNode.sendGetDataMessageCount}");
                 AkkaLog.Info($"Class: RemoteNode Count of ReceivedGetDataMessage: {RemoteNode.receivedGetDataMessageCount}");
                 RemoteNode.sendGetDataMessageCount = 0;
+                RemoteNode.sendGetDataMessageHighPriorityCount = 0;
+                RemoteNode.sendTransactionHighPriorityCount = 0;
                 RemoteNode.receivedGetDataMessageCount = 0;
 
                 RemoteNode.countMessage = 0;
