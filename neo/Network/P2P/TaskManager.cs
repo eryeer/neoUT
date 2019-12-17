@@ -246,12 +246,13 @@ namespace Neo.Network.P2P
 
         private void OnRestartTasks(InvPayload payload)
         {
-            AkkaLog.Info("TaskManager OnRestartTasks receiveInvPayload");
+            Console.WriteLine($"TaskManager OnRestartTasks start, inv count: {payload.Hashes.Length}");
             knownHashes.ExceptWith(payload.Hashes);
             foreach (UInt256 hash in payload.Hashes)
                 globalTasks.Remove(hash);
             foreach (InvPayload group in InvPayload.CreateGroup(payload.Type, payload.Hashes))
             {
+                Console.WriteLine($"group info: type {group.Type} length {group.Hashes.Length}");
                 if (group.Type == InventoryType.TX)
                 {
                     AkkaLog.Info("TaskManager OnRestartTasks start to get Consensus tx");
@@ -262,6 +263,7 @@ namespace Neo.Network.P2P
                     system.LocalNode.Tell(Message.Create(MessageCommand.GetData, group));
                 }
             }
+            Console.WriteLine("TaskManager OnRestartTasks finished");
         }
 
         private void OnTaskCompleted(UInt256 hash)
