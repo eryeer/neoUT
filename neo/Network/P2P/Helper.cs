@@ -22,7 +22,16 @@ namespace Neo.Network.P2P
         public static byte[] DecompressLz4(this byte[] data, int maxOutput)
         {
             maxOutput = Math.Min(maxOutput, data.Length * 255);
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(maxOutput);
+            byte[] buffer;
+            try
+            {
+                buffer = ArrayPool<byte>.Shared.Rent(maxOutput);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error maxOutput={maxOutput}");
+                throw e;
+            }
             try
             {
                 int length = LZ4Codec.Decode(data, 0, data.Length, buffer, 0, buffer.Length);
