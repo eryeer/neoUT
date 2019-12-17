@@ -318,10 +318,11 @@ namespace Neo.Network.RPC
                 case "newTransMigrate":
                     {
                         int fileCount = int.Parse(_params[1].AsString());
-                        if (fileCount <= 0 || fileCount > 4) return "fileCount >0 &&<=4";
+                        if (fileCount <= 0 || fileCount > 20) return "fileCount >0 &&<=20";
                         for (int n = 0; n < fileCount; n++)
                         {
-                            if (!File.Exists(utxoFiles[n]))
+                            string utxoFileName = $"utxo{n}.json";
+                            if (!File.Exists(utxoFileName))
                                 throw new RpcException(-400, "Access denied.");
                         }
                         double sleepInterval = double.Parse(_params[0].AsString());
@@ -334,7 +335,8 @@ namespace Neo.Network.RPC
                         Transaction[] transactions;
                         for (int n = 0; n < fileCount; n++)
                         {
-                            LoadTransction(n, out stream, out reader, out transactions);
+                            string utxoFileName = $"utxo{n}.json";
+                            LoadTransction(utxoFileName, out stream, out reader, out transactions);
                             int realTxAmount = Math.Min(TxAmount, transactions.Length);
                             if (sleepInterval == 0)
                             {
@@ -380,7 +382,7 @@ namespace Neo.Network.RPC
                             int fileCount = int.Parse(_params[1].AsString());
                             long migrateCount = 50000;   //生成交易的数量
                             int spreadAmountPerAccount = int.Parse(_params[2].AsString()); //转账金额
-                            if (fileCount <= 0 || fileCount > 4) return "filecount>0 && <=4";
+                            if (fileCount <= 0 || fileCount > 20) return "filecount>0 && <=20";
 
                             UInt160 originalAccount = Wallet.GetAccounts().Where(p => !p.Lock && !p.WatchOnly).Select(p => p.ScriptHash).ToArray()[0];
                             AssetDescriptor descriptor = new AssetDescriptor(asset_id);
@@ -410,7 +412,8 @@ namespace Neo.Network.RPC
                                         successfulTransaction++;
                                     }
                                 }
-                                FileStream stream = new FileStream(utxoFiles[n], FileMode.Create);
+                                string utxoFileName = $"utxo{n}.json";
+                                FileStream stream = new FileStream(utxoFileName, FileMode.Create);
                                 BinaryWriter writer = new BinaryWriter(stream);
                                 writer.Write(transactions);
                                 writer.Flush();
@@ -428,9 +431,9 @@ namespace Neo.Network.RPC
             }
         }
 
-        private static void LoadTransction(int fileNum, out FileStream stream, out BinaryReader reader, out Transaction[] transactions)
+        private static void LoadTransction(string fileName, out FileStream stream, out BinaryReader reader, out Transaction[] transactions)
         {
-            stream = new FileStream(utxoFiles[fileNum], FileMode.Open);
+            stream = new FileStream(fileName, FileMode.Open);
             reader = new BinaryReader(stream);
             transactions = new Transaction[reader.ReadVarInt()];
             for (int i = 0; i < transactions.Length; i++)
