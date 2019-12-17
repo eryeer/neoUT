@@ -338,7 +338,7 @@ namespace Neo.Network.P2P
                 Context.Watch(connection);
                 Sender.Tell(new Tcp.Register(connection));
                 ConnectedPeers.TryAdd(connection, remote);
-                Log.Info("TcpConnected: " + remote.ToString() + " Sender: " + Sender.ToString()+ " Remotenode: "+ connection.ToString());
+                //Log.Info("TcpConnected: " + remote.ToString() + " Sender: " + Sender.ToString()+ " Remotenode: "+ connection.ToString());
             }
         }
 
