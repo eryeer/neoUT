@@ -13,7 +13,7 @@ namespace Neo.IO.Caching
         private readonly int maxCapacity;
         private readonly int removeCount;
         private readonly OrderedDictionary dictionary;
-        private readonly ReaderWriterLockSlim _RwLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+
         public int Size => dictionary.Count;
 
         public object StopWatch { get; private set; }
@@ -30,68 +30,45 @@ namespace Neo.IO.Caching
 
         public bool Add(T item)
         {
-            if (Contains(item)) return false;
-            _RwLock.EnterWriteLock();
-            try
+            if (dictionary.Contains(item)) return false;
+
+            if (dictionary.Count >= maxCapacity)
             {
-                if (dictionary.Count >= maxCapacity)
+                if (removeCount == maxCapacity)
                 {
-                    if (removeCount == maxCapacity)
-                    {
-                        dictionary.Clear();
-                    }
-                    else
-                    {
-                        for (int i = 0; i < removeCount; i++)
-                            dictionary.RemoveAt(0);
-                    }
+                    dictionary.Clear();
                 }
-                dictionary.Add(item, null);
+                else
+                {
+                    for (int i = 0; i < removeCount; i++)
+                        dictionary.RemoveAt(0);
+                }
             }
-            finally
-            {
-                _RwLock.ExitWriteLock();
-            }
+            dictionary.Add(item, null);
             return true;
         }
 
         public bool Contains(T item)
         {
-            _RwLock.EnterReadLock();
-            try
-            {
-                return dictionary.Contains(item);
-            }
-            finally
-            {
-                _RwLock.ExitReadLock();
-            }
+            return dictionary.Contains(item);
         }
 
         public void ExceptWith(IEnumerable<UInt256> hashes)
         {
             Console.WriteLine("start to Execpt fifoset");
             int count = 0;
-            _RwLock.EnterWriteLock();
-            try
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+            foreach (var hash in hashes)
             {
-                Stopwatch watch = new Stopwatch();
-                watch.Start();
-                foreach (var hash in hashes)
-                {
-                    count++;
-                    dictionary.Remove(hash);
-                    if(count %500 == 0)
-                        Console.WriteLine($"Remove tx: count: {count}");
-                }
-                watch.Stop();
-                Console.WriteLine($"FIFOSet Exceptwitch timspan: {watch.Elapsed.TotalSeconds}");
-                watch.Reset();
+                count++;
+                dictionary.Remove(hash);
+                if (count % 500 == 0)
+                    Console.WriteLine($"Remove tx: count: {count}");
             }
-            finally
-            {
-                _RwLock.ExitWriteLock();
-            }
+            watch.Stop();
+            Console.WriteLine($"FIFOSet Exceptwitch timspan: {watch.Elapsed.TotalSeconds}");
+            watch.Reset();
         }
 
         public IEnumerator<T> GetEnumerator()
