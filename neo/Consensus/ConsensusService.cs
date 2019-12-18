@@ -133,6 +133,7 @@ namespace Neo.Consensus
         {
             if (context.TransactionHashes.Length == context.Transactions.Count)
             {
+                Log("Finish Tx collecting");
                 // if we are the primary for this view, but acting as a backup because we recovered our own
                 // previously sent prepare request, then we don't want to send a prepare response.
                 if (context.IsPrimary || context.WatchOnly) return true;

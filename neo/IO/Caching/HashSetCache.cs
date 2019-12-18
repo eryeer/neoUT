@@ -10,7 +10,6 @@ namespace Neo.IO.Caching
 
         private readonly int hashSetCapacity;
         private readonly List<HashSet<T>> sets = new List<HashSet<T>>();
-        public object StopWatch { get; private set; }
 
         public int Size
         {
@@ -67,23 +66,13 @@ namespace Neo.IO.Caching
 
         public void ExceptWith(IEnumerable<T> items)
         {
-            Console.WriteLine("start to Execpt HashSetCache");
-            int count = 0;
-            Stopwatch watch = new Stopwatch();
-            watch.Start();
             foreach (var item in items)
             {
-                count++;
-                if (count % 500 == 0)
-                    Console.WriteLine($"Remove tx: count: {count}");
                 foreach (var set in sets)
                 {
                     if (set.Remove(item)) break;
                 }
             }
-            watch.Stop();
-            Console.WriteLine($"HashSetCache Exceptwitch timspan: {watch.Elapsed.TotalSeconds}");
-            watch.Reset();
         }
 
         public IEnumerator<T> GetEnumerator()
