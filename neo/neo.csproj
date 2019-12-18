@@ -18,6 +18,9 @@
     <Company>The Neo Project</Company>
     <Description>Neo</Description>
     <LangVersion>latest</LangVersion>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject />
   </PropertyGroup>
 
   <ItemGroup>

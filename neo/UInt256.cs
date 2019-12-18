@@ -1,6 +1,10 @@
+using Neo.IO.Caching;
+using Neo.Network.P2P.Payloads;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+
 
 namespace Neo
 {
@@ -35,6 +39,8 @@ namespace Neo
         /// </summary>
         public unsafe int CompareTo(UInt256 other)
         {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             fixed (byte* px = ToArray(), py = other.ToArray())
             {
                 ulong* lpx = (ulong*)px;
@@ -48,6 +54,9 @@ namespace Neo
                         return -1;
                 }
             }
+            stopwatch.Stop();
+            //Console.WriteLine($"Uint256 timespan: {stopwatch.Elapsed.TotalMilliseconds}");
+            stopwatch.Reset();
             return 0;
         }
 
@@ -149,6 +158,48 @@ namespace Neo
         public static bool operator <=(UInt256 left, UInt256 right)
         {
             return left.CompareTo(right) <= 0;
+        }
+
+        static void Main01(string[] args)
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            var fifoSet = new FIFOSet<UInt256>(150_000);
+            var hashes = new UInt256[10000];
+            for (int i = 0; i < 135_000; i++)
+            {
+                var transaction = CreateRandomHashTransaction();
+                fifoSet.Add(transaction.Hash);
+                if (i < 10000) hashes[i] = transaction.Hash;
+            }
+            Console.WriteLine($"fifoset size: {fifoSet.Size}");
+            stopwatch.Start();
+            fifoSet.ExceptWith(hashes);
+            stopwatch.Stop();
+            Console.WriteLine($"timespan:{stopwatch.Elapsed.TotalSeconds}");
+            Console.WriteLine($"fifoset size: {fifoSet.Size}");
+        }
+
+        public static readonly Random TestRandom = new Random(1337);
+
+        public static Transaction CreateRandomHashTransaction()
+        {
+            var randomBytes = new byte[16];
+            TestRandom.NextBytes(randomBytes);
+            return new Transaction
+            {
+                Script = randomBytes,
+                Sender = UInt160.Zero,
+                Attributes = new TransactionAttribute[0],
+                Cosigners = new Cosigner[0],
+                Witnesses = new[]
+                {
+                    new Witness
+                    {
+                        InvocationScript = new byte[0],
+                        VerificationScript = new byte[0]
+                    }
+                }
+            };
         }
     }
 }
