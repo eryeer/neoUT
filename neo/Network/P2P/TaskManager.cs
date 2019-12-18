@@ -69,7 +69,7 @@ namespace Neo.Network.P2P
         public TaskManager(NeoSystem system)
         {
             this.system = system;
-            this.knownHashes = new HashSetCache<UInt256>(15_000);
+            this.knownHashes = new HashSetCache<UInt256>(30_000);
         }
 
         private void OnHeaderTaskCompleted()
@@ -248,6 +248,7 @@ namespace Neo.Network.P2P
         {
             //phase1
             AkkaLog.Info($"TaskManager OnRestartTasks start, inv count: {payload.Hashes.Length}, knownHashes count: {knownHashes.Size}");
+            
             try
             {
                 knownHashes.ExceptWith(payload.Hashes);

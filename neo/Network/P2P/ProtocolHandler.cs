@@ -93,8 +93,8 @@ namespace Neo.Network.P2P
         public ProtocolHandler(NeoSystem system)
         {
             this.system = system;
-            this.knownHashes = new HashSetCache<UInt256>(15_000);
-            this.sentHashes = new HashSetCache<UInt256>(15_000);
+            this.knownHashes = new HashSetCache<UInt256>(30_000);
+            this.sentHashes = new HashSetCache<UInt256>(30_000);
         }
 
         public static long countReturnedPhase1 = 0;

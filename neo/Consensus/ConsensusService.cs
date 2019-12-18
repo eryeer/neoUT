@@ -1076,6 +1076,8 @@ namespace Neo.Consensus
             {
                 UInt256[] hashes = context.TransactionHashes.Where(i => !context.Transactions.ContainsKey(i)).ToArray();
                 Log($"{hashes.Length} transactions need to be asked.");
+                AkkaLog.Info($"Verified transaction count in mempool: {mempool.VerifiedCount}");
+                AkkaLog.Info($"Unverified transaction count in mempool: {mempool.UnVerifiedCount}");
                 var invpayload = InvPayload.Create(InventoryType.TX, hashes);
                 Log("inv payload created");
                 taskManager.Tell(new TaskManager.RestartTasks
