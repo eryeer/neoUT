@@ -84,8 +84,8 @@ namespace Neo.Network.P2P
         public class SetFilter { public BloomFilter Filter; }
 
         private readonly NeoSystem system;
-        private readonly FIFOSet<UInt256> knownHashes;
-        private readonly FIFOSet<UInt256> sentHashes;
+        private readonly HashSetCache<UInt256> knownHashes;
+        private readonly HashSetCache<UInt256> sentHashes;
         private VersionPayload version;
         private bool verack = false;
         private BloomFilter bloom_filter;
@@ -93,8 +93,8 @@ namespace Neo.Network.P2P
         public ProtocolHandler(NeoSystem system)
         {
             this.system = system;
-            this.knownHashes = new FIFOSet<UInt256>(150_000);
-            this.sentHashes = new FIFOSet<UInt256>(150_000);
+            this.knownHashes = new HashSetCache<UInt256>(15_000);
+            this.sentHashes = new HashSetCache<UInt256>(15_000);
         }
 
         public static long countReturnedPhase1 = 0;

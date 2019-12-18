@@ -163,20 +163,21 @@ namespace Neo
         static void Main01(string[] args)
         {
             Stopwatch stopwatch = new Stopwatch();
-            var fifoSet = new FIFOSet<UInt256>(150_000);
+            var fifoSet = new HashSetCache<UInt256>(15_000);
             var hashes = new UInt256[10000];
+            var index = 0;
             for (int i = 0; i < 135_000; i++)
             {
                 var transaction = CreateRandomHashTransaction();
                 fifoSet.Add(transaction.Hash);
-                if (i < 10000) hashes[i] = transaction.Hash;
+                if (i % 5 == 0 && i <50000) hashes[index++] = transaction.Hash;
             }
-            Console.WriteLine($"fifoset size: {fifoSet.Size}");
+            Console.WriteLine($"HashSetCache size: {fifoSet.Size}");
             stopwatch.Start();
             fifoSet.ExceptWith(hashes);
             stopwatch.Stop();
             Console.WriteLine($"timespan:{stopwatch.Elapsed.TotalSeconds}");
-            Console.WriteLine($"fifoset size: {fifoSet.Size}");
+            Console.WriteLine($"HashSetCache size: {fifoSet.Size}");
         }
 
         public static readonly Random TestRandom = new Random(1337);
