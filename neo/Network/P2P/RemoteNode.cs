@@ -100,19 +100,6 @@ namespace Neo.Network.P2P
             }
             var msg = queue.Dequeue();
             SendMessage(msg);
-            if (msg.Command == MessageCommand.GetDataHighPriority)
-            {
-                Interlocked.Increment(ref sendGetDataMessageHighPriorityCount);
-                Log.Info($"RemoteNode CheckMessageQueue: send getDataHighPriority Flag: {msg.Flags} count: {sendGetDataMessageHighPriorityCount * 500}");
-                
-            } if (msg.Command == MessageCommand.TransactionHighPriority)
-            {
-                Interlocked.Increment(ref sendTransactionHighPriorityCount);
-                if (sendTransactionHighPriorityCount % 10 == 0)
-                {
-                    Log.Info($"RemoteNode CheckMessageQueue: send transactionHighPriority count: {sendTransactionHighPriorityCount}");
-                }
-            }
             if (msg.Command == MessageCommand.GetData && countSwitchRemoteNode) Interlocked.Increment(ref sendGetDataMessageCount);
 
         }
@@ -146,8 +133,6 @@ namespace Neo.Network.P2P
                 case MessageCommand.FilterClear:
                 case MessageCommand.FilterLoad:
                 case MessageCommand.GetAddr:
-                case MessageCommand.GetDataHighPriority:
-                case MessageCommand.TransactionHighPriority:
                 case MessageCommand.Mempool:
                     message_queue = message_queue_high;
                     break;
@@ -172,10 +157,6 @@ namespace Neo.Network.P2P
 
             for (Message message = TryParseMessage(); message != null; message = TryParseMessage())
             {
-                if (message.Command == MessageCommand.GetDataHighPriority)
-                {
-                    Log.Info($"RemoteNode OnData: receive GetDataHighPriority");
-                }
                 protocol.Tell(message);
                 if (message.Command is MessageCommand.GetData && countSwitchRemoteNode) {
                     Interlocked.Increment(ref receivedGetDataMessageCount);

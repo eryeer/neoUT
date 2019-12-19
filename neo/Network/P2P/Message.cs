@@ -72,11 +72,9 @@ namespace Neo.Network.P2P
                     break;
                 case MessageCommand.Inv:
                 case MessageCommand.GetData:
-                case MessageCommand.GetDataHighPriority:
                     Payload = decompressed.AsSerializable<InvPayload>();
                     break;
                 case MessageCommand.Transaction:
-                case MessageCommand.TransactionHighPriority:
                     Payload = decompressed.AsSerializable<Transaction>();
                     break;
                 case MessageCommand.Block:
@@ -151,10 +149,6 @@ namespace Neo.Network.P2P
                 Command = (MessageCommand)header[1],
                 _payload_compressed = length <= 0 ? new byte[0] : data.Slice(payloadIndex, (int)length).ToArray()
             };
-            if (msg.Command == MessageCommand.GetDataHighPriority)
-            {
-                Console.WriteLine($"Message TryDeserilze : {msg.Command} Flag: {msg.Flags}" );
-            }
             try
             {
                 msg.DecompressPayload();

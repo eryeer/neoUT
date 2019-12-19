@@ -269,15 +269,7 @@ namespace Neo.Network.P2P
             foreach (InvPayload group in InvPayload.CreateGroup(payload.Type, payload.Hashes))
             {
                 Console.WriteLine($"group info: type {group.Type} length {group.Hashes.Length}");
-                if (group.Type == InventoryType.TX)
-                {
-                    AkkaLog.Info("TaskManager OnRestartTasks start to get Consensus tx");
-                    system.LocalNode.Tell(Message.Create(MessageCommand.GetDataHighPriority, group));
-                }
-                else
-                {
-                    system.LocalNode.Tell(Message.Create(MessageCommand.GetData, group));
-                }
+                system.LocalNode.Tell(Message.Create(MessageCommand.GetData, group));
             }
             Console.WriteLine("TaskManager OnRestartTasks finished");
         }

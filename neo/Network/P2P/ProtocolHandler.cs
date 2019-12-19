@@ -112,10 +112,6 @@ namespace Neo.Network.P2P
                 return;
             }
             if (((Message)message).Command == MessageCommand.GetData) Interlocked.Increment(ref countEntryGetData);
-            if (((Message)message).Command == MessageCommand.GetDataHighPriority)
-            {
-                Console.WriteLine("ProtocolHandler OnReceive TOP receive GetDataHighPriority");
-            }
             //phase2
             foreach (IP2PPlugin plugin in Plugin.P2PPlugins)
                 if (!plugin.OnP2PMessage(msg))
@@ -338,28 +334,6 @@ namespace Neo.Network.P2P
                         while (initialValue != Interlocked.CompareExchange(ref totalTimeGetData, computedValue, initialValue));
                     }
                     break;
-                case MessageCommand.GetDataHighPriority:
-                    AkkaLog.Info("ProtocolHandler OnReceive GetDataHighPriority");
-                    stopwatchGetDataHighPriority.Start();
-                    OnGetDataMessageHighPriorityReceived((InvPayload)msg.Payload);
-                    stopwatchGetDataHighPriority.Stop();
-                    timespan = stopwatchGetDataHighPriority.Elapsed.TotalSeconds;
-                    stopwatchGetDataHighPriority.Reset();
-                    if (watchSwitch)
-                    {
-                        AkkaLog.Info($"Class:ProtocolHandler Type: GetDataHighPriority TimeSpan:{timespan}");
-                    }
-                    if (countSwitch)
-                    {
-                        Interlocked.Increment(ref countGetDataHighPriority);
-                        do
-                        {
-                            initialValue = totalTimeGetData;
-                            computedValue = initialValue + timespan;
-                        }
-                        while (initialValue != Interlocked.CompareExchange(ref totalTimeGetDataHighPriority, computedValue, initialValue));
-                    }
-                    break;
                 case MessageCommand.GetHeaders:
                     stopwatchGetHeaders.Start();
                     OnGetHeadersMessageReceived((GetBlocksPayload)msg.Payload);
@@ -487,7 +461,6 @@ namespace Neo.Network.P2P
                     }
                     break;
                 case MessageCommand.Transaction:
-                case MessageCommand.TransactionHighPriority:
                     stopwatchTransaction.Start();
                     if (msg.Payload.Size <= Transaction.MaxTransactionSize)
                         OnInventoryReceived((Transaction)msg.Payload);
@@ -609,22 +582,6 @@ namespace Neo.Network.P2P
                     case InventoryType.Consensus:
                         if (Blockchain.Singleton.ConsensusRelayCache.TryGet(hash, out IInventory inventoryConsensus))
                             Context.Parent.Tell(Message.Create(MessageCommand.Consensus, inventoryConsensus));
-                        break;
-                }
-            }
-        }
-
-        private void OnGetDataMessageHighPriorityReceived(InvPayload payload)
-        {
-            UInt256[] hashes = payload.Hashes.Where(p => sentHashes.Add(p)).ToArray();
-            foreach (UInt256 hash in hashes)
-            {
-                switch (payload.Type)
-                {
-                    case InventoryType.TX:
-                        Transaction tx = Blockchain.Singleton.GetTransaction(hash);
-                        if (tx != null)
-                            Context.Parent.Tell(Message.Create(MessageCommand.TransactionHighPriority, tx));
                         break;
                 }
             }
@@ -756,8 +713,6 @@ namespace Neo.Network.P2P
                 case MessageCommand.Verack:
                 case MessageCommand.Version:
                 case MessageCommand.Alert:
-                case MessageCommand.GetDataHighPriority:
-                case MessageCommand.TransactionHighPriority:
                     return true;
                 default:
                     return false;
