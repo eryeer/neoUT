@@ -100,14 +100,6 @@ namespace Neo.Network.P2P
             }
             var msg = queue.Dequeue();
             SendMessage(msg);
-            if (msg.Command == MessageCommand.Consensus)
-            {
-                var consensuspayload = (ConsensusPayload)msg.Payload;
-                if (consensuspayload.ConsensusMessage is PrepareRequest request)
-                {
-                    Log.Info($"RemoteNode CheckMessageQueue: send prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex} tx {request.TransactionHashes.Length}");
-                }
-            }
             if (msg.Command == MessageCommand.GetDataHighPriority)
             {
                 Interlocked.Increment(ref sendGetDataMessageHighPriorityCount);
