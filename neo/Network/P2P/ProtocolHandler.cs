@@ -116,10 +116,6 @@ namespace Neo.Network.P2P
             {
                 Console.WriteLine("ProtocolHandler OnReceive TOP receive GetDataHighPriority");
             }
-            if (((Message)message).Command == MessageCommand.TransactionHighPriority)
-            {
-                Console.WriteLine("ProtocolHandler OnReceive TOP receive TransactionHighPriority");
-            }
             //phase2
             foreach (IP2PPlugin plugin in Plugin.P2PPlugins)
                 if (!plugin.OnP2PMessage(msg))
