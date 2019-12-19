@@ -21,7 +21,14 @@ namespace Neo.Network.P2P
 
         public static byte[] DecompressLz4(this byte[] data, int maxOutput)
         {
-            maxOutput = Math.Min(maxOutput, data.Length * 255);
+            var scaledLength = data.Length * 255;
+            if (scaledLength < 0)
+            {
+                Console.WriteLine($"Warn: datalength={data.Length} exceed length maxium");
+            }
+
+            maxOutput = Math.Min(maxOutput, scaledLength);
+
             byte[] buffer;
             try
             {

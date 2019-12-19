@@ -149,7 +149,15 @@ namespace Neo.Network.P2P
                 Command = (MessageCommand)header[1],
                 _payload_compressed = length <= 0 ? new byte[0] : data.Slice(payloadIndex, (int)length).ToArray()
             };
-            msg.DecompressPayload();
+            try
+            {
+                msg.DecompressPayload();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error: Decompress payload {msg.Command}");
+                throw e;
+            }
 
             return payloadIndex + (int)length;
         }
