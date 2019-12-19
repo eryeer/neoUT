@@ -1262,6 +1262,7 @@ namespace Neo.Consensus
             if (context.Transactions.ContainsKey(transaction.Hash)) return;
             if (!context.TransactionHashes.Contains(transaction.Hash)) return;
             AddTransaction(transaction, true);
+            AkkaLog.Info($"ConsensusService OnTransaction remain transaction: {context.TransactionHashes.Length - context.Transactions.Count} blockIndex: {context.Block.Index} view: {context.ViewNumber}");
         }
 
         protected override void PostStop()

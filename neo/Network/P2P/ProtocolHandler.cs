@@ -189,11 +189,6 @@ namespace Neo.Network.P2P
                     break;
                 case MessageCommand.Consensus:
                     stopwatchConsensus.Start();
-                    var consensuspayload = (ConsensusPayload)msg.Payload;
-                    if (consensuspayload.ConsensusMessage is PrepareRequest request)
-                    {
-                        AkkaLog.Info($"ProtolHandler OnReceive: received prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex} tx {request.TransactionHashes.Length}");
-                    }
                     OnInventoryReceived((ConsensusPayload)msg.Payload);
                     stopwatchConsensus.Stop();
                     timespan = stopwatchConsensus.Elapsed.TotalSeconds;

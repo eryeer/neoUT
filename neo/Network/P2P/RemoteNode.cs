@@ -108,7 +108,7 @@ namespace Neo.Network.P2P
             } if (msg.Command == MessageCommand.TransactionHighPriority)
             {
                 Interlocked.Increment(ref sendTransactionHighPriorityCount);
-                if (sendTransactionHighPriorityCount % 500 == 0)
+                if (sendTransactionHighPriorityCount % 10 == 0)
                 {
                     Log.Info($"RemoteNode CheckMessageQueue: send transactionHighPriority count: {sendTransactionHighPriorityCount}");
                 }
@@ -172,10 +172,6 @@ namespace Neo.Network.P2P
 
             for (Message message = TryParseMessage(); message != null; message = TryParseMessage())
             {
-                if (message.Command == MessageCommand.TransactionHighPriority)
-                {
-                    Log.Info($"RemoteNode OnData: receive TransactionHighPriority");
-                }
                 if (message.Command == MessageCommand.GetDataHighPriority)
                 {
                     Log.Info($"RemoteNode OnData: receive GetDataHighPriority");
