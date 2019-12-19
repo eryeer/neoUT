@@ -340,6 +340,7 @@ namespace Neo.Network.P2P
                     }
                     break;
                 case MessageCommand.GetDataHighPriority:
+                    AkkaLog.Info("ProtocolHandler OnReceive GetDataHighPriority");
                     stopwatchGetDataHighPriority.Start();
                     OnGetDataMessageHighPriorityReceived((InvPayload)msg.Payload);
                     stopwatchGetDataHighPriority.Stop();
@@ -487,6 +488,7 @@ namespace Neo.Network.P2P
                     }
                     break;
                 case MessageCommand.Transaction:
+                case MessageCommand.TransactionHighPriority:
                     stopwatchTransaction.Start();
                     if (msg.Payload.Size <= Transaction.MaxTransactionSize)
                         OnInventoryReceived((Transaction)msg.Payload);
@@ -756,6 +758,7 @@ namespace Neo.Network.P2P
                 case MessageCommand.Version:
                 case MessageCommand.Alert:
                 case MessageCommand.GetDataHighPriority:
+                case MessageCommand.TransactionHighPriority:
                     return true;
                 default:
                     return false;

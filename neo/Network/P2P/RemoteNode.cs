@@ -111,7 +111,7 @@ namespace Neo.Network.P2P
             if (msg.Command == MessageCommand.GetDataHighPriority)
             {
                 Interlocked.Increment(ref sendGetDataMessageHighPriorityCount);
-                Log.Info($"RemoteNode CheckMessageQueue: send getDataHighPriority count: {sendGetDataMessageHighPriorityCount * 500}");
+                Log.Info($"RemoteNode CheckMessageQueue: send getDataHighPriority Flag: {msg.Flags} count: {sendGetDataMessageHighPriorityCount * 500}");
                 
             } if (msg.Command == MessageCommand.TransactionHighPriority)
             {
@@ -180,17 +180,13 @@ namespace Neo.Network.P2P
 
             for (Message message = TryParseMessage(); message != null; message = TryParseMessage())
             {
-                if (message.Command == MessageCommand.Consensus)
-                {
-                    var consensuspayload = (ConsensusPayload)message.Payload;
-                    if (consensuspayload.ConsensusMessage is PrepareRequest request)
-                    {
-                        Log.Info($"RemoteNode OnData: receive prepareRequest: view {request.ViewNumber} index {consensuspayload.ValidatorIndex} blockheight {consensuspayload.BlockIndex} tx {request.TransactionHashes.Length}");
-                    }
-                }
                 if (message.Command == MessageCommand.TransactionHighPriority)
                 {
                     Log.Info($"RemoteNode OnData: receive TransactionHighPriority");
+                }
+                if (message.Command == MessageCommand.GetDataHighPriority)
+                {
+                    Log.Info($"RemoteNode OnData: receive GetDataHighPriority");
                 }
                 protocol.Tell(message);
                 if (message.Command is MessageCommand.GetData && countSwitchRemoteNode) {
