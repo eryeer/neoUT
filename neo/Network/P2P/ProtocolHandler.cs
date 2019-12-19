@@ -112,6 +112,14 @@ namespace Neo.Network.P2P
                 return;
             }
             if (((Message)message).Command == MessageCommand.GetData) Interlocked.Increment(ref countEntryGetData);
+            if (((Message)message).Command == MessageCommand.GetDataHighPriority)
+            {
+                Console.WriteLine("ProtocolHandler OnReceive TOP receive GetDataHighPriority");
+            }
+            if (((Message)message).Command == MessageCommand.TransactionHighPriority)
+            {
+                Console.WriteLine("ProtocolHandler OnReceive TOP receive TransactionHighPriority");
+            }
             //phase2
             foreach (IP2PPlugin plugin in Plugin.P2PPlugins)
                 if (!plugin.OnP2PMessage(msg))
@@ -767,7 +775,6 @@ namespace Neo.Network.P2P
             {
                 case MessageCommand.GetAddr:
                 case MessageCommand.GetBlocks:
-                //case MessageCommand.GetData:
                 case MessageCommand.GetHeaders:
                 case MessageCommand.Mempool:
                     return queue.OfType<Message>().Any(p => p.Command == msg.Command);
