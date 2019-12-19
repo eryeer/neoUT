@@ -26,9 +26,10 @@ namespace Neo.Network.P2P
             {
                 Console.WriteLine($"Warn: datalength={data.Length} exceed length maxium");
             }
-
-            maxOutput = Math.Min(maxOutput, scaledLength);
-
+            else
+            {
+                maxOutput = Math.Min(maxOutput, scaledLength);
+            }
             byte[] buffer;
             try
             {
