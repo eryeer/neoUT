@@ -996,14 +996,25 @@ namespace Neo.Consensus
             watch.Reset();
             //phase4
             watch.Start();
-            if (message.TransactionHashes.Any(p => context.Snapshot.ContainsTransaction(p)))
+            foreach (var txHash in message.TransactionHashes)
             {
-                Log($"Invalid request: transaction already exists", Plugins.LogLevel.Warning);
-                watch.Stop();
-                Log($"{nameof(OnPrepareRequestReceived)} phase4 timespan: {watch.Elapsed.TotalSeconds}");
-                watch.Reset();
-                return;
+                if (context.Snapshot.ContainsTransaction(txHash))
+                {
+                    Log($"Invalid request: transaction already exists", Plugins.LogLevel.Warning);
+                    watch.Stop();
+                    Log($"{nameof(OnPrepareRequestReceived)} phase4 timespan: {watch.Elapsed.TotalSeconds}");
+                    watch.Reset();
+                    return;
+                }
             }
+            //if (message.TransactionHashes.Any(p => context.Snapshot.ContainsTransaction(p)))
+            //{
+            //    Log($"Invalid request: transaction already exists", Plugins.LogLevel.Warning);
+            //    watch.Stop();
+            //    Log($"{nameof(OnPrepareRequestReceived)} phase4 timespan: {watch.Elapsed.TotalSeconds}");
+            //    watch.Reset();
+            //    return;
+            //}
             watch.Stop();
             Log($"{nameof(OnPrepareRequestReceived)} phase4 timespan: {watch.Elapsed.TotalSeconds}");
             watch.Reset();
@@ -1049,6 +1060,11 @@ namespace Neo.Consensus
             //phase7
             watch.Start();
             Dictionary<UInt256, Transaction> mempoolVerified = Blockchain.Singleton.MemPool.GetVerifiedTransactions().ToDictionary(p => p.Hash);
+            watch.Stop();
+            Log($"{nameof(OnPrepareRequestReceived)} phase7 timespan: {watch.Elapsed.TotalSeconds}");
+            watch.Reset();
+            //phase8
+            watch.Start();
             List<Transaction> unverified = new List<Transaction>();
             foreach (UInt256 hash in context.TransactionHashes)
             {
@@ -1057,7 +1073,7 @@ namespace Neo.Consensus
                     if (!AddTransaction(tx, false))
                     {
                         watch.Stop();
-                        Log($"{nameof(OnPrepareRequestReceived)} phase7 timespan: {watch.Elapsed.TotalSeconds}");
+                        Log($"{nameof(OnPrepareRequestReceived)} phase8 timespan: {watch.Elapsed.TotalSeconds}");
                         watch.Reset();
                         return;
                     }
@@ -1069,15 +1085,15 @@ namespace Neo.Consensus
                 }
             }
             watch.Stop();
-            Log($"{nameof(OnPrepareRequestReceived)} phase7 timespan: {watch.Elapsed.TotalSeconds}");
+            Log($"{nameof(OnPrepareRequestReceived)} phase8 timespan: {watch.Elapsed.TotalSeconds}");
             watch.Reset();
-            //phase8
+            //phase9
             watch.Start();
             foreach (Transaction tx in unverified)
                 if (!AddTransaction(tx, true))
                 {
                     watch.Stop();
-                    Log($"{nameof(OnPrepareRequestReceived)} phase8 timespan: {watch.Elapsed.TotalSeconds}");
+                    Log($"{nameof(OnPrepareRequestReceived)} phase9 timespan: {watch.Elapsed.TotalSeconds}");
                     watch.Reset();
                     return;
                 }
@@ -1095,7 +1111,7 @@ namespace Neo.Consensus
                 });
             }
             watch.Stop();
-            Log($"{nameof(OnPrepareRequestReceived)} phase8 timespan: {watch.Elapsed.TotalSeconds}");
+            Log($"{nameof(OnPrepareRequestReceived)} phase9 timespan: {watch.Elapsed.TotalSeconds}");
             watch.Reset();
         }
 
