@@ -248,18 +248,7 @@ namespace Neo.Network.P2P
         {
             //phase1
             AkkaLog.Info($"TaskManager OnRestartTasks start, inv count: {payload.Hashes.Length}, knownHashes count: {knownHashes.Size}");
-            
-            try
-            {
-                knownHashes.ExceptWith(payload.Hashes);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error: " + e.Message);
-                Console.WriteLine("Error: " + e.StackTrace);
-                Console.WriteLine("Error: " + e.ToString());
-                throw e;
-            }
+            knownHashes.ExceptWith(payload.Hashes);
             //phase2
             AkkaLog.Info($"TaskManager OnRestartTasks start phase2");
             foreach (UInt256 hash in payload.Hashes)

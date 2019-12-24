@@ -996,25 +996,14 @@ namespace Neo.Consensus
             watch.Reset();
             //phase4
             watch.Start();
-            foreach (var txHash in message.TransactionHashes)
+            if (message.TransactionHashes.Any(p => context.Snapshot.ContainsTransaction(p)))
             {
-                if (context.Snapshot.ContainsTransaction(txHash))
-                {
-                    Log($"Invalid request: transaction already exists", Plugins.LogLevel.Warning);
-                    watch.Stop();
-                    Log($"{nameof(OnPrepareRequestReceived)} phase4 timespan: {watch.Elapsed.TotalSeconds}");
-                    watch.Reset();
-                    return;
-                }
+                Log($"Invalid request: transaction already exists", Plugins.LogLevel.Warning);
+                watch.Stop();
+                Log($"{nameof(OnPrepareRequestReceived)} phase4 timespan: {watch.Elapsed.TotalSeconds}");
+                watch.Reset();
+                return;
             }
-            //if (message.TransactionHashes.Any(p => context.Snapshot.ContainsTransaction(p)))
-            //{
-            //    Log($"Invalid request: transaction already exists", Plugins.LogLevel.Warning);
-            //    watch.Stop();
-            //    Log($"{nameof(OnPrepareRequestReceived)} phase4 timespan: {watch.Elapsed.TotalSeconds}");
-            //    watch.Reset();
-            //    return;
-            //}
             watch.Stop();
             Log($"{nameof(OnPrepareRequestReceived)} phase4 timespan: {watch.Elapsed.TotalSeconds}");
             watch.Reset();
