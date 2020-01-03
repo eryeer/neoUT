@@ -1006,6 +1006,7 @@ namespace Neo.Ledger
                     stopwatchPersistPhase2.Reset();
                     //phase3
                     stopwatchPersistPhase3.Start();
+                    AkkaLog.Info($"=====Mempool verified count: {MemPool.VerifiedCount}=======");
                     AkkaLog.Info("=====Start to execute TX =======");
                     foreach (Transaction tx in block.Transactions)
                     {
