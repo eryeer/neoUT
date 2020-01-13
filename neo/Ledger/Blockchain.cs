@@ -767,7 +767,11 @@ namespace Neo.Ledger
         private void OnParallelVerified(ParallelVerified parallelVerified)
         {
             RelayResultReason reason = RelayResultReason.Succeed;
-            if (!parallelVerified.VerifyResult)
+            if (ContainsTransaction(parallelVerified.Transaction.Hash))
+                reason = RelayResultReason.AlreadyExists;
+            else if (!MemPool.CanTransactionFitInPool(parallelVerified.Transaction))
+                reason = RelayResultReason.OutOfMemory;
+            else if (!parallelVerified.VerifyResult)
                 reason = RelayResultReason.Invalid;
             else if (!MemPool.TryAdd(parallelVerified.Transaction.Hash, parallelVerified.Transaction))
                 reason = RelayResultReason.OutOfMemory;
