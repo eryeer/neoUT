@@ -40,9 +40,11 @@ namespace Neo.SmartContract.Native.Tokens
 
         protected override void OnBalanceChanging(ApplicationEngine engine, UInt160 account, AccountState state, BigInteger amount)
         {
+            //激励
             DistributeGas(engine, account, state);
             if (amount.IsZero) return;
             if (state.Votes.Length == 0) return;
+            //治理
             foreach (ECPoint pubkey in state.Votes)
             {
                 StorageItem storage_validator = engine.Snapshot.Storages.GetAndChange(CreateStorageKey(Prefix_Validator, pubkey.ToArray()));
@@ -60,6 +62,7 @@ namespace Neo.SmartContract.Native.Tokens
         {
             BigInteger gas = CalculateBonus(engine.Snapshot, state.Balance, state.BalanceHeight, engine.Snapshot.PersistingBlock.Index);
             state.BalanceHeight = engine.Snapshot.PersistingBlock.Index;
+            //给账户和总GAS统计添加新激励的gas
             GAS.Mint(engine, account, gas);
             engine.Snapshot.Storages.GetAndChange(CreateAccountKey(account)).Value = state.ToByteArray();
         }
@@ -70,6 +73,7 @@ namespace Neo.SmartContract.Native.Tokens
             if (value.Sign < 0) throw new ArgumentOutOfRangeException(nameof(value));
             BigInteger amount = BigInteger.Zero;
             uint ustart = start / Blockchain.DecrementInterval;
+            //按持有比例获取增量的GAS
             if (ustart < Blockchain.GenerationAmount.Length)
             {
                 uint istart = start % Blockchain.DecrementInterval;
@@ -93,6 +97,7 @@ namespace Neo.SmartContract.Native.Tokens
                 }
                 amount += (iend - istart) * Blockchain.GenerationAmount[ustart];
             }
+            //将新收入的系统费按NEO持有比例发给用户
             amount += (GAS.GetSysFeeAmount(snapshot, end - 1) - (start == 0 ? 0 : GAS.GetSysFeeAmount(snapshot, start - 1))) / GAS.Factor;
             return value * amount * GAS.Factor / TotalAmount;
         }
