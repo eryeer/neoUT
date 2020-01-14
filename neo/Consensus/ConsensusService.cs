@@ -148,7 +148,7 @@ namespace Neo.Consensus
 
                 // Timeout extension due to prepare response sent
                 // around 2*15/M=30.0/5 ~ 40% block time (for M=5)
-                ExtendTimerByFactor(6);
+                ExtendTimerByFactor(10);
 
                 Log($"send prepare response");
                 localNode.Tell(new LocalNode.SendDirectly { Inventory = context.MakePrepareResponse() });
@@ -678,7 +678,7 @@ namespace Neo.Consensus
 
             // Timeout extension: commit has been received with success
             // around 4*15s/M=60.0s/5=12.0s ~ 80% block time (for M=5)
-            ExtendTimerByFactor(6);
+            ExtendTimerByFactor(10);
 
             if (commit.ViewNumber == context.ViewNumber)
             {
@@ -1011,7 +1011,7 @@ namespace Neo.Consensus
             // Timeout extension: prepare request has been received with success
             // around 2*15/M=30.0/5 ~ 40% block time (for M=5)
             watch.Start();
-            ExtendTimerByFactor(6);
+            ExtendTimerByFactor(10);
 
             context.Block.Timestamp = message.Timestamp;
             context.Block.ConsensusData.Nonce = message.Nonce;
@@ -1113,7 +1113,7 @@ namespace Neo.Consensus
 
             // Timeout extension: prepare response has been received with success
             // around 2*15/M=30.0/5 ~ 40% block time (for M=5)
-            ExtendTimerByFactor(6);
+            ExtendTimerByFactor(10);
 
             Log($"{nameof(OnPrepareResponseReceived)}: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex}");
             context.PreparationPayloads[payload.ValidatorIndex] = payload;
