@@ -1,57 +1,57 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Neo.IO.Caching
 {
-    public class HashSetCache<T> : IEnumerable<T> where T : IEquatable<T>
+    public class HashSetCache<T> : IReadOnlyCollection<T> where T : IEquatable<T>
     {
+        /// <summary>
+        /// Sets where the Hashes are stored
+        /// </summary>      
+        private readonly LinkedList<HashSet<T>> sets = new LinkedList<HashSet<T>>();
 
-        private readonly int hashSetCapacity;
-        private readonly List<HashSet<T>> sets = new List<HashSet<T>>();
+        /// <summary>
+        /// Maximum capacity of each bucket inside each HashSet of <see cref="sets"/>.
+        /// </summary>        
+        private readonly int bucketCapacity;
 
-        public int Size
+        /// <summary>
+        /// Maximum number of buckets for the LinkedList, meaning its maximum cardinality.
+        /// </summary>
+        private readonly int maxBucketCount;
+
+        /// <summary>
+        /// Entry count
+        /// </summary>
+        public int Count { get; private set; }
+
+        public HashSetCache(int bucketCapacity, int maxBucketCount = 10)
         {
-            get
-            {
-                int size = 0;
-                foreach (var set in sets)
-                {
-                    size += set.Count;
-                }
-                return size;
-            }
-        }
+            if (bucketCapacity <= 0) throw new ArgumentOutOfRangeException($"{nameof(bucketCapacity)} should be greater than 0");
+            if (maxBucketCount <= 0) throw new ArgumentOutOfRangeException($"{nameof(maxBucketCount)} should be greater than 0");
 
-        public HashSetCache(int hashSetCapacity, int hashSetCount = 10)
-        {
-            if (hashSetCapacity <= 0) throw new ArgumentOutOfRangeException(nameof(hashSetCapacity));
-            if (hashSetCount <= 0 || hashSetCount > 20) throw new ArgumentOutOfRangeException($"{nameof(hashSetCount)} should between 1 and 20");
-
-            this.hashSetCapacity = hashSetCapacity;
-            for (int i = 0; i < hashSetCount; i++)
-            {
-                sets.Add(new HashSet<T>());
-            }
+            this.Count = 0;
+            this.bucketCapacity = bucketCapacity;
+            this.maxBucketCount = maxBucketCount;
+            sets.AddFirst(new HashSet<T>());
         }
 
         public bool Add(T item)
         {
             if (Contains(item)) return false;
-            foreach (var set in sets)
-            {
-                if (set.Count < hashSetCapacity)
-                {
-                    return set.Add(item);
-                }
-            }
-            sets.RemoveAt(0);
+            Count++;
+            if (sets.First.Value.Count < bucketCapacity) return sets.First.Value.Add(item);
             var newSet = new HashSet<T>
             {
                 item
             };
-            sets.Add(newSet);
+            sets.AddFirst(newSet);
+            if (sets.Count > maxBucketCount)
+            {
+                Count -= sets.Last.Value.Count;
+                sets.RemoveLast();
+            }
             return true;
         }
 
@@ -66,12 +66,27 @@ namespace Neo.IO.Caching
 
         public void ExceptWith(IEnumerable<T> items)
         {
+            List<HashSet<T>> removeList = null;
             foreach (var item in items)
             {
                 foreach (var set in sets)
                 {
-                    if (set.Remove(item)) break;
+                    if (set.Remove(item))
+                    {
+                        Count--;
+                        if (set.Count == 0)
+                        {
+                            removeList ??= new List<HashSet<T>>();
+                            removeList.Add(set);
+                        }
+                        break;
+                    }
                 }
+            }
+            if (removeList == null) return;
+            foreach (var set in removeList)
+            {
+                sets.Remove(set);
             }
         }
 
@@ -85,6 +100,7 @@ namespace Neo.IO.Caching
                 }
             }
         }
+
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

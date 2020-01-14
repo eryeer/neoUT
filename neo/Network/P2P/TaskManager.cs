@@ -69,7 +69,7 @@ namespace Neo.Network.P2P
         public TaskManager(NeoSystem system)
         {
             this.system = system;
-            this.knownHashes = new HashSetCache<UInt256>(30_000);
+            this.knownHashes = new HashSetCache<UInt256>(Blockchain.Singleton.MemPool.Capacity * 2 / 5);
         }
 
         private void OnHeaderTaskCompleted()
@@ -247,7 +247,7 @@ namespace Neo.Network.P2P
         private void OnRestartTasks(InvPayload payload)
         {
             //phase1
-            AkkaLog.Info($"TaskManager OnRestartTasks start, inv count: {payload.Hashes.Length}, knownHashes count: {knownHashes.Size}");
+            AkkaLog.Info($"TaskManager OnRestartTasks start, inv count: {payload.Hashes.Length}, knownHashes count: {knownHashes.Count}");
             knownHashes.ExceptWith(payload.Hashes);
             //phase2
             AkkaLog.Info($"TaskManager OnRestartTasks start phase2");

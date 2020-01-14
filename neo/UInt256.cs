@@ -160,26 +160,6 @@ namespace Neo
             return left.CompareTo(right) <= 0;
         }
 
-        static void Main01(string[] args)
-        {
-            Stopwatch stopwatch = new Stopwatch();
-            var fifoSet = new HashSetCache<UInt256>(15_000);
-            var hashes = new UInt256[10000];
-            var index = 0;
-            for (int i = 0; i < 135_000; i++)
-            {
-                var transaction = CreateRandomHashTransaction();
-                fifoSet.Add(transaction.Hash);
-                if (i % 5 == 0 && i <50000) hashes[index++] = transaction.Hash;
-            }
-            Console.WriteLine($"HashSetCache size: {fifoSet.Size}");
-            stopwatch.Start();
-            fifoSet.ExceptWith(hashes);
-            stopwatch.Stop();
-            Console.WriteLine($"timespan:{stopwatch.Elapsed.TotalSeconds}");
-            Console.WriteLine($"HashSetCache size: {fifoSet.Size}");
-        }
-
         public static readonly Random TestRandom = new Random(1337);
 
         public static Transaction CreateRandomHashTransaction()
