@@ -173,6 +173,7 @@ namespace Neo.SmartContract.Native.Tokens
                 storage_validator.Value = state_validator.ToByteArray();
             }
             pubkeys = pubkeys.Distinct().Where(p => engine.Snapshot.Storages.TryGet(CreateStorageKey(Prefix_Validator, p.ToArray())) != null).ToArray();
+            //重新投validator数量
             if (pubkeys.Length != state_account.Votes.Length)
             {
                 StorageItem storage_count = engine.Snapshot.Storages.GetAndChange(CreateStorageKey(Prefix_ValidatorsCount), () => new StorageItem
@@ -186,6 +187,7 @@ namespace Neo.SmartContract.Native.Tokens
                     state_count.Votes[pubkeys.Length - 1] += state_account.Balance;
                 storage_count.Value = state_count.ToByteArray();
             }
+            //将新投的pubkey赋予给投票，并保存
             state_account.Votes = pubkeys;
             storage_account.Value = state_account.ToByteArray();
             foreach (ECPoint pubkey in state_account.Votes)
