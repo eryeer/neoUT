@@ -163,7 +163,7 @@ namespace Neo.Network.P2P.Payloads
                 return false;
             }
             //reverify-2
-            if (NativeContract.Policy.GetBlockedAccounts(snapshot).Intersect(GetScriptHashesForVerifying(snapshot)).Count() > 0)
+            if (NativeContract.Policy.GetBlockedAccounts(snapshot).Intersect(GetScriptHashesForVerifying(snapshot)).Any())
             {
                 Console.WriteLine($"Invalid transaction: {this.Hash} reverify-2");
                 return false;

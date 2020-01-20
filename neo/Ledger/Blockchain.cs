@@ -746,8 +746,6 @@ namespace Neo.Ledger
                 reason = RelayResultReason.OutOfMemory;
             else if (!transaction.Reverify(currentSnapshot, MemPool.GetSenderFee(transaction.Sender)))
                 reason = RelayResultReason.Invalid;
-            else if (!NativeContract.Policy.CheckPolicy(transaction, currentSnapshot))
-                reason = RelayResultReason.PolicyFail;
             if (reason != RelayResultReason.Succeed)
             {
                 Sender.Tell(reason);
@@ -767,11 +765,13 @@ namespace Neo.Ledger
         private void OnParallelVerified(ParallelVerified parallelVerified)
         {
             RelayResultReason reason = RelayResultReason.Succeed;
-            if (ContainsTransaction(parallelVerified.Transaction.Hash))
-                reason = RelayResultReason.AlreadyExists;
+            if (!parallelVerified.VerifyResult)
+                reason = RelayResultReason.Invalid; 
+            else if (ContainsTransaction(parallelVerified.Transaction.Hash))
+                reason = RelayResultReason.AlreadyExists; 
             else if (!MemPool.CanTransactionFitInPool(parallelVerified.Transaction))
                 reason = RelayResultReason.OutOfMemory;
-            else if (!parallelVerified.VerifyResult)
+            else if (!parallelVerified.Transaction.Reverify(currentSnapshot, MemPool.GetSenderFee(parallelVerified.Transaction.Sender)))
                 reason = RelayResultReason.Invalid;
             else if (!MemPool.TryAdd(parallelVerified.Transaction.Hash, parallelVerified.Transaction))
                 reason = RelayResultReason.OutOfMemory;
